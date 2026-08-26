@@ -1,0 +1,223 @@
+/* Layout general */
+.admin-layout {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+/* HEADER */
+.admin-header {
+  background: #000;
+  height: 60px;
+  color: white;
+  box-shadow: 0 3px 10px rgba(0, 0, 0, .3);
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+
+.btn-menu {
+  background: transparent;
+  border: none;
+  color: #1abc9c;
+  font-size: 1.4rem;
+  line-height: 1;
+  cursor: pointer;
+  transition: color 0.2s;
+}
+
+.btn-menu:hover {
+  color: #16a085;
+}
+
+/* SIDEBAR */
+.admin-body {
+  flex: 1;
+  display: flex;
+}
+
+.admin-sidebar {
+  width: 230px;
+  flex-shrink: 0;
+  background: #111;
+  color: white;
+  transform: translateX(-100%);
+  transition: transform 0.3s ease-in-out, width 0.3s ease-in-out;
+  overflow: hidden;
+}
+
+.admin-sidebar.open {
+  transform: translateX(0);
+}
+
+.admin-sidebar:not(.open) {
+  width: 0;
+}
+
+.sidebar-menu {
+  list-style: none;
+  padding: 12px 0;
+  margin: 0;
+}
+
+.sidebar-link {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 20px;
+  color: #d0d0d0;
+  text-decoration: none;
+  border-left: 4px solid transparent;
+  white-space: nowrap;
+  transition: background 0.2s, color 0.2s, border-color 0.2s;
+}
+
+.sidebar-link i {
+  width: 18px;
+  text-align: center;
+  font-size: 1.05rem;
+}
+
+.sidebar-link:hover {
+  background: rgba(26, 188, 156, 0.15);
+  color: #1abc9c;
+}
+
+/* estado activo: la sección donde estás parado */
+.sidebar-link.active {
+  background: #1abc9c;
+  color: #000;
+  font-weight: 600;
+  border-left: 4px solid #16a085;
+}
+
+/* Divider para separar logout */
+.sidebar-divider {
+  height: 1px;
+  background: #333;
+  margin: 10px 16px;
+}
+
+/* boton cerrar sesion dentro del sidebar */
+.sidebar-logout {
+  width: 100%;
+  background: transparent;
+  border: none;
+  padding: 12px 20px;
+  color: #d0d0d0;
+  text-align: left;
+  font-size: 1rem;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background 0.2s, color 0.2s, border-color 0.2s;
+  border-left: 4px solid transparent;
+}
+
+.sidebar-logout i {
+  width: 18px;
+  text-align: center;
+}
+
+.sidebar-logout:hover {
+  background: rgba(231, 76, 60, 0.15);
+  color: #e74c3c;
+  border-left: 4px solid #e74c3c;
+}
+
+/* CONTENIDO */
+.admin-content {
+  flex: 1;
+  padding: 25px;
+  background: #f5f6fa;
+}
+
+/* FOOTER */
+.admin-footer {
+  background: #000;
+  color: white;
+  text-align: center;
+  padding: 10px;
+  font-size: 0.85rem;
+}
+
+/* usuario */
+.admin-user {
+  color: #1abc9c;
+  font-weight: bold;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.9rem;
+}
+
+/* botón logout (si lo usas en otro lado, ej. header) */
+.btn-logout {
+  background: transparent;
+  border: 1px solid #1abc9c;
+  color: #1abc9c;
+  border-radius: 6px;
+  padding: 5px 12px;
+  transition: 0.2s;
+}
+
+.btn-logout:hover {
+  background: #1abc9c;
+  color: black;
+}
+
+/* SIDEBAR en móvil: overlay en vez de empujar contenido */
+@media (max-width: 768px) {
+  .admin-sidebar {
+    position: fixed;
+    top: 60px;
+    left: 0;
+    bottom: 0;
+    z-index: 20;
+    box-shadow: 4px 0 15px rgba(0, 0, 0, 0.3);
+  }
+}
+
+/*-------------------------------------------------------------------------*/
+/* Dashboard */
+.dashboard-card {
+  background: #fff;
+  border-radius: 12px;
+  padding: 18px;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.06);
+  height: 100%;
+}
+
+.dashboard-card-icon {
+  width: 46px;
+  height: 46px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.3rem;
+  flex-shrink: 0;
+}
+
+.dashboard-card-label {
+  font-size: 0.8rem;
+  color: #6c757d;
+  margin-bottom: 2px;
+}
+
+.dashboard-card-value {
+  margin: 0;
+  font-weight: 700;
+}
+
+.dashboard-panel {
+  background: #fff;
+  border-radius: 12px;
+  padding: 20px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.06);
+}

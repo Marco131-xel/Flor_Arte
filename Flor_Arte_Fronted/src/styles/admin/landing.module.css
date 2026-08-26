@@ -1,0 +1,263 @@
+@import url("https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600&family=Inter:wght@400;500;600&display=swap");
+
+.page {
+  --ink: #241019;
+  --bloom: #7a2048;
+  --bloom-hover: #5c1730;
+  --sage: #4f6b52;
+  --blush: #faf3f0;
+  --parchment: #fffdfb;
+  --gold: #c9a13e;
+
+  background: var(--blush);
+  color: var(--ink);
+  font-family: "Inter", sans-serif;
+  overflow-x: hidden;
+}
+
+.eyebrow {
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--bloom);
+  margin: 0 0 0.75rem;
+}
+
+.sectionTitle {
+  font-family: "Fraunces", serif;
+  font-size: 2rem;
+  font-weight: 600;
+  margin: 0 0 2.5rem;
+}
+
+/* NAV */
+.nav {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1.5rem 6%;
+}
+
+.navBrand {
+  font-family: "Fraunces", serif;
+  font-weight: 600;
+  font-size: 1.2rem;
+  color: var(--ink);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.navBrand i {
+  color: var(--bloom);
+}
+
+.navCta {
+  color: var(--ink);
+  text-decoration: none;
+  font-weight: 500;
+  font-size: 0.9rem;
+  border: 1px solid var(--ink);
+  padding: 8px 18px;
+  border-radius: 999px;
+  transition: 0.25s;
+}
+
+.navCta:hover {
+  background: var(--ink);
+  color: var(--blush);
+}
+
+/* HERO */
+.hero {
+  padding: 5rem 6% 6rem;
+  max-width: 760px;
+}
+
+.heroTitle {
+  font-family: "Fraunces", serif;
+  font-weight: 600;
+  font-size: clamp(2.4rem, 5vw, 3.6rem);
+  line-height: 1.12;
+  margin: 0 0 1.5rem;
+}
+
+.heroBreak {
+  display: none;
+}
+
+.heroSubtitle {
+  font-size: 1.05rem;
+  line-height: 1.7;
+  color: #5a4a4e;
+  max-width: 520px;
+  margin: 0 0 2rem;
+}
+
+.heroCta {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: var(--bloom);
+  color: #fff;
+  text-decoration: none;
+  font-weight: 500;
+  padding: 14px 26px;
+  border-radius: 999px;
+  transition: 0.25s;
+}
+
+.heroCta:hover {
+  background: var(--bloom-hover);
+  transform: translateY(-2px);
+}
+
+/* PROBLEMA */
+.problem {
+  background: var(--ink);
+  color: var(--blush);
+  padding: 4rem 6%;
+}
+
+.problemText {
+  max-width: 640px;
+  margin: 0 auto;
+}
+
+.problemText p:not(.eyebrow) {
+  font-size: 1.15rem;
+  line-height: 1.75;
+  margin: 0;
+}
+
+.problemText .eyebrow {
+  color: var(--gold);
+}
+
+/* MODULOS - vid conectora */
+.modules {
+  padding: 6rem 6%;
+  max-width: 640px;
+  margin: 0 auto;
+}
+
+.vine {
+  position: relative;
+  padding-left: 44px;
+}
+
+.vineLine {
+  position: absolute;
+  left: 21px;
+  top: 8px;
+  bottom: 8px;
+  width: 2px;
+  height: calc(100% - 16px);
+}
+
+.vineItem {
+  position: relative;
+  display: flex;
+  gap: 20px;
+  padding-bottom: 2.75rem;
+}
+
+.vineItem:last-child {
+  padding-bottom: 0;
+}
+
+.vineNode {
+  position: relative;
+  z-index: 1;
+  flex-shrink: 0;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: var(--parchment);
+  border: 2px solid var(--gold);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--bloom);
+  font-size: 1.1rem;
+}
+
+.vineTitle {
+  font-family: "Fraunces", serif;
+  font-size: 1.15rem;
+  font-weight: 600;
+  margin: 6px 0 4px;
+}
+
+.vineText {
+  font-size: 0.92rem;
+  line-height: 1.6;
+  color: #5a4a4e;
+  margin: 0;
+  max-width: 420px;
+}
+
+/* BENEFICIOS */
+.benefits {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 24px;
+  padding: 0 6% 6rem;
+  max-width: 1000px;
+  margin: 0 auto;
+}
+
+.benefitCard {
+  background: var(--parchment);
+  border-radius: 16px;
+  padding: 2rem 1.75rem;
+  box-shadow: 0 10px 30px rgba(122, 32, 72, 0.08);
+}
+
+.benefitCard i {
+  font-size: 1.5rem;
+  color: var(--sage);
+}
+
+.benefitCard h3 {
+  font-family: "Fraunces", serif;
+  font-size: 1.1rem;
+  margin: 0.9rem 0 0.5rem;
+}
+
+.benefitCard p {
+  font-size: 0.9rem;
+  line-height: 1.6;
+  color: #5a4a4e;
+  margin: 0;
+}
+
+/* CTA FINAL */
+.ctaFinal {
+  text-align: center;
+  padding: 5rem 6% 6rem;
+}
+
+.ctaFinal .sectionTitle {
+  margin-bottom: 2rem;
+}
+
+/* FOOTER */
+.footer {
+  text-align: center;
+  padding: 1.5rem;
+  font-size: 0.8rem;
+  color: #8a7378;
+  border-top: 1px solid rgba(122, 32, 72, 0.12);
+}
+
+@media (max-width: 768px) {
+  .heroBreak {
+    display: inline;
+  }
+
+  .benefits {
+    grid-template-columns: 1fr;
+  }
+}

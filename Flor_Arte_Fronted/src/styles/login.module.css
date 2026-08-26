@@ -1,0 +1,83 @@
+.loginWrapper {
+  --primary-color: #9c743b;
+  --primary-hover: #c29454;
+  --focus-color: #271401;
+  --card-radius: 20px;
+
+  background: url("/images/fondo1.jpg") no-repeat center center fixed;
+  background-size: cover;
+  font-family: 'Poppins', sans-serif;
+
+  min-height: 100vh;
+  margin: 0;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+/* tarjeta */
+.loginCard {
+  border-radius: var(--card-radius);
+  overflow: hidden;
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.25);
+  max-width: 900px;
+  width: 100%;
+}
+
+/* panel izquierdo */
+.leftSide {
+  background: var(--primary-color);
+  color: #fff;
+}
+
+.leftSide h4 {
+  font-weight: bold;
+}
+
+/* inputs */
+.formControl:focus {
+  box-shadow: none;
+  border-color: var(--focus-color);
+}
+
+/* boton login */
+.btnLogin {
+  background: var(--primary-color) !important;
+  border: none !important;
+  transition: 0.3s;
+}
+
+.btnLogin:hover {
+  background: var(--primary-hover) !important;
+  transform: translateY(-2px);
+}
+
+/* texto footer */
+.footerText {
+  font-size: 0.85rem;
+  color: #aaa;
+}
+
+/* responsive */
+@media (max-width: 768px) {
+  .leftSide {
+    display: none;
+  }
+
+  .loginWrapper {
+    overflow-y: auto;
+  }
+}
+
+/* boton olvidar contraseña */
+.customLink {
+  color: var(--primary-color);
+  text-decoration: none;
+  transition: 0.3s;
+}
+
+/* registrarse */
+.customLink:hover {
+  color: var(--primary-hover);
+  text-decoration: underline;
+}
