@@ -6,9 +6,7 @@ interface Props {
 
 function Sidebar({ open }: Props) {
   const handleLogout = () => {
-    localStorage.removeItem("token");
-    localStorage.removeItem("user");
-    localStorage.removeItem("role");
+    localStorage.clear();
     window.location.href = "/login";
   };
 

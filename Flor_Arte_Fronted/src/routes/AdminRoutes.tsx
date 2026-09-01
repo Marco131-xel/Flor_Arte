@@ -6,7 +6,7 @@ import InicioAdmin from "../pages/admin/Index";
 
 export const AdminRoutes = () => (
     <Route path="/admin" element={
-        <PrivateRoute allowedRoles={["administrador"]}>
+        <PrivateRoute allowedRoles={["ADMINISTRADOR"]}>
             <AdminLayout />
         </PrivateRoute>
     }>

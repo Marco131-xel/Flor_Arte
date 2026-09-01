@@ -13,14 +13,29 @@ const LoginForm: React.FC = () => {
     e.preventDefault();
 
     try {
-      //const data = await loginRequest(email, password);
-      localStorage.setItem("token", "fake-token");
-      localStorage.setItem("role", "administrador");
-      localStorage.setItem("user", JSON.stringify({ nombre: "Prueba" }));
+      const data = await loginRequest(email, password);
+      // guardar token
+      localStorage.setItem("token", data.token);
+      // guardar rol
+      localStorage.setItem("role", data.tipoUsuario);
+      // guardar datos basicos del usuario
+      localStorage.setItem(
+        "user",
+        JSON.stringify({
+          id: data.id_usuario,
+          nombre: data.nombre,
+          estado: data.estado,
+        })
+      );
 
-      navigate("/admin");
-    } catch {
-      setError("Credenciales incorrectas");
+      if (data.tipoUsuario === "ADMINISTRADOR") {
+        navigate("/admin");
+      } else {
+        navigate("/");
+      }
+    } catch (err) {
+      console.error("Error de login: ", err)
+      setError("Credenciales incorrectas")
     }
   };
 
