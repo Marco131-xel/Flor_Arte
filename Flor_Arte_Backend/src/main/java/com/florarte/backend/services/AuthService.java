@@ -42,14 +42,14 @@ public class AuthService {
         Authentication authResult = authenticationManagerBuilder.getObject().authenticate(authenticationToken);
         SecurityContextHolder.getContext().setAuthentication(authResult);
 
-        User user = userService.findByCorreo(correo)
+        User user = userService.findByEmail(correo)
                 .orElseThrow(() -> new IllegalArgumentException("Usuario no encontrado"));
         return jwtUtil.generateTokenClaims(correo, user.getPersona().getRol().getTipo());
     }
 
     @Transactional
     public void registerUser(NewUserDto dto) {
-        if (userService.existsByCorreo(dto.getEmail())) {
+        if (userService.existsByEmail(dto.getEmail())) {
             throw new IllegalArgumentException("El correo ya está registrado");
         }
 
@@ -75,7 +75,7 @@ public class AuthService {
     }
 
     public User getUserByCorreo(String correo) {
-        return userService.findByCorreo(correo)
+        return userService.findByEmail(correo)
                 .orElseThrow(() -> new IllegalArgumentException("Usuario no encontrado"));
     }
 }

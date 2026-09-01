@@ -25,6 +25,7 @@ const LoginForm: React.FC = () => {
           id: data.id_usuario,
           nombre: data.nombre,
           estado: data.estado,
+          email: email,
         })
       );
 

@@ -25,9 +25,9 @@ function Header({ toggleSidebar }: Props) {
       </div>
 
       <div className="d-flex align-items-center gap-3">
-        <span className="admin-user">
+        <Link to="/admin/perfil" className="admin-user text-decoration-none">
           {displayName} <i className="bi bi-person-circle"></i>
-        </span>
+        </Link>
       </div>
     </header>
   );

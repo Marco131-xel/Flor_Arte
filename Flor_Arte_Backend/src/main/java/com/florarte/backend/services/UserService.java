@@ -49,7 +49,7 @@ public class UserService implements UserDetailsService {
         );
     }
 
-    public boolean existsByCorreo(String email) {
+    public boolean existsByEmail(String email) {
         return userRepository.existsByEmail(email);
     }
 
@@ -59,7 +59,7 @@ public class UserService implements UserDetailsService {
     }
 
     // encontrar usuarios por correo
-    public Optional<User> findByCorreo(String email) {
+    public Optional<User> findByEmail(String email) {
         return userRepository.findByEmail(email);
     }
 
