@@ -6,4 +6,5 @@ export interface Profile {
   estado: boolean;
   idPersona: number;
   rol: string;
+  user: string;
 }

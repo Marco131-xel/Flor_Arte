@@ -14,4 +14,5 @@ public class UserProfileDto {
     private Boolean estado;
     private Long idPersona;
     private String rol;
+    private String user;
 }

@@ -34,7 +34,7 @@ function Perfil() {
         </div>
 
         <div className="profile-body">
-          <h3 className="profile-name">{profile.nombre}</h3>
+          <h3 className="profile-name">{profile.user}</h3>
 
           <div className="profile-badges">
             {profile.rol && <span className="badge-rol">{profile.rol}</span>}
@@ -47,6 +47,15 @@ function Perfil() {
           <div className="profile-divider"></div>
 
           <div className="profile-fields">
+            <div className="profile-field">
+              <div className="profile-field-icon">
+                <i className="bi bi-person-fill"></i>
+              </div>
+              <div>
+                <span className="profile-field-label">Nombre</span>
+                <p className="profile-field-value">{profile.nombre}</p>
+              </div>
+            </div>
             <div className="profile-field">
               <div className="profile-field-icon">
                 <i className="bi bi-envelope-fill"></i>

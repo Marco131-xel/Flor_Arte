@@ -33,10 +33,11 @@ public class UserController {
                 persona.getNombre(),
                 persona.getTelefono(),
                 persona.getDpi(),
-                persona.getCorreo(),
+                user.getEmail(),
                 user.getEstado(),
                 user.getIdPersona(),
-                persona.getRol().getTipo()
+                persona.getRol().getTipo(),
+                user.getName()
         );
 
         return ResponseEntity.ok(dto);

@@ -1,0 +1,4 @@
+CREATE TABLE rol (
+    id_rol BIGSERIAL PRIMARY KEY,
+    tipo VARCHAR(50) NOT NULL UNIQUE
+);
