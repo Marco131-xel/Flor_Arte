@@ -1,5 +1,6 @@
 package com.florarte.backend.entities;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
@@ -25,6 +26,7 @@ public class Rol {
     private String tipo;
 
     // Relación con Persona (opcional, para navegación bidireccional)
+    @JsonIgnore
     @OneToMany(mappedBy = "rol")
     private List<Persona> personas;
 }

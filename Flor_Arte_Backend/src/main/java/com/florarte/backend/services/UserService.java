@@ -1,6 +1,7 @@
 package com.florarte.backend.services;
 
 import com.florarte.backend.dtos.UpdateUserDto;
+import com.florarte.backend.dtos.UserListDTO;
 import com.florarte.backend.entities.User;
 import com.florarte.backend.repositories.UserRepository;
 import lombok.NoArgsConstructor;
@@ -85,8 +86,25 @@ public class UserService implements UserDetailsService {
         userRepository.deleteById(id);
     }
 
-    public List<User> findAll() {
-        return userRepository.findAll();
+    public List<UserListDTO> findAll() {
+        return userRepository.findAll()
+                .stream()
+                .map(user -> {
+                    var persona = user.getPersona();
+
+                    return new UserListDTO(
+                            user.getIdUsuario(),
+                            user.getName(),
+                            user.getEmail(),
+                            user.getEstado(),
+                            persona.getIdPersona(),
+                            persona.getNombre(),
+                            persona.getTelefono(),
+                            persona.getDpi(),
+                            persona.getRol().getTipo()
+                    );
+                })
+                .collect(Collectors.toList());
     }
 
     public List<User> findAllEmpleado() {

@@ -411,3 +411,138 @@
 .btn-profile-logout:hover {
   background: #e74c3c22;
 }
+
+
+.usuarios-container {
+  padding: 30px;
+  background: #f8fafc;
+  min-height: 100vh;
+}
+
+.usuarios-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 25px;
+}
+
+.usuarios-header h1 {
+  margin: 0;
+  font-size: 28px;
+  color: #1e293b;
+}
+
+.usuarios-header p {
+  margin-top: 6px;
+  color: #64748b;
+}
+
+.btn-nuevo {
+  background: #7c3aed;
+  color: white;
+  border: none;
+  padding: 11px 18px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 600;
+}
+
+.btn-nuevo:hover {
+  background: #6d28d9;
+}
+
+.tabla-container {
+  background: white;
+  border-radius: 12px;
+  overflow-x: auto;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.06);
+}
+
+.usuarios-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.usuarios-table th {
+  background: black;
+  color: white;
+  font-size: 14px;
+  text-align: left;
+  padding: 15px;
+}
+
+.usuarios-table td {
+  padding: 15px;
+  border-top: 1px solid #e2e8f0;
+  color: #334155;
+}
+
+.usuarios-table tbody tr:hover {
+  background: #f8fafc;
+}
+
+.rol {
+  background: #ede9fe;
+  color: #6d28d9;
+  padding: 5px 10px;
+  border-radius: 20px;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.estado {
+  padding: 5px 10px;
+  border-radius: 20px;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.estado.activo {
+  background: #dcfce7;
+  color: #15803d;
+}
+
+.estado.inactivo {
+  background: #fee2e2;
+  color: #b91c1c;
+}
+
+.acciones {
+  display: flex;
+  gap: 8px;
+}
+
+.btn-editar,
+.btn-eliminar {
+  border: none;
+  padding: 7px 11px;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.btn-editar {
+  background: #e0f2fe;
+  color: #0369a1;
+}
+
+.btn-eliminar {
+  background: #fee2e2;
+  color: #b91c1c;
+}
+
+.mensaje {
+  background: white;
+  padding: 30px;
+  text-align: center;
+  border-radius: 12px;
+}
+
+.mensaje.error {
+  color: #b91c1c;
+}
+
+.sin-usuarios {
+  text-align: center;
+  padding: 30px !important;
+  color: #64748b !important;
+}

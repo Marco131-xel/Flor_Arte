@@ -1,5 +1,6 @@
 package com.florarte.backend.entities;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
@@ -40,6 +41,7 @@ public class Persona {
     private Rol rol;
 
     // Relación con Usuario (uno a uno)
+    @JsonIgnore
     @OneToOne(mappedBy = "persona", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private User usuario;
 }

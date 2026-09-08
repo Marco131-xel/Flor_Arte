@@ -6,6 +6,7 @@ import com.florarte.backend.services.AuthService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
@@ -57,7 +58,8 @@ public class AuthController {
         }
     }
 
-    @PostMapping("/register")
+    @PostMapping("/admin/usuarios")
+    @PreAuthorize("hasRole('ADMINISTRADOR')")
     public ResponseEntity<?> register(@Valid @RequestBody NewUserDto newUserDto, BindingResult bindingResult) {
         if (bindingResult.hasErrors()) {
             return ResponseEntity.badRequest().body(Map.of("error", "Revise los datos ingresados"));

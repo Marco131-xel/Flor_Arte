@@ -34,9 +34,32 @@ const LoginForm: React.FC = () => {
       } else {
         navigate("/");
       }
-    } catch (err) {
+    } catch (err: any) {
       console.error("Error de login: ", err)
-      setError("Credenciales incorrectas")
+      if (!err.response) {
+        // No hay conexión con el servidor
+        setError("No se pudo conectar con el servidor. Verifica tu conexión.");
+      } else {
+        const status = err.response.status;
+        const backendMsg = err.response.data?.error;
+
+        switch (status) {
+          case 400:
+            setError(backendMsg || "Revisa el Gmail y la contraseña ingresados");
+            break;
+          case 401:
+            setError(backendMsg || "Gmail o contraseña incorrectos");
+            break;
+          case 403:
+            setError(backendMsg || "Tu cuenta está inactiva o bloqueada");
+            break;
+          case 500:
+            setError("Error interno del servidor, intenta más tarde");
+            break;
+          default:
+            setError("Ocurrió un error inesperado, intenta de nuevo");
+        }
+      }
     }
   };
 
@@ -82,7 +105,7 @@ const LoginForm: React.FC = () => {
                 <input
                   type="email"
                   className="form-control"
-                  placeholder="ejemplo@correo.com"
+                  placeholder="ejemplo@gmail.com"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   required
