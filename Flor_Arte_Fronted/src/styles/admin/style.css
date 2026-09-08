@@ -512,12 +512,18 @@
   gap: 8px;
 }
 
+.btn-ver,
 .btn-editar,
 .btn-eliminar {
   border: none;
   padding: 7px 11px;
   border-radius: 6px;
   cursor: pointer;
+}
+
+.btn-ver {
+  background: #eedac3;
+  color: #cf550f;
 }
 
 .btn-editar {
@@ -545,4 +551,289 @@
   text-align: center;
   padding: 30px !important;
   color: #64748b !important;
+}
+
+.persona-dark-container {
+  display: flex;
+  justify-content: center;
+  padding: 2rem;
+}
+
+.persona-dark-card {
+  background-color: #0d0d0d;
+  border-radius: 16px;
+  width: 100%;
+  max-width: 480px;
+  padding: 2rem;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
+}
+
+.persona-dark-header {
+  margin-bottom: 1.5rem;
+}
+
+.persona-dark-header h1 {
+  color: #ffffff;
+  font-size: 1.4rem;
+  font-weight: 700;
+  margin-bottom: 0.25rem;
+}
+
+.persona-dark-header p {
+  color: #9ca3af;
+  font-size: 0.85rem;
+}
+
+.persona-dark-form {
+  display: flex;
+  flex-direction: column;
+  gap: 1.1rem;
+}
+
+.persona-dark-group {
+  display: flex;
+  flex-direction: column;
+  background-color: #1a1a1a;
+  border-radius: 10px;
+  padding: 0.75rem 1rem;
+}
+
+.persona-dark-group label {
+  font-size: 0.7rem;
+  font-weight: 600;
+  color: #9ca3af;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-bottom: 0.35rem;
+}
+
+.persona-dark-group input,
+.persona-dark-group select {
+  background: transparent;
+  border: none;
+  color: #ffffff;
+  font-size: 0.95rem;
+  font-weight: 600;
+  padding: 0;
+  outline: none;
+}
+
+.persona-dark-group input::placeholder {
+  color: #6b7280;
+  font-weight: 400;
+}
+
+.persona-dark-group select option {
+  background-color: #1a1a1a;
+  color: #ffffff;
+}
+
+.persona-dark-group:focus-within {
+  outline: 1px solid #14b8a6; /* teal, igual al acento de los íconos de la tarjeta de perfil */
+}
+
+.persona-dark-btn {
+  margin-top: 0.5rem;
+  background-color: #14b8a6;
+  color: #0d0d0d;
+  border: none;
+  padding: 0.8rem;
+  border-radius: 999px; /* pill, igual que "Editar perfil" */
+  font-weight: 700;
+  font-size: 0.95rem;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.persona-dark-btn:hover:not(:disabled) {
+  background-color: #0d9488;
+}
+
+.persona-dark-btn:disabled {
+  background-color: #374151;
+  color: #9ca3af;
+  cursor: not-allowed;
+}
+
+.persona-dark-mensaje {
+  padding: 0.7rem 1rem;
+  border-radius: 8px;
+  font-size: 0.85rem;
+  margin-bottom: 1rem;
+  font-weight: 600;
+}
+
+.persona-dark-mensaje.error {
+  background-color: rgba(239, 68, 68, 0.15);
+  color: #f87171;
+  border: 1px solid rgba(239, 68, 68, 0.3);
+}
+
+.persona-dark-mensaje.exito {
+  background-color: rgba(20, 184, 166, 0.15);
+  color: #2dd4bf;
+  border: 1px solid rgba(20, 184, 166, 0.3);
+}
+
+.persona-dark-acciones {
+  display: flex;
+  gap: 0.75rem;
+  margin-top: 0.5rem;
+}
+
+.persona-dark-acciones .persona-dark-btn {
+  flex: 1;
+  margin-top: 0; /* ya lo maneja el gap del contenedor */
+}
+
+.persona-dark-btn-cancelar {
+  flex: 1;
+  background-color: transparent;
+  color: #9ca3af;
+  border: 1px solid #374151;
+  padding: 0.8rem;
+  border-radius: 999px;
+  font-weight: 700;
+  font-size: 0.95rem;
+  cursor: pointer;
+  transition: background-color 0.2s, border-color 0.2s, color 0.2s;
+}
+
+.persona-dark-btn-cancelar:hover:not(:disabled) {
+  background-color: #1a1a1a;
+  border-color: #6b7280;
+  color: #ffffff;
+}
+
+.persona-dark-btn-cancelar:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+
+
+
+
+
+/* ===== OVERLAY BASE (compartido por ambos modales) ===== */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background-color: rgba(0, 0, 0, 0.6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 1rem;
+}
+
+/* ===== MODAL "VER PERSONA" ===== */
+.ver-persona-caja {
+  background-color: #0d0d0d;
+  border-radius: 14px;
+  padding: 1.75rem;
+  max-width: 380px;
+  width: 100%;
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.5);
+}
+
+.ver-persona-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 1px solid #1a1a1a;
+  padding-bottom: 1rem;
+  margin-bottom: 1rem;
+}
+
+.ver-persona-header h2 {
+  color: #ffffff;
+  font-size: 1.15rem;
+  margin: 0;
+}
+
+.ver-persona-campo {
+  display: flex;
+  flex-direction: column;
+  background-color: #1a1a1a;
+  border-radius: 10px;
+  padding: 0.7rem 1rem;
+  margin-bottom: 0.75rem;
+}
+
+.ver-persona-label {
+  font-size: 0.7rem;
+  font-weight: 600;
+  color: #9ca3af;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-bottom: 0.25rem;
+}
+
+.ver-persona-valor {
+  color: #ffffff;
+  font-weight: 600;
+  font-size: 0.95rem;
+}
+
+.ver-persona-caja .persona-dark-btn-cancelar {
+  width: 100%;
+  margin-top: 0.5rem;
+}
+
+/* ===== MODAL "ELIMINAR PERSONA" ===== */
+.modal-caja {
+  background-color: #0d0d0d;
+  border-radius: 14px;
+  padding: 1.75rem;
+  max-width: 400px;
+  width: 100%;
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.5);
+}
+
+.modal-caja h2 {
+  color: #ffffff;
+  font-size: 1.2rem;
+  margin-bottom: 0.75rem;
+}
+
+.modal-caja p {
+  color: #9ca3af;
+  font-size: 0.9rem;
+  line-height: 1.4;
+  margin-bottom: 1.5rem;
+}
+
+.modal-caja p strong {
+  color: #ffffff;
+}
+
+.modal-acciones {
+  display: flex;
+  gap: 0.75rem;
+}
+
+.modal-acciones button {
+  flex: 1;
+}
+
+.modal-btn-confirmar {
+  background-color: #dc2626;
+  color: #ffffff;
+  border: none;
+  padding: 0.8rem;
+  border-radius: 999px;
+  font-weight: 700;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.modal-btn-confirmar:hover:not(:disabled) {
+  background-color: #b91c1c;
+}
+
+.modal-btn-confirmar:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
 }

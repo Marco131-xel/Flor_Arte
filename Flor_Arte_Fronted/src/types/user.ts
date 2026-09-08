@@ -43,3 +43,11 @@ export interface Persona {
   correo:string;
   rol: Rol
 }
+
+export interface NewPersona {
+  nombre: string;
+  telefono: string;
+  dpi: string;
+  correo: string;
+  idRol: string;
+}

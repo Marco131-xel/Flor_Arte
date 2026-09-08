@@ -26,7 +26,7 @@ public class PersonaController {
     }
 
     // obtener una persona por id
-    @GetMapping("/id")
+    @GetMapping("/{id}")
     public ResponseEntity<?> getPesonaById(@PathVariable Long id) {
         Persona persona = personaService.findById(id)
                 .orElseThrow(() -> new RuntimeException("Persona no encontrada con id: " + id));

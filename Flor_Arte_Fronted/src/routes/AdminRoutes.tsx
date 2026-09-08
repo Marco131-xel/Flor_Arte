@@ -7,6 +7,8 @@ import Perfil from "../pages/admin/Perfil";
 import IndexUser from "../pages/admin/user/IndexUser";
 import CreateUser from "../pages/admin/user/CreateUser";
 import UpdateUser from "../pages/admin/user/UpdateUser";
+import CreatePersona from "../pages/admin/user/CreatePersona";
+import UpdatePersona from "../pages/admin/user/UpdatePersona";
 
 export const AdminRoutes = () => (
     <Route path="/admin" element={
@@ -19,5 +21,7 @@ export const AdminRoutes = () => (
         <Route path="usuarios" element={<IndexUser/>} />
         <Route path="usuarios/crear" element={<CreateUser/>} />
         <Route path="usuarios/actualizar" element={<UpdateUser/>} />
+        <Route path="usuarios/crear-Persona" element={<CreatePersona/>} />
+        <Route path="usuarios/editar-Persona/:id" element={<UpdatePersona/>} />
     </Route>
 )
