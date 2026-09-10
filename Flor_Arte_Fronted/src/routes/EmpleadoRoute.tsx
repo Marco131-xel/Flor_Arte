@@ -4,6 +4,7 @@ import PrivateRoute from "../components/PrivateRoute";
 import EmpleadoLayout from "../components/empleado/Layout";
 import InicioEmpleado from "../pages/empleado/Index";
 import IndexFlores from "../pages/empleado/flores/Index";
+import IndexPerfil from "../pages/empleado/perfil/Index";
 
 export const EmpleadoRoutes = () => (
     <Route path="/empleado" element={
@@ -12,6 +13,7 @@ export const EmpleadoRoutes = () => (
         </PrivateRoute>
     }>
         <Route index element={<InicioEmpleado />}/>
+        <Route path="perfil" element={<IndexPerfil/>}/>
         <Route path="flores" element={<IndexFlores/>}/>
     </Route>
 )
