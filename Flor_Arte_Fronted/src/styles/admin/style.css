@@ -477,6 +477,8 @@
   background: white;
   border-radius: 12px;
   overflow-x: auto;
+  overflow-y: auto;
+  max-height: 420px;
   box-shadow: 0 2px 10px rgba(0, 0, 0, 0.06);
 }
 
@@ -485,7 +487,10 @@
   border-collapse: collapse;
 }
 
-.usuarios-table th {
+.usuarios-table thead th {
+  position: static;
+  top: 0;
+  z-index: 1;
   background: black;
   color: white;
   font-size: 14px;

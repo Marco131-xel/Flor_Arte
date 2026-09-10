@@ -31,6 +31,8 @@ const LoginForm: React.FC = () => {
 
       if (data.tipoUsuario === "ADMINISTRADOR") {
         navigate("/admin");
+      } else if (data.tipoUsuario === "EMPLEADO"){
+        navigate("/empleado")
       } else {
         navigate("/");
       }
