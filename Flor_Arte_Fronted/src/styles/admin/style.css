@@ -373,13 +373,19 @@
 
 .profile-actions {
   display: flex;
+  flex-direction: column;
   gap: 12px;
   margin-top: 28px;
 }
 
+.profile-actions-row {
+  display: flex;
+  gap: 12px;
+}
+
 .btn-profile-edit,
+.btn-profile-password,
 .btn-profile-logout {
-  flex: 1;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -393,6 +399,11 @@
   border: none;
 }
 
+.profile-actions-row .btn-profile-edit,
+.profile-actions-row .btn-profile-password {
+  flex: 1;
+}
+
 .btn-profile-edit {
   background: #1abc9c;
   color: #000;
@@ -402,7 +413,18 @@
   background: #16a085;
 }
 
+.btn-profile-password {
+  background: transparent;
+  color: #e8c15a;
+  border: 1px solid #e8c15a;
+}
+
+.btn-profile-password:hover {
+  background: #e8c15a22;
+}
+
 .btn-profile-logout {
+  width: 100%;
   background: transparent;
   color: #e74c3c;
   border: 1px solid #e74c3c;
@@ -412,7 +434,7 @@
   background: #e74c3c22;
 }
 
-
+/* tablas */
 .usuarios-container {
   padding: 30px;
   background: #f8fafc;
@@ -553,6 +575,7 @@
   color: #64748b !important;
 }
 
+/* tarjeta de ingresos */
 .persona-dark-container {
   display: flex;
   justify-content: center;
@@ -710,7 +733,9 @@
   cursor: not-allowed;
 }
 
-
+.consejo {
+  color: #2AA63E;
+}
 
 
 

@@ -1,8 +1,11 @@
 package com.florarte.backend.services;
 
+import com.florarte.backend.dtos.NewUserDto;
 import com.florarte.backend.dtos.UpdateUserDto;
 import com.florarte.backend.dtos.UserListDTO;
+import com.florarte.backend.entities.Persona;
 import com.florarte.backend.entities.User;
+import com.florarte.backend.repositories.PersonaRepository;
 import com.florarte.backend.repositories.UserRepository;
 import lombok.NoArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -10,6 +13,7 @@ import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.util.Collections;
@@ -22,10 +26,14 @@ import java.util.stream.Collectors;
 public class UserService implements UserDetailsService {
 
     private UserRepository userRepository;
+    private PersonaRepository personaRepository;
+    private PasswordEncoder passwordEncoder;
 
     @Autowired
-    public UserService(UserRepository userRepository) {
+    public UserService(UserRepository userRepository, PersonaRepository personaRepository, PasswordEncoder passwordEncoder) {
         this.userRepository = userRepository;
+        this.personaRepository = personaRepository;
+        this.passwordEncoder = passwordEncoder;
     }
 
     @Override
@@ -59,6 +67,32 @@ public class UserService implements UserDetailsService {
         userRepository.save(user);
     }
 
+    // crear un usuario base a persona
+    public User createUser(NewUserDto dto) {
+        // validar que la persona exista
+        Persona persona = personaRepository.findById(dto.getIdPersona())
+                .orElseThrow(() -> new RuntimeException("Persona no encontrada con id: " + dto.getIdPersona()));
+
+        // validar que esa persona on tenga ya un usuario
+        if (userRepository.existsByIdPersona(dto.getIdPersona())) {
+            throw new RuntimeException("Esta persona ya tiene un usuario asociado");
+        }
+
+        // validar email unico
+        if (userRepository.existsByEmail(dto.getEmail())) {
+            throw new RuntimeException("El email ya esta en uso");
+        }
+
+        User user = new User();
+        user.setName(dto.getName());
+        user.setEmail(dto.getEmail());
+        user.setPassword(passwordEncoder.encode((dto.getPassword())));
+        user.setEstado(true);
+        user.setIdPersona(dto.getIdPersona());
+
+        return userRepository.save(user);
+    }
+
     // encontrar usuarios por correo
     public Optional<User> findByEmail(String email) {
         return userRepository.findByEmail(email);
@@ -72,7 +106,10 @@ public class UserService implements UserDetailsService {
     public User updateUser(Long id, UpdateUserDto dto) {
         return userRepository.findById(id).map(user -> {
             user.setEmail(dto.getEmail());
-            user.setPassword(dto.getPassword());
+            // solo actualiza la contrasenia si mandaron una nueva, la encripta
+            if (dto.getPassword() != null && !dto.getPassword().isBlank()) {
+                user.setPassword(passwordEncoder.encode(dto.getPassword()));
+            }
             user.setEstado(dto.getEstado());
             user.setIdPersona(dto.getIdPersona());
             return userRepository.save(user);

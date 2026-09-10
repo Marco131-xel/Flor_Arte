@@ -48,7 +48,7 @@ public class AuthService {
     }
 
     @Transactional
-    public void registerUser(NewUserDto dto) {
+    /*public void registerUser(NewUserDto dto) {
         if (userService.existsByEmail(dto.getEmail())) {
             throw new IllegalArgumentException("El correo ya está registrado");
         }
@@ -72,7 +72,7 @@ public class AuthService {
         user.setIdPersona(persona.getIdPersona());
         user.setEstado(true);
         userService.save(user);
-    }
+    }*/
 
     public User getUserByCorreo(String correo) {
         return userService.findByEmail(correo)

@@ -58,7 +58,7 @@ public class AuthController {
         }
     }
 
-    @PostMapping("/admin/usuarios")
+    /*@PostMapping("/admin/usuarios")
     @PreAuthorize("hasRole('ADMINISTRADOR')")
     public ResponseEntity<?> register(@Valid @RequestBody NewUserDto newUserDto, BindingResult bindingResult) {
         if (bindingResult.hasErrors()) {
@@ -72,7 +72,7 @@ public class AuthController {
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(Map.of("error", "Ocurrio un error al registrar el usuario"));
         }
-    }
+    }*/
 
     @GetMapping("/check-auth")
     public ResponseEntity<String> checkAuth() {

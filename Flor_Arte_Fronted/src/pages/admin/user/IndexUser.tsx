@@ -2,7 +2,12 @@ import { useEffect, useState } from "react";
 import { createPortal } from "react-dom";
 import { useNavigate } from "react-router-dom";
 import type { Usuario, Persona } from "../../../types/user";
-import { getPersonas, getUsuarios, deletePersona } from "../../../services/admin/usuarioService";
+import {
+  getPersonas,
+  getUsuarios,
+  deletePersona,
+  deleteUsuario,
+} from "../../../services/admin/usuarioService";
 
 function IndexUser() {
   const [usuarios, setUsuarios] = useState<Usuario[]>([]);
@@ -16,19 +21,28 @@ function IndexUser() {
   const [personaAEliminar, setPersonaAEliminar] = useState<Persona | null>(null);
   const [eliminando, setEliminando] = useState(false);
 
+  // --- estado para el modal de usuarios (Ver / Eliminar) ---
+  const [usuarioAVer, setUsuarioAVer] = useState<Usuario | null>(null);
+  const [usuarioAEliminar, setUsuarioAEliminar] = useState<Usuario | null>(null);
+  const [eliminandoUsuario, setEliminandoUsuario] = useState(false);
+
   useEffect(() => {
     cargarUsuarios();
     cargarPersonas();
   }, []);
 
-  // bloquea el scroll 
+  // bloquea el scroll
   useEffect(() => {
-    const hayModalAbierto = personaAVer !== null || personaAEliminar !== null;
+    const hayModalAbierto =
+      personaAVer !== null ||
+      personaAEliminar !== null ||
+      usuarioAVer !== null ||
+      usuarioAEliminar !== null;
     document.body.style.overflow = hayModalAbierto ? "hidden" : "";
     return () => {
       document.body.style.overflow = "";
     };
-  }, [personaAVer, personaAEliminar]);
+  }, [personaAVer, personaAEliminar, usuarioAVer, usuarioAEliminar]);
 
   const cargarUsuarios = async () => {
     try {
@@ -73,6 +87,24 @@ function IndexUser() {
       setError("No se pudo eliminar la persona");
     } finally {
       setEliminando(false);
+    }
+  };
+
+  const confirmarEliminarUsuario = async () => {
+    if (!usuarioAEliminar) return;
+
+    try {
+      setEliminandoUsuario(true);
+      await deleteUsuario(usuarioAEliminar.idUsuario);
+      setUsuarios((prev) =>
+        prev.filter((u) => u.idUsuario !== usuarioAEliminar.idUsuario)
+      );
+      setUsuarioAEliminar(null);
+    } catch (error) {
+      console.error("Error al eliminar usuario:", error);
+      setError("No se pudo eliminar el usuario");
+    } finally {
+      setEliminandoUsuario(false);
     }
   };
 
@@ -174,7 +206,6 @@ function IndexUser() {
                 <th>ID</th>
                 <th>Nombre</th>
                 <th>Correo</th>
-                <th>Teléfono</th>
                 <th>Rol</th>
                 <th>Estado</th>
                 <th>Acciones</th>
@@ -196,7 +227,6 @@ function IndexUser() {
                       <td>{usuario.idUsuario}</td>
                       <td>{usuario.nombre}</td>
                       <td>{usuario.email}</td>
-                      <td>{usuario.telefono || "No registrado"}</td>
                       <td><span className="rol">{usuario.rol}</span></td>
                       <td>
                         <span className={usuario.estado ? "estado activo" : "estado inactivo"}>
@@ -208,8 +238,21 @@ function IndexUser() {
                           <span className="tu-usuario">Tu usuario</span>
                         ) : (
                           <>
-                            <button className="btn-editar">Editar</button>
-                            <button className="btn-eliminar">Eliminar</button>
+                            <button className="btn-ver" onClick={() => setUsuarioAVer(usuario)}>
+                              Ver
+                            </button>
+                            <button
+                              className="btn-editar"
+                              onClick={() => navigate(`/admin/usuarios/editar/${usuario.idUsuario}`)}
+                            >
+                              Editar
+                            </button>
+                            <button
+                              className="btn-eliminar"
+                              onClick={() => setUsuarioAEliminar(usuario)}
+                            >
+                              Eliminar
+                            </button>
                           </>
                         )}
                       </td>
@@ -222,7 +265,7 @@ function IndexUser() {
         </div>
       )}
 
-      {/* MODAL "VER PERSONA" — montado con Portal directo en document.body */}
+      {/* MODAL "VER PERSONA" */}
       {personaAVer && createPortal(
         <div className="modal-overlay" onClick={() => setPersonaAVer(null)}>
           <div className="ver-persona-caja" onClick={(e) => e.stopPropagation()}>
@@ -259,7 +302,7 @@ function IndexUser() {
         document.body
       )}
 
-      {/* MODAL "ELIMINAR PERSONA" — montado con Portal directo en document.body */}
+      {/* MODAL "ELIMINAR PERSONA" */}
       {personaAEliminar && createPortal(
         <div className="modal-overlay" onClick={() => !eliminando && setPersonaAEliminar(null)}>
           <div className="modal-caja" onClick={(e) => e.stopPropagation()}>
@@ -282,6 +325,80 @@ function IndexUser() {
                 disabled={eliminando}
               >
                 {eliminando ? "Eliminando..." : "Sí, eliminar"}
+              </button>
+            </div>
+          </div>
+        </div>,
+        document.body
+      )}
+
+      {/* MODAL "VER USUARIO" */}
+      {usuarioAVer && createPortal(
+        <div className="modal-overlay" onClick={() => setUsuarioAVer(null)}>
+          <div className="ver-persona-caja" onClick={(e) => e.stopPropagation()}>
+            <div className="ver-persona-header">
+              <h2>{usuarioAVer.nombre}</h2>
+              <span className="rol">{usuarioAVer.rol}</span>
+            </div>
+
+            <div className="ver-persona-campo">
+              <span className="ver-persona-label">User</span>
+              <span className="ver-persona-valor">{usuarioAVer.name}</span>
+            </div>
+
+            <div className="ver-persona-campo">
+              <span className="ver-persona-label">Correo</span>
+              <span className="ver-persona-valor">{usuarioAVer.email}</span>
+            </div>
+
+            <div className="ver-persona-campo">
+              <span className="ver-persona-label">Teléfono</span>
+              <span className="ver-persona-valor">{usuarioAVer.telefono || "No registrado"}</span>
+            </div>
+
+            <div className="ver-persona-campo">
+              <span className="ver-persona-label">DPI</span>
+              <span className="ver-persona-valor">{usuarioAVer.dpi}</span>
+            </div>
+
+            <div className="ver-persona-campo">
+              <span className="ver-persona-label">Estado</span>
+              <span className="ver-persona-valor">
+                {usuarioAVer.estado ? "Activo" : "Inactivo"}
+              </span>
+            </div>
+
+            <button className="persona-dark-btn-cancelar" onClick={() => setUsuarioAVer(null)}>
+              Cerrar
+            </button>
+          </div>
+        </div>,
+        document.body
+      )}
+
+      {/* MODAL "ELIMINAR USUARIO" */}
+      {usuarioAEliminar && createPortal(
+        <div className="modal-overlay" onClick={() => !eliminandoUsuario && setUsuarioAEliminar(null)}>
+          <div className="modal-caja" onClick={(e) => e.stopPropagation()}>
+            <h2>¿Eliminar usuario?</h2>
+            <p>
+              Esta acción eliminará permanentemente el acceso de{" "}
+              <strong>{usuarioAEliminar.nombre}</strong>. No se puede deshacer.
+            </p>
+            <div className="modal-acciones">
+              <button
+                className="persona-dark-btn-cancelar"
+                onClick={() => setUsuarioAEliminar(null)}
+                disabled={eliminandoUsuario}
+              >
+                Cancelar
+              </button>
+              <button
+                className="modal-btn-confirmar"
+                onClick={confirmarEliminarUsuario}
+                disabled={eliminandoUsuario}
+              >
+                {eliminandoUsuario ? "Eliminando..." : "Sí, eliminar"}
               </button>
             </div>
           </div>

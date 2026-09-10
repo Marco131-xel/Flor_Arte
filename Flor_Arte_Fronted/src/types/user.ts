@@ -9,6 +9,15 @@ export interface Profile {
   user: string;
 }
 
+export interface UserFull {
+  idUsuario: number;
+  name: string;
+  email: string;
+  estado: boolean;
+  idPersona: number;
+  persona: Persona;
+}
+
 export interface Usuario {
   idUsuario: number;
   name: string;
@@ -23,11 +32,19 @@ export interface Usuario {
   rol: string;
 }
 
-export interface NewUsuario {
-  nombre: string;
+export interface NewUser {
+  name: string;
   email: string;
   password: string;
-  rolPersona: string;
+  idPersona: string;
+  
+}
+
+export interface UpdateUsuario {
+  email: string;
+  password?: string;
+  estado: boolean;
+  idPersona: string;
 }
 
 export interface Rol {

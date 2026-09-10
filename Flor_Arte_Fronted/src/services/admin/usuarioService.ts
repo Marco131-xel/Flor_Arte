@@ -1,9 +1,12 @@
 import axios from "axios";
 import type { Usuario } from "../../types/user";
-import type { Persona, NewPersona } from "../../types/user";
+import type { Persona, NewPersona, UpdateUsuario } from "../../types/user";
+import { api } from "../apiService";
 
 const API_URL = "http://localhost:8080";
 
+/* SERVICIOS PARA USUARIOS */
+// servicio para listar usuarios
 export const getUsuarios = async (): Promise<Usuario[]> => {
   const token = localStorage.getItem("token");
 
@@ -19,7 +22,26 @@ export const getUsuarios = async (): Promise<Usuario[]> => {
   return response.data;
 };
 
-// funcion para personas
+// servicio para obtener el usuario por id
+export const getUsuarioById = async (id:number) => {
+  const response = await api.get(`/user/${id}`);
+  return response.data;
+};
+
+// servicio para editar el usuario
+export const updateUsuario = async (id: number, userData: UpdateUsuario) => {
+  const response = await api.put(`/user/update/${id}`, userData);
+  return response.data;
+};
+
+// servicio para eliminar usuario
+export const deleteUsuario = async (id: number) => {
+  const response = await api.delete(`/user/delete/${id}`);
+  return response.data;
+}
+
+  /* SERVICIOS PARA PERSONAS */
+// servicio para listar personas
 export const getPersonas = async (): Promise<Persona[]> => {
   const token = localStorage.getItem("token");
 
@@ -34,8 +56,6 @@ export const getPersonas = async (): Promise<Persona[]> => {
 
   return response.data;
 };
-
-/* SERVICIOS PARA PERSONAS */
 
 // servicio para crear personas 
 export const createPersona = async (personaData: NewPersona) => {

@@ -1,16 +1,24 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { getMyProfile } from "../../services/userService";
-import type { Profile } from "../../types/user";
+import { getMyData } from "../../services/userService";
+import type { UserFull } from "../../types/user";
 
 function Perfil() {
-  const [profile, setProfile] = useState<Profile | null>(null);
+  const [profile, setProfile] = useState<UserFull | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const navigate = useNavigate();
 
+  const usuarioActual = JSON.parse(localStorage.getItem("user") || "{}");
+
   useEffect(() => {
-    getMyProfile()
+    if (!usuarioActual.id) {
+      setError("No se pudo identificar al usuario");
+      setLoading(false);
+      return;
+    }
+
+    getMyData(usuarioActual.id)
       .then((data) => setProfile(data))
       .catch(() => setError("No se pudo cargar el perfil"))
       .finally(() => setLoading(false));
@@ -28,16 +36,17 @@ function Perfil() {
   return (
     <div className="profile-wrapper">
       <div className="profile-card">
-        {/* Banda superior con logo */}
         <div className="profile-banner">
           <img src="/images/florarte.png" alt="Flor Arte" className="profile-logo" />
         </div>
 
         <div className="profile-body">
-          <h3 className="profile-name">{profile.user}</h3>
+          <h3 className="profile-name">{profile.name}</h3>
 
           <div className="profile-badges">
-            {profile.rol && <span className="badge-rol">{profile.rol}</span>}
+            {profile.persona?.rol?.tipo && (
+              <span className="badge-rol">{profile.persona.rol.tipo}</span>
+            )}
             <span className={`badge-estado ${profile.estado ? "activo" : "inactivo"}`}>
               <i className={`bi ${profile.estado ? "bi-check-circle-fill" : "bi-x-circle-fill"}`}></i>
               {profile.estado ? "Activo" : "Inactivo"}
@@ -52,10 +61,11 @@ function Perfil() {
                 <i className="bi bi-person-fill"></i>
               </div>
               <div>
-                <span className="profile-field-label">Nombre</span>
-                <p className="profile-field-value">{profile.nombre}</p>
+                <span className="profile-field-label">Nombre completo</span>
+                <p className="profile-field-value">{profile.persona?.nombre || "No registrado"}</p>
               </div>
             </div>
+
             <div className="profile-field">
               <div className="profile-field-icon">
                 <i className="bi bi-envelope-fill"></i>
@@ -72,7 +82,7 @@ function Perfil() {
               </div>
               <div>
                 <span className="profile-field-label">Teléfono</span>
-                <p className="profile-field-value">{profile.telefono || "No registrado"}</p>
+                <p className="profile-field-value">{profile.persona?.telefono || "No registrado"}</p>
               </div>
             </div>
 
@@ -82,7 +92,7 @@ function Perfil() {
               </div>
               <div>
                 <span className="profile-field-label">DPI</span>
-                <p className="profile-field-value">{profile.dpi || "No registrado"}</p>
+                <p className="profile-field-value">{profile.persona?.dpi || "No registrado"}</p>
               </div>
             </div>
           </div>
@@ -90,6 +100,9 @@ function Perfil() {
           <div className="profile-actions">
             <button className="btn-profile-edit" onClick={() => navigate("/admin/perfil/editar")}>
               <i className="bi bi-pencil-fill"></i> Editar perfil
+            </button>
+            <button className="btn-profile-password" onClick={() => navigate("/admin/perfil/cambiar-password")}>
+              <i className="bi bi-key-fill"></i> Cambiar contraseña
             </button>
             <button className="btn-profile-logout" onClick={handleLogout}>
               <i className="bi bi-box-arrow-right"></i> Cerrar sesión
