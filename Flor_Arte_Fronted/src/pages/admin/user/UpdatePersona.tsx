@@ -12,6 +12,9 @@ function UpdatePersona() {
   const [correo, setCorreo] = useState("");
   const [idRol, setIdRol] = useState("");
 
+  const [idRolOriginal, setIdRolOriginal] = useState("");
+  const [tipoRolOriginal, setTipoRolOriginal] = useState("");
+
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
   const [loading, setLoading] = useState(false);
@@ -30,13 +33,25 @@ function UpdatePersona() {
       setTelefono(data.telefono);
       setDpi(data.dpi);
       setCorreo(data.correo);
-      setIdRol(String(data.rol.idRol));
+      setIdRol(String(data.idRol));
+      setIdRolOriginal(String(data.idRol));
+      setTipoRolOriginal(data.tipoRol);
     } catch (error) {
       console.error("Error al cargar la persona:", error);
       setError("No se pudo cargar la persona");
     } finally {
       setCargando(false);
     }
+  };
+
+  const rolCambiado = idRol !== "" && idRol !== idRolOriginal;
+
+  // Nombres legibles para mostrar en la advertencia y en el select
+  const ROLES: Record<string, string> = {
+    "1": "Administrador",
+    "2": "Empleado",
+    "3": "Cliente",
+    "4": "Proveedor",
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -48,6 +63,13 @@ function UpdatePersona() {
     if (!nombre) {
       setError("Se necesita el nombre al menos");
       return;
+    }
+
+    if (rolCambiado) {
+      const confirmado = window.confirm(
+        `Estás cambiando el rol de "${nombre}" de ${tipoRolOriginal} a ${ROLES[idRol] ?? idRol}.\n\nEsto puede afectar sus permisos y accesos en el sistema. ¿Deseas continuar?`
+      );
+      if (!confirmado) return;
     }
 
     try {
@@ -62,6 +84,8 @@ function UpdatePersona() {
       });
 
       setSuccess("Persona actualizada exitosamente");
+      setIdRolOriginal(idRol);
+      setTipoRolOriginal(ROLES[idRol] ?? tipoRolOriginal);
     } catch (error: any) {
       console.error("Error al actualizar persona:", error);
 
@@ -158,7 +182,17 @@ function UpdatePersona() {
               <option value="3">Cliente</option>
               <option value="4">Proveedor</option>
             </select>
+            <span className="persona-dark-rol-actual">
+              Rol actual: {tipoRolOriginal}
+            </span>
           </div>
+
+          {rolCambiado && (
+            <div className="persona-dark-mensaje advertencia">
+              ⚠️ Vas a cambiar el rol de <strong>{tipoRolOriginal}</strong> a{" "}
+              <strong>{ROLES[idRol] ?? idRol}</strong>. Esto puede afectar sus permisos en el sistema.
+            </div>
+          )}
 
           <div className="persona-dark-acciones">
             <button

@@ -73,9 +73,15 @@ public class UserService implements UserDetailsService {
         Persona persona = personaRepository.findById(dto.getIdPersona())
                 .orElseThrow(() -> new RuntimeException("Persona no encontrada con id: " + dto.getIdPersona()));
 
-        // validar que esa persona on tenga ya un usuario
+        // validar que esa persona no tenga ya un usuario
         if (userRepository.existsByIdPersona(dto.getIdPersona())) {
             throw new RuntimeException("Esta persona ya tiene un usuario asociado");
+        }
+
+        // validar que la persona tenga un rol apto para usuario (ADMINISTRADOR o EMPLEADO)
+        String rolTipo = persona.getRol() != null ? persona.getRol().getTipo() : null;
+        if (rolTipo != null && !"ADMINISTRADOR".equalsIgnoreCase(rolTipo) && !"EMPLEADO".equalsIgnoreCase(rolTipo)) {
+            throw new RuntimeException("Solo se pueden crear usuarios para personas con rol ADMINISTRADOR o EMPLEADO");
         }
 
         // validar email unico

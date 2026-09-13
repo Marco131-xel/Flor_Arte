@@ -30,6 +30,7 @@ export interface Usuario {
   dpi: string;
 
   rol: string;
+  persona: Persona
 }
 
 export interface NewUser {
@@ -57,7 +58,9 @@ export interface Persona {
   nombre: string;
   telefono: string;
   dpi: string;
-  correo:string;
+  correo: string;
+  idRol: number;
+  tipoRol: string;
   rol: Rol
 }
 

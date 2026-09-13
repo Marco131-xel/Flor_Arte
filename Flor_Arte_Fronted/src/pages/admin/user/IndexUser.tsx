@@ -117,7 +117,9 @@ function IndexUser() {
           <h1>Personas</h1>
           <p>Gestiona las personas registradas</p>
         </div>
-        <button className="btn-nuevo" onClick={() => navigate("/admin/usuarios/crear-Persona")}>Nueva Persona</button>
+          <button className="btn-nuevo" onClick={() => navigate("/admin/usuarios/crear-Persona")}>
+            <i className="bi bi-plus-lg"></i> Nueva Persona
+          </button>
       </div>
 
       {loading && <div className="mensaje">Cargando personas...</div>}
@@ -148,34 +150,40 @@ function IndexUser() {
 
                   return (
                     <tr key={persona.idPersona}>
+
                       <td>{persona.idPersona}</td>
-                      <td>{persona.nombre}</td>
+                      <td>
+                        <div className="persona-nombre">
+                          <span className="avatar-circulo">{persona.nombre.charAt(0)}</span>
+                          {persona.nombre}
+                        </div>
+                      </td>
                       <td>{persona.correo}</td>
-                      <td><span className="rol">{persona.rol.tipo}</span></td>
+                      <td><span className="rol">{persona.tipoRol}</span></td>
                       <td className="acciones">
                         {esPersonaActual ? (
+                          <span className="tu-usuario">Tu registro</span>
+                        ) : (
                           <>
-                            <span className="tu-usuario">Tu registro</span>
-                          </>
-                        ):(
-                          <>
-                            <button className="btn-ver" onClick={() => setPersonaAVer(persona)}>
-                              Ver
+                            <button className="btn-icono btn-icono-ver" title="Ver" onClick={() => setPersonaAVer(persona)}>
+                              <i className="bi bi-eye"></i>
                             </button>
                             <button
-                              className="btn-editar"
+                              className="btn-icono btn-icono-editar"
+                              title="Editar"
                               onClick={() => navigate(`/admin/usuarios/editar-persona/${persona.idPersona}`)}
                             >
-                              Editar
+                              <i className="bi bi-pencil-square"></i>
                             </button>
                             <button
-                              className="btn-eliminar"
+                              className="btn-icono btn-icono-eliminar"
+                              title="Eliminar"
                               onClick={() => setPersonaAEliminar(persona)}
                             >
-                              Eliminar
+                              <i className="bi bi-trash3"></i>
                             </button>
                           </>
-                        )}    
+                        )}
                       </td>
                     </tr>
                   )
@@ -192,7 +200,9 @@ function IndexUser() {
           <h1>Usuarios</h1>
           <p>Gestiona los usuarios del sistema</p>
         </div>
-        <button className="btn-nuevo" onClick={() => navigate("/admin/usuarios/crear")}>Nuevo Usuario</button>
+          <button className="btn-nuevo" onClick={() => navigate("/admin/usuarios/crear")}>
+            <i className="bi bi-plus-lg"></i> Nuevo Usuario
+          </button>
       </div>
 
       {loading && <div className="mensaje">Cargando usuarios...</div>}
@@ -224,8 +234,14 @@ function IndexUser() {
 
                   return (
                     <tr key={usuario.idUsuario}>
+
                       <td>{usuario.idUsuario}</td>
-                      <td>{usuario.nombre}</td>
+                      <td>
+                        <div className="persona-nombre">
+                          <span className="avatar-circulo">{usuario.nombre.charAt(0)}</span>
+                          {usuario.nombre}
+                        </div>
+                      </td>
                       <td>{usuario.email}</td>
                       <td><span className="rol">{usuario.rol}</span></td>
                       <td>
@@ -238,24 +254,19 @@ function IndexUser() {
                           <span className="tu-usuario">Tu usuario</span>
                         ) : (
                           <>
-                            <button className="btn-ver" onClick={() => setUsuarioAVer(usuario)}>
-                              Ver
+                            <button className="btn-icono btn-icono-ver" title="Ver" onClick={() => setUsuarioAVer(usuario)}>
+                              <i className="bi bi-eye"></i>
                             </button>
-                            <button
-                              className="btn-editar"
-                              onClick={() => navigate(`/admin/usuarios/editar/${usuario.idUsuario}`)}
-                            >
-                              Editar
+                            <button className="btn-icono btn-icono-editar" title="Editar" onClick={() => navigate(`/admin/usuarios/editar/${usuario.idUsuario}`)}>
+                              <i className="bi bi-pencil-square"></i>
                             </button>
-                            <button
-                              className="btn-eliminar"
-                              onClick={() => setUsuarioAEliminar(usuario)}
-                            >
-                              Eliminar
+                            <button className="btn-icono btn-icono-eliminar" title="Eliminar" onClick={() => setUsuarioAEliminar(usuario)}>
+                              <i className="bi bi-trash3"></i>
                             </button>
                           </>
                         )}
                       </td>
+
                     </tr>
                   );
                 })
@@ -271,7 +282,7 @@ function IndexUser() {
           <div className="ver-persona-caja" onClick={(e) => e.stopPropagation()}>
             <div className="ver-persona-header">
               <h2>{personaAVer.nombre}</h2>
-              <span className="rol">{personaAVer.rol.tipo}</span>
+              <span className="rol">{personaAVer.tipoRol}</span>
             </div>
 
             <div className="ver-persona-campo">

@@ -434,13 +434,15 @@
   background: #e74c3c22;
 }
 
-/* tablas */
+/* TABLAS PARA LA VISTA DE USUARIOS DEL ADMIN */
 .usuarios-container {
   padding: 30px;
-  background: #f8fafc;
   min-height: 100vh;
+  background:
+    radial-gradient(circle at 15% 0%, rgba(124, 58, 237, 0.07), transparent 40%),
+    radial-gradient(circle at 100% 20%, rgba(20, 184, 166, 0.06), transparent 35%),
+    #f4f5f9;
 }
-
 .usuarios-header {
   display: flex;
   justify-content: space-between;
@@ -452,6 +454,7 @@
   margin: 0;
   font-size: 28px;
   color: #1e293b;
+  letter-spacing: -0.02em;
 }
 
 .usuarios-header p {
@@ -460,26 +463,44 @@
 }
 
 .btn-nuevo {
-  background: #7c3aed;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: linear-gradient(135deg, #7c3aed, #6d28d9);
   color: white;
   border: none;
-  padding: 11px 18px;
-  border-radius: 8px;
+  padding: 11px 20px;
+  border-radius: 10px;
   cursor: pointer;
   font-weight: 600;
+  font-size: 0.9rem;
+  box-shadow: 0 4px 12px rgba(124, 58, 237, 0.3);
+  transition: transform 0.15s, box-shadow 0.15s, background 0.2s;
+}
+
+.btn-nuevo i {
+  font-size: 0.85rem;
 }
 
 .btn-nuevo:hover {
-  background: #6d28d9;
+  background: linear-gradient(135deg, #8b5cf6, #7c3aed);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(124, 58, 237, 0.4);
+}
+
+.btn-nuevo:active {
+  transform: translateY(0);
+  box-shadow: 0 2px 8px rgba(124, 58, 237, 0.3);
 }
 
 .tabla-container {
   background: white;
-  border-radius: 12px;
+  border-radius: 16px;
   overflow-x: auto;
   overflow-y: auto;
   max-height: 420px;
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.06);
+  box-shadow: 0 4px 16px rgba(15, 23, 42, 0.06), 0 1px 3px rgba(15, 23, 42, 0.08);
+  border: 1px solid #eef0f4;
 }
 
 .usuarios-table {
@@ -488,24 +509,28 @@
 }
 
 .usuarios-table thead th {
-  position: static;
-  top: 0;
-  z-index: 1;
-  background: black;
+  background: #0d0d0d;
   color: white;
-  font-size: 14px;
+  font-size: 13px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
   text-align: left;
-  padding: 15px;
+  padding: 16px 15px;
 }
 
 .usuarios-table td {
-  padding: 15px;
-  border-top: 1px solid #e2e8f0;
+  padding: 14px 15px;
+  border-top: 1px solid #f1f5f9;
   color: #334155;
+  vertical-align: middle;
+}
+
+.usuarios-table tbody tr {
+  transition: background-color 0.15s;
 }
 
 .usuarios-table tbody tr:hover {
-  background: #f8fafc;
+  background: #fafbff;
 }
 
 .rol {
@@ -534,34 +559,68 @@
   color: #b91c1c;
 }
 
+.persona-nombre {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-weight: 500;
+}
+
+.avatar-circulo {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #7c3aed, #14b8a6);
+  color: white;
+  font-weight: 700;
+  font-size: 13px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  text-transform: uppercase;
+}
+
 .acciones {
   display: flex;
-  gap: 8px;
+  gap: 6px;
 }
 
-.btn-ver,
-.btn-editar,
-.btn-eliminar {
+.btn-icono {
+  width: 34px;
+  height: 34px;
   border: none;
-  padding: 7px 11px;
-  border-radius: 6px;
+  border-radius: 50%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 15px;
   cursor: pointer;
+  transition: transform 0.15s, box-shadow 0.15s, background-color 0.15s;
 }
 
-.btn-ver {
-  background: #eedac3;
+.btn-icono:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 10px rgba(15, 23, 42, 0.15);
+}
+
+.btn-icono-ver {
+  background: #fef3e2;
   color: #cf550f;
 }
+.btn-icono-ver:hover { background: #fce4c2; }
 
-.btn-editar {
+.btn-icono-editar {
   background: #e0f2fe;
   color: #0369a1;
 }
+.btn-icono-editar:hover { background: #cbe9fb; }
 
-.btn-eliminar {
+.btn-icono-eliminar {
   background: #fee2e2;
   color: #b91c1c;
 }
+.btn-icono-eliminar:hover { background: #fbcaca; }
 
 .mensaje {
   background: white;
@@ -580,7 +639,7 @@
   color: #64748b !important;
 }
 
-/* tarjeta de ingresos */
+/* TARJETA PARA CREAR PERSONAS */
 .persona-dark-container {
   display: flex;
   justify-content: center;
@@ -742,8 +801,79 @@
   color: #2AA63E;
 }
 
+/* borde de error, mismo estilo que el focus pero en rojo */
+.persona-dark-group.invalid {
+  outline: 1px solid #ef4444;
+}
 
+.persona-dark-error-text {
+  color: #f87171;
+  font-size: 0.75rem;
+  margin-top: 0.35rem;
+  font-weight: 500;
+}
 
+/* texto pequeño mostrando el rol actual debajo del select */
+.persona-dark-rol-actual {
+  margin-top: 0.4rem;
+  font-size: 0.75rem;
+  color: #6b7280;
+}
+
+/* advertencia de cambio de rol (ámbar, distinto de error/éxito) */
+.persona-dark-mensaje.advertencia {
+  background-color: rgba(245, 158, 11, 0.15);
+  color: #fbbf24;
+  border: 1px solid rgba(245, 158, 11, 0.3);
+}
+
+/* campos de solo lectura (persona asociada, contraseña) */
+.persona-dark-group-readonly {
+  background-color: #141414;
+}
+
+.persona-dark-valor-fijo {
+  color: #d1d5db;
+  font-size: 0.95rem;
+  font-weight: 600;
+}
+
+.persona-dark-password-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
+/* botón secundario, más discreto que el principal teal */
+.persona-dark-btn-secundario {
+  background-color: transparent;
+  color: #14b8a6;
+  border: 1px solid #14b8a6;
+  padding: 0.45rem 0.9rem;
+  border-radius: 999px;
+  font-weight: 600;
+  font-size: 0.8rem;
+  cursor: pointer;
+  transition: background-color 0.2s, color 0.2s;
+  white-space: nowrap;
+}
+
+.persona-dark-btn-secundario:hover {
+  background-color: rgba(20, 184, 166, 0.15);
+}
+
+/* mensaje informativo (azul), distinto de error/éxito/advertencia */
+.persona-dark-mensaje.info {
+  background-color: rgba(59, 130, 246, 0.15);
+  color: #60a5fa;
+  border: 1px solid rgba(59, 130, 246, 0.3);
+}
+
+.zero-empleados {
+  color: #9F0712;
+}
 
 /* ===== OVERLAY BASE (compartido por ambos modales) ===== */
 .modal-overlay {

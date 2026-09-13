@@ -1,24 +1,21 @@
 import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import {
-  getUsuarioById,
-  updateUsuario,
-  getPersonas,
-} from "../../../services/admin/usuarioService";
-import type { Persona } from "../../../types/user";
+import { getUsuarioById, updateUsuario } from "../../../services/admin/usuarioService";
 
 function UpdateUser() {
   const { id } = useParams();
   const navigate = useNavigate();
 
   const [email, setEmail] = useState("");
-  const [password, setPassword] = useState(""); // vacío = no cambiar
   const [estado, setEstado] = useState(true);
-  const [idPersona, setIdPersona] = useState("");
+  const [personaNombre, setPersonaNombre] = useState("");
+  const [idPersona, setIdPersona] = useState(""); // se sigue mandando al backend, pero no se edita
 
-  const [personas, setPersonas] = useState<Persona[]>([]);
+  const [estadoOriginal, setEstadoOriginal] = useState(true);
+
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
+  const [aviso, setAviso] = useState("");
   const [loading, setLoading] = useState(true);
   const [guardando, setGuardando] = useState(false);
 
@@ -31,15 +28,13 @@ function UpdateUser() {
       setLoading(true);
       setError("");
 
-      const [usuario, personasData] = await Promise.all([
-        getUsuarioById(Number(id)),
-        getPersonas(),
-      ]);
+      const usuario = await getUsuarioById(Number(id));
 
       setEmail(usuario.email);
       setEstado(usuario.estado);
+      setEstadoOriginal(usuario.estado);
       setIdPersona(String(usuario.idPersona));
-      setPersonas(personasData);
+      setPersonaNombre(usuario.persona.nombre);
     } catch (error) {
       console.error("Error al cargar el usuario:", error);
       setError("No se pudo cargar la información del usuario");
@@ -48,15 +43,34 @@ function UpdateUser() {
     }
   };
 
+  const estadoCambiado = estado !== estadoOriginal;
+
+  const handleCambiarPassword = () => {
+    // TODO: cuando el backend tenga el endpoint, esto disparará
+    // el envío de un correo de restablecimiento de contraseña.
+    setAviso("Se enviará un correo al usuario para que restablezca su contraseña (función en desarrollo).");
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
     setError("");
     setSuccess("");
 
-    if (!email || !idPersona) {
-      setError("El correo y la persona asociada son obligatorios");
+    if (!email) {
+      setError("El correo es obligatorio");
       return;
+    }
+
+    if (estadoCambiado) {
+      const confirmado = window.confirm(
+        `Vas a ${estado ? "activar" : "desactivar"} a "${personaNombre}".\n\n${
+          estado
+            ? "El usuario podrá volver a iniciar sesión en el sistema."
+            : "El usuario no podrá iniciar sesión mientras esté inactivo."
+        }\n\n¿Deseas continuar?`
+      );
+      if (!confirmado) return;
     }
 
     try {
@@ -64,13 +78,12 @@ function UpdateUser() {
 
       await updateUsuario(Number(id), {
         email,
-        password: password || undefined, // solo se manda si el admin escribió una nueva
         estado,
         idPersona,
       });
 
       setSuccess("Usuario actualizado exitosamente");
-      setPassword("");
+      setEstadoOriginal(estado);
     } catch (error: any) {
       console.error("Error al actualizar usuario:", error);
 
@@ -88,7 +101,7 @@ function UpdateUser() {
     return (
       <div className="persona-dark-container">
         <div className="persona-dark-card">
-          <p>Cargando usuario...</p>
+          <p className="persona-dark-cargando">Cargando usuario...</p>
         </div>
       </div>
     );
@@ -104,23 +117,13 @@ function UpdateUser() {
 
         {error && <div className="persona-dark-mensaje error">{error}</div>}
         {success && <div className="persona-dark-mensaje exito">{success}</div>}
+        {aviso && <div className="persona-dark-mensaje info">{aviso}</div>}
 
         <form className="persona-dark-form" onSubmit={handleSubmit}>
-          {/* Persona asociada */}
-          <div className="persona-dark-group">
-            <label htmlFor="idPersona">Persona asociada</label>
-            <select
-              id="idPersona"
-              value={idPersona}
-              onChange={(e) => setIdPersona(e.target.value)}
-            >
-              <option value="">Seleccione una persona</option>
-              {personas.map((persona) => (
-                <option key={persona.idPersona} value={persona.idPersona}>
-                  {persona.nombre} — {persona.dpi}
-                </option>
-              ))}
-            </select>
+          {/* Persona asociada: solo lectura */}
+          <div className="persona-dark-group persona-dark-group-readonly">
+            <label>Persona asociada</label>
+            <span className="persona-dark-valor-fijo">{personaNombre}</span>
           </div>
 
           {/* Correo */}
@@ -135,17 +138,19 @@ function UpdateUser() {
             />
           </div>
 
-          {/* Contraseña */}
-          <div className="persona-dark-group">
-            <label htmlFor="password">Nueva contraseña</label>
-            <input
-              id="password"
-              type="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              placeholder="Dejar en blanco para no cambiarla"
-            />
-            <small>Solo se actualiza si escribes una contraseña nueva</small>
+          {/* Contraseña: ya no editable directamente */}
+          <div className="persona-dark-group persona-dark-group-readonly">
+            <label>Contraseña</label>
+            <div className="persona-dark-password-row">
+              <span className="persona-dark-valor-fijo">••••••••</span>
+              <button
+                type="button"
+                className="persona-dark-btn-secundario"
+                onClick={handleCambiarPassword}
+              >
+                Enviar cambio de contraseña
+              </button>
+            </div>
           </div>
 
           {/* Estado */}
@@ -160,6 +165,16 @@ function UpdateUser() {
               <option value="inactivo">Inactivo</option>
             </select>
           </div>
+
+          {estadoCambiado && (
+            <div className="persona-dark-mensaje advertencia">
+              ⚠️ Vas a dejar a <strong>{personaNombre}</strong> como{" "}
+              <strong>{estado ? "Activo" : "Inactivo"}</strong>.{" "}
+              {estado
+                ? "Podrá volver a iniciar sesión en el sistema."
+                : "No podrá iniciar sesión mientras esté inactivo."}
+            </div>
+          )}
 
           <div className="persona-dark-acciones">
             <button

@@ -2,6 +2,8 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { createPersona } from "../../../services/admin/usuarioService";
 
+const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
 function CreatePersona() {
   const navigate = useNavigate();
 
@@ -11,9 +13,29 @@ function CreatePersona() {
   const [correo, setCorreo] = useState("");
   const [idRol, setIdRol] = useState("");
 
+  const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
   const [loading, setLoading] = useState(false);
+
+  const validate = () => {
+    const errors: Record<string, string> = {};
+
+    if (!nombre.trim()) {
+      errors.nombre = "El nombre es obligatorio";
+    }
+
+    if (!idRol) {
+      errors.idRol = "Selecciona un rol";
+    }
+
+    if (correo.trim() && !EMAIL_REGEX.test(correo.trim())) {
+      errors.correo = "El correo no tiene un formato válido";
+    }
+
+    setFieldErrors(errors);
+    return Object.keys(errors).length === 0;
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -21,8 +43,8 @@ function CreatePersona() {
     setError("");
     setSuccess("");
 
-    if (!nombre) {
-      setError("Se necesita el nombre al menos");
+    if (!validate()) {
+      setError("Revisa los campos marcados");
       return;
     }
 
@@ -30,10 +52,10 @@ function CreatePersona() {
       setLoading(true);
 
       await createPersona({
-        nombre,
+        nombre: nombre.trim(),
         telefono,
         dpi,
-        correo,
+        correo: correo.trim(),
         idRol,
       });
 
@@ -44,6 +66,7 @@ function CreatePersona() {
       setDpi("");
       setCorreo("");
       setIdRol("");
+      setFieldErrors({});
     } catch (error: any) {
       console.error("Error al crear usuario: ", error);
 
@@ -68,9 +91,9 @@ function CreatePersona() {
         {error && <div className="persona-dark-mensaje error">{error}</div>}
         {success && <div className="persona-dark-mensaje exito">{success}</div>}
 
-        <form className="persona-dark-form" onSubmit={handleSubmit}>
-          <div className="persona-dark-group">
-            <label htmlFor="nombre">Nombre</label>
+        <form className="persona-dark-form" onSubmit={handleSubmit} noValidate>
+          <div className={`persona-dark-group ${fieldErrors.nombre ? "invalid" : ""}`}>
+            <label htmlFor="nombre">Nombre *</label>
             <input
               id="nombre"
               type="text"
@@ -78,6 +101,9 @@ function CreatePersona() {
               onChange={(e) => setNombre(e.target.value)}
               placeholder="Ingrese el nombre"
             />
+            {fieldErrors.nombre && (
+              <span className="persona-dark-error-text">{fieldErrors.nombre}</span>
+            )}
           </div>
 
           <div className="persona-dark-group">
@@ -106,7 +132,7 @@ function CreatePersona() {
             />
           </div>
 
-          <div className="persona-dark-group">
+          <div className={`persona-dark-group ${fieldErrors.correo ? "invalid" : ""}`}>
             <label htmlFor="correo">Correo</label>
             <input
               id="correo"
@@ -115,10 +141,13 @@ function CreatePersona() {
               onChange={(e) => setCorreo(e.target.value)}
               placeholder="Ingrese su correo"
             />
+            {fieldErrors.correo && (
+              <span className="persona-dark-error-text">{fieldErrors.correo}</span>
+            )}
           </div>
 
-          <div className="persona-dark-group">
-            <label htmlFor="idRol">Rol</label>
+          <div className={`persona-dark-group ${fieldErrors.idRol ? "invalid" : ""}`}>
+            <label htmlFor="idRol">Rol *</label>
             <select
               id="idRol"
               value={idRol}
@@ -130,6 +159,9 @@ function CreatePersona() {
               <option value="3">Cliente</option>
               <option value="4">Proveedor</option>
             </select>
+            {fieldErrors.idRol && (
+              <span className="persona-dark-error-text">{fieldErrors.idRol}</span>
+            )}
           </div>
 
           <div className="persona-dark-acciones">

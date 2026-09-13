@@ -1,7 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
-import { createUser } from "../../../services/userService";
+import { createUser, getPersonas, getUsuarios } from "../../../services/admin/usuarioService";
 import type { Persona } from "../../../types/user";
-import { getPersonas } from "../../../services/admin/usuarioService";
 import { useNavigate } from "react-router-dom";
 
 function CreateUser() {
@@ -13,44 +12,53 @@ function CreateUser() {
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
   const [loading, setLoading] = useState(false);
+  const [cargandoDatos, setCargandoDatos] = useState(true);
 
   const [personas, setPersonas] = useState<Persona[]>([]);
+  const [idsConUsuario, setIdsConUsuario] = useState<Set<number>>(new Set());
   const navigate = useNavigate();
 
   useEffect(() => {
-    cargarPersonas();
+    cargarDatos();
   }, []);
 
-  const cargarPersonas = async () => {
+  const cargarDatos = async () => {
     try {
-      setLoading(true);
+      setCargandoDatos(true);
       setError("");
-      const data = await getPersonas();
-      setPersonas(data);
+
+      const [personasData, usuariosData] = await Promise.all([
+        getPersonas(),
+        getUsuarios(),
+      ]);
+
+      setPersonas(personasData);
+      setIdsConUsuario(new Set(usuariosData.map((u) => u.idPersona)));
     } catch (error) {
-      console.error("Error al cargar a personas: ", error);
+      console.error("Error al cargar datos: ", error);
       setError("No se pudieron cargar las personas");
     } finally {
-      setLoading(false);
+      setCargandoDatos(false);
     }
   };
 
-  const empleados = useMemo(
-    () => personas.filter((p) => p.rol?.tipo === "EMPLEADO"),
-    [personas]
+  // Empleados que AÚN NO tienen un usuario en el sistema
+  const empleadosDisponibles = useMemo(
+    () =>
+      personas.filter(
+        (p) => p.tipoRol === "EMPLEADO" && !idsConUsuario.has(p.idPersona)
+      ),
+    [personas, idsConUsuario]
   );
 
-  // cuando cambia la persona seleccionada, precargar su correo (si tiene)
   const handlePersonaChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     const nuevoIdPersona = e.target.value;
     setIdPersona(nuevoIdPersona);
 
-    const personaSeleccionada = empleados.find(
+    const personaSeleccionada = empleadosDisponibles.find(
       (p) => String(p.idPersona) === nuevoIdPersona
     );
 
-    // si la persona tiene correo registrado, lo sugerimos en el campo email
-    // si no tiene, dejamos el campo vacío para que lo escriban
     setEmail(personaSeleccionada?.correo ?? "");
   };
 
@@ -81,6 +89,9 @@ function CreateUser() {
       setEmail("");
       setPassword("");
       setIdPersona("");
+
+      // la persona recién usada ya no debe volver a aparecer en el combo
+      setIdsConUsuario((prev) => new Set(prev).add(Number(idPersona)));
     } catch (error: any) {
       console.error("Error al crear usuario:", error);
 
@@ -106,7 +117,7 @@ function CreateUser() {
         {success && <div className="persona-dark-mensaje exito">{success}</div>}
 
         <form className="persona-dark-form" onSubmit={handleSubmit}>
-          {/* Persona (rol EMPLEADO) */}
+          {/* Persona (rol EMPLEADO, sin usuario todavía) */}
           <div className="persona-dark-group">
             <label htmlFor="idPersona">Empleado</label>
 
@@ -114,21 +125,23 @@ function CreateUser() {
               id="idPersona"
               value={idPersona}
               onChange={handlePersonaChange}
-              disabled={loading || empleados.length === 0}
+              disabled={loading || cargandoDatos || empleadosDisponibles.length === 0}
             >
               <option value="">
-                {loading ? "Cargando empleados..." : "Seleccione un empleado"}
+                {cargandoDatos ? "Cargando empleados..." : "Seleccione un empleado"}
               </option>
 
-              {empleados.map((persona) => (
+              {empleadosDisponibles.map((persona) => (
                 <option key={persona.idPersona} value={persona.idPersona}>
                   {persona.nombre} — {persona.dpi}
                 </option>
               ))}
             </select>
 
-            {!loading && empleados.length === 0 && (
-              <p>No hay personas con rol EMPLEADO disponibles</p>
+            {!cargandoDatos && empleadosDisponibles.length === 0 && (
+              <p className="zero-empleados">
+                No hay empleados disponibles
+              </p>
             )}
           </div>
 
@@ -183,7 +196,7 @@ function CreateUser() {
               Cancelar
             </button>
 
-            <button type="submit" className="persona-dark-btn" disabled={loading}>
+            <button type="submit" className="persona-dark-btn" disabled={loading || cargandoDatos}>
               {loading ? "Registrando..." : "Crear usuario"}
             </button>
           </div>

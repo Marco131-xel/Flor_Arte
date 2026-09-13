@@ -6,7 +6,7 @@ public class GenerarHash {
     public static void main(String[] args) {
         BCryptPasswordEncoder encoder = new BCryptPasswordEncoder();
 
-        String password = "45817448";
+        String password = "2327";
         System.out.println(encoder.encode(password));
     }
 }

@@ -12,6 +12,7 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
 
+import jakarta.validation.Valid;
 import java.util.Map;
 
 @RestController
@@ -25,30 +26,10 @@ public class UserController {
         this.userService = userService;
     }
 
-    // obtener datos del usuario autenticado
-    @GetMapping("/me")
-    public ResponseEntity<?> getMyProfile(@AuthenticationPrincipal UserDetails userDetails) {
-        var email = userDetails.getUsername();
-        var user = userService.findByEmail(email).orElseThrow(() -> new RuntimeException("Usuario no encontrado"));
-        var persona = user.getPersona();
-        UserProfileDto dto = new UserProfileDto(
-                persona.getNombre(),
-                persona.getTelefono(),
-                persona.getDpi(),
-                user.getEmail(),
-                user.getEstado(),
-                user.getIdPersona(),
-                persona.getRol().getTipo(),
-                user.getName()
-        );
-
-        return ResponseEntity.ok(dto);
-    }
-
     // crear usuarios por persona
     @PreAuthorize("hasRole('ADMINISTRADOR')")
     @PostMapping("/create")
-    public ResponseEntity<?> createUser(@RequestBody NewUserDto dto) {
+    public ResponseEntity<?> createUser(@Valid @RequestBody NewUserDto dto) {
         User user = userService.createUser(dto);
         return ResponseEntity.ok(Map.of("message", "Usuario creado", "user", user));
     }
@@ -61,7 +42,8 @@ public class UserController {
         return ResponseEntity.ok(Map.of("message", "Usuario eliminado"));
     }
 
-    // obtener todos los usuarios
+    // obtener todos los usuarios (solo admin)
+    @PreAuthorize("hasAnyRole('ADMINISTRADOR', 'EMPLEADO')")
     @GetMapping("/all")
     public ResponseEntity<?> getAllUsers() {
         return ResponseEntity.ok(userService.findAll());
@@ -70,12 +52,13 @@ public class UserController {
     // poder editar un usuario solo (admin)
     @PreAuthorize("hasRole('ADMINISTRADOR')")
     @PutMapping("/update/{id}")
-    public ResponseEntity<?> updateUserByYd(@PathVariable Long id, @RequestBody UpdateUserDto dto) {
+    public ResponseEntity<?> updateUserById(@PathVariable Long id, @Valid @RequestBody UpdateUserDto dto) {
         User updated = userService.updateUser(id, dto);
         return ResponseEntity.ok(Map.of("message", "Usuario actualizado", "user", updated));
     }
 
     // obtener datos del usuario
+    @PreAuthorize("hasAnyRole('ADMINISTRADOR', 'EMPLEADO')")
     @GetMapping("/{id}")
     public ResponseEntity<?> getUserId(@PathVariable Long id) {
         User user = userService.findById(id)
