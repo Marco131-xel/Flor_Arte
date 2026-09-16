@@ -37,6 +37,7 @@ function Index() {
   ];
 
   const accesos = [
+    { label: "Gestionar Personas", icon: "bi bi-people", link: "/empleado/personas" },
     { label: "Gestionar Flores", icon: "bi-flower1", link: "/empleado/flores" },
     { label: "Gestionar Inventario", icon: "bi-journal", link: "/empleado/inventario" },
     { label: "Gestionar Pedidos", icon: "bi-bag-plus", link: "/empleado/pedidos" },

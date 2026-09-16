@@ -23,8 +23,14 @@ function Sidebar({ open }: Props) {
         </li>
 
         <li>
+          <NavLink to="/empleado/personas" className={linkClass}>
+            <i className="bi bi-people"></i> Gestionar Personas
+          </NavLink>
+        </li>
+
+        <li>
           <NavLink to="/empleado/flores" className={linkClass}>
-            <i className="bi bi-people"></i> Gestionar Flores
+            <i className="bi bi-flower3"></i> Gestionar Flores
           </NavLink>
         </li>
 
