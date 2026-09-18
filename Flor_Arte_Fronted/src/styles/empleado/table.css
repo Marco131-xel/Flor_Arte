@@ -391,6 +391,123 @@
   opacity: 0.6;
   cursor: not-allowed;
 }
+/*
+  Agrega esto a styles/empleado/table.css (o impórtalo aparte).
+  Buscador para IndexPersonas — mismo patrón que el de TipoFlor.
+*/
+
+.personas-search-box {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  background: var(--fa-white);
+  border: 1px solid var(--fa-white-dim);
+  border-radius: 10px;
+  padding: 0.65rem 1rem;
+  margin-bottom: 1.25rem;
+  max-width: 420px;
+}
+
+.personas-search-box i.bi-search {
+  color: var(--fa-ink-dim);
+  font-size: 0.95rem;
+}
+
+.personas-search-input {
+  flex: 1;
+  border: none;
+  outline: none;
+  background: transparent;
+  font-size: 0.95rem;
+  color: var(--fa-ink);
+}
+
+.personas-search-input::placeholder {
+  color: var(--fa-ink-dim);
+}
+
+.personas-search-clear {
+  background: transparent;
+  border: none;
+  color: var(--fa-ink-dim);
+  cursor: pointer;
+  padding: 0.15rem;
+  display: flex;
+  align-items: center;
+  border-radius: 6px;
+}
+
+.personas-search-clear:hover {
+  color: var(--fa-danger);
+  background: rgba(178, 69, 58, 0.1);
+}
+
+.personas-td-total {
+  font-weight: 600;
+  color: var(--fa-primary);
+}
+
+.personas-td-total-label {
+  text-align: right;
+  color: var(--fa-ink-dim);
+  font-weight: 500;
+}
+
+
+.personas-info-value-total {
+  color: var(--fa-primary);
+  font-weight: 700;
+}
+
+.personas-detalle-section {
+  margin-top: 1.1rem;
+}
+
+.personas-detalle-vacio {
+  margin-top: 0.5rem;
+  font-size: 0.9rem;
+  color: var(--fa-ink-dim);
+  font-style: italic;
+}
+
+.personas-detalle-table {
+  width: 100%;
+  margin-top: 0.6rem;
+  border-collapse: collapse;
+  font-size: 0.85rem;
+}
+
+.personas-detalle-table th {
+  text-align: left;
+  padding: 0.5rem;
+  color: var(--fa-ink-dim);
+  border-bottom: 1px solid var(--fa-cream-dim);
+}
+
+.personas-detalle-table td {
+  padding: 0.5rem;
+  border-bottom: 1px solid var(--fa-cream-dim);
+}
+
+.personas-modal-footer {
+  padding: 1rem 1.3rem;
+  display: flex;
+  justify-content: flex-end;
+  border-top: 1px solid var(--fa-cream-dim);
+}
+
+.personas-btn-secondary {
+  background: transparent;
+  border: 1px solid var(--fa-white-dim);
+  color: var(--fa-ink);
+  border-radius: 8px;
+  padding: 0.55rem 1.1rem;
+  cursor: pointer;
+}
+
+.personas-btn-secondary:hover {
+  background: var(--fa-cream-dim);
+}
 
 /* ===== LAYOUT GENERAL ===== */
 .flor-page {
@@ -776,6 +893,152 @@
 .flor-btn-danger:disabled {
   opacity: 0.6;
   cursor: not-allowed;
+}
+
+/*
+  flor-extras.css — clases nuevas para IndexFlores.tsx.
+  Agrega esto a tu archivo de estilos existente de flor
+  (o impórtalo aparte); todo lo demás (flor-page, flor-header,
+  flor-table*, flor-modal*, flor-icon-btn*, flor-badge*, etc.)
+  ya existe y no se toca.
+*/
+
+/* Fila de buscador + filtro de estado, encima de la tabla */
+.flor-filtros {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 1.25rem;
+}
+
+/* Buscador (mismo patrón que tipoflor-search-box / personas-search-box) */
+.flor-search-box {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  background: var(--fa-white);
+  border: 1px solid var(--fa-white-dim);
+  border-radius: 10px;
+  padding: 0.65rem 1rem;
+  max-width: 380px;
+  flex: 1;
+  min-width: 220px;
+}
+
+.flor-search-box i.bi-search {
+  color: var(--fa-ink-dim);
+  font-size: 0.95rem;
+}
+
+.flor-search-input {
+  flex: 1;
+  border: none;
+  outline: none;
+  background: transparent;
+  font-size: 0.95rem;
+  color: var(--fa-ink);
+}
+
+.flor-search-input::placeholder {
+  color: var(--fa-ink-dim);
+}
+
+.flor-search-clear {
+  background: transparent;
+  border: none;
+  color: var(--fa-ink-dim);
+  cursor: pointer;
+  padding: 0.15rem;
+  display: flex;
+  align-items: center;
+  border-radius: 6px;
+}
+
+.flor-search-clear:hover {
+  color: var(--fa-danger);
+  background: rgba(178, 69, 58, 0.1);
+}
+
+/* Filtro de estado: segmented control (Todas / Disponibles / No disponibles) */
+.flor-filter-estado {
+  display: flex;
+  background: var(--fa-cream-dim);
+  border-radius: 10px;
+  padding: 0.25rem;
+  gap: 0.25rem;
+}
+
+.flor-filter-btn {
+  border: none;
+  background: transparent;
+  color: var(--fa-ink-dim);
+  font-size: 0.85rem;
+  font-weight: 500;
+  padding: 0.45rem 0.9rem;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background 0.15s ease, color 0.15s ease;
+  white-space: nowrap;
+}
+
+.flor-filter-btn:hover {
+  color: var(--fa-ink);
+}
+
+.flor-filter-btn-activo {
+  background: var(--fa-primary);
+  color: var(--fa-white);
+}
+
+.flor-filter-btn-activo:hover {
+  color: var(--fa-white);
+}
+
+/* Color: swatch redondo junto al nombre, en tabla y en el modal */
+.flor-color-cell {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.flor-color-swatch {
+  display: inline-block;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  border: 1px solid rgba(0, 0, 0, 0.15);
+  flex-shrink: 0;
+}
+
+.flor-info-value-color {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+/* Imagen dentro del modal "Ver" */
+.flor-modal-img-box {
+  width: 100%;
+  height: 200px;
+  border-radius: 10px;
+  background: var(--fa-cream-dim);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  margin-bottom: 1rem;
+}
+
+.flor-modal-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.flor-modal-img-fallback {
+  font-size: 2.5rem;
 }
 
 /* ===== LAYOUT GENERAL ===== */
@@ -1710,7 +1973,79 @@
   opacity: 0.6;
   cursor: not-allowed;
 }
+/*
+  tipoflor-extras.css — clases nuevas para TipoFlor.tsx.
+  Agrega esto a tu archivo de estilos existente de tipoflor
+  (o impórtalo aparte); todo lo demás (tipoflor-page, tipoflor-header,
+  tipoflor-grid, tipoflor-card*, tipoflor-modal*, tipoflor-icon-btn*, etc.)
+  ya existe y no se toca.
+*/
 
+/* Buscador, debajo del header */
+.tipoflor-search-box {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  background: var(--fa-white);
+  border: 1px solid var(--fa-white-dim);
+  border-radius: 10px;
+  padding: 0.65rem 1rem;
+  margin-bottom: 1.25rem;
+  max-width: 420px;
+}
+
+.tipoflor-search-box i.bi-search {
+  color: var(--fa-ink-dim);
+  font-size: 0.95rem;
+}
+
+.tipoflor-search-input {
+  flex: 1;
+  border: none;
+  outline: none;
+  background: transparent;
+  font-size: 0.95rem;
+  color: var(--fa-ink);
+}
+
+.tipoflor-search-input::placeholder {
+  color: var(--fa-ink-dim);
+}
+
+.tipoflor-search-clear {
+  background: transparent;
+  border: none;
+  color: var(--fa-ink-dim);
+  cursor: pointer;
+  padding: 0.15rem;
+  display: flex;
+  align-items: center;
+  border-radius: 6px;
+}
+
+.tipoflor-search-clear:hover {
+  color: var(--fa-danger);
+  background: rgba(178, 69, 58, 0.1);
+}
+
+/* Imagen dentro del modal "Ver" */
+.tipoflor-modal-img-box {
+  width: 100%;
+  height: 200px;
+  border-radius: 10px;
+  background: var(--fa-cream-dim);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  margin-bottom: 1rem;
+}
+
+.tipoflor-modal-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
 
 
 

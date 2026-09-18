@@ -80,38 +80,51 @@ function Color() {
     setFormAbierto(false);
   };
 
-  const handleGuardarColor = async (e: FormEvent) => {
-    e.preventDefault();
-    setErrorForm(null);
+const handleGuardarColor = async (e: FormEvent) => {
+  e.preventDefault();
+  setErrorForm(null);
 
-    const nombreLimpio = nombreForm.trim();
-    if (!nombreLimpio) {
-      setErrorForm("El nombre es obligatorio.");
-      return;
-    }
+  const nombreLimpio = nombreForm.trim();
 
-    const datos: NewColor = { nombre: nombreLimpio };
+  if (!nombreLimpio) {
+    setErrorForm("El nombre es obligatorio.");
+    return;
+  }
 
-    try {
-      setGuardandoForm(true);
-      if (colorEditando) {
-        const actualizado = await updateColor(colorEditando.idColor, datos);
-        setColores((prev) =>
-          prev.map((c) => (c.idColor === colorEditando.idColor ? actualizado : c))
-        );
-      } else {
-        const creado = await createColor(datos);
-        setColores((prev) => [...prev, creado]);
-      }
-      setFormAbierto(false);
-    } catch (err) {
-      setErrorForm(
-        colorEditando ? "No se pudo actualizar el color." : "No se pudo crear el color."
-      );
-    } finally {
-      setGuardandoForm(false);
-    }
+  const datos: NewColor = {
+    nombre: nombreLimpio,
   };
+
+  try {
+    setGuardandoForm(true);
+
+    if (colorEditando) {
+      await updateColor(colorEditando.idColor, datos);
+    } else {
+      await createColor(datos);
+    }
+
+    // Volver a consultar los datos directamente desde el backend
+    await cargarColores();
+
+    // Cerrar modal solamente después de actualizar la lista
+    setFormAbierto(false);
+
+    // Limpiar formulario
+    setColorEditando(null);
+    setNombreForm("");
+  } catch (err) {
+    console.error("Error al guardar color:", err);
+
+    setErrorForm(
+      colorEditando
+        ? "No se pudo actualizar el color."
+        : "No se pudo crear el color."
+    );
+  } finally {
+    setGuardandoForm(false);
+  }
+};
 
   return (
     <div className="color-page">

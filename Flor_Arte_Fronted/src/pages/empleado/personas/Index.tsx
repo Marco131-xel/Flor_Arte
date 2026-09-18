@@ -16,6 +16,8 @@ function IndexPersonas() {
     const [error, setError] = useState("");
     const navigate = useNavigate();
 
+    const [busqueda, setBusqueda] = useState("");
+
     const [personaAVer, setPersonaAVer] = useState<Persona | null>(null);
     const [personaAEliminar, setPersonaAEliminar] = useState<Persona | null>(null);
     const [eliminando, setEliminando] = useState(false);
@@ -47,10 +49,16 @@ function IndexPersonas() {
     };
 
     // Solo Clientes y Proveedores en esta vista de empleado
-    const personasFiltradas = useMemo(
+    const personasVisibles = useMemo(
         () => personas.filter((p) => ROLES_VISIBLES.includes(p.tipoRol?.toUpperCase())),
         [personas]
     );
+
+    const personasFiltradas = useMemo(() => {
+        const termino = busqueda.trim().toLowerCase();
+        if (!termino) return personasVisibles;
+        return personasVisibles.filter((p) => p.nombre.toLowerCase().includes(termino));
+    }, [personasVisibles, busqueda]);
 
     const confirmarEliminar = async () => {
         if (!personaAEliminar) return;
@@ -89,6 +97,28 @@ function IndexPersonas() {
                 </button>
             </div>
 
+            {/* BUSCADOR */}
+            <div className="personas-search-box">
+                <i className="bi bi-search"></i>
+                <input
+                    type="text"
+                    className="personas-search-input"
+                    placeholder="Buscar persona por nombre..."
+                    value={busqueda}
+                    onChange={(e) => setBusqueda(e.target.value)}
+                />
+                {busqueda && (
+                    <button
+                        type="button"
+                        className="personas-search-clear"
+                        onClick={() => setBusqueda("")}
+                        title="Limpiar búsqueda"
+                    >
+                        <i className="bi bi-x-lg"></i>
+                    </button>
+                )}
+            </div>
+
             {loading && <div className="personas-state-box">Cargando personas...</div>}
             {error && <div className="personas-error-box">{error}</div>}
 
@@ -105,10 +135,16 @@ function IndexPersonas() {
                             </tr>
                         </thead>
                         <tbody>
-                            {personasFiltradas.length === 0 ? (
+                            {personasVisibles.length === 0 ? (
                                 <tr>
                                     <td colSpan={5} className="personas-empty-row">
                                         No hay clientes ni proveedores registrados
+                                    </td>
+                                </tr>
+                            ) : personasFiltradas.length === 0 ? (
+                                <tr>
+                                    <td colSpan={5} className="personas-empty-row">
+                                        No se encontraron personas con "{busqueda}"
                                     </td>
                                 </tr>
                             ) : (

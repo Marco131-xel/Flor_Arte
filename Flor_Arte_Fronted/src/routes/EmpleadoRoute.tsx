@@ -1,6 +1,6 @@
 import { Route } from "react-router-dom";
 import PrivateRoute from "../components/PrivateRoute";
-// funcionalidades del admin
+// funcionalidades del empleado
 import EmpleadoLayout from "../components/empleado/Layout";
 import InicioEmpleado from "../pages/empleado/Index";
 import IndexPerfil from "../pages/empleado/perfil/Index";
@@ -14,6 +14,10 @@ import CreateFlor from "../pages/empleado/flores/Create";
 import UpdateFlores from "../pages/empleado/flores/Update";
 import Color from "../pages/empleado/flores/Color";
 import TipoFlor from "../pages/empleado/flores/Tipo";
+// modulo inventario
+import IndexInventario from "../pages/empleado/inventario/Index";
+import CreateInventario from "../pages/empleado/inventario/Create";
+import UpdateInventario from "../pages/empleado/inventario/Update";
 
 export const EmpleadoRoutes = () => (
     <Route path="/empleado" element={
@@ -21,15 +25,23 @@ export const EmpleadoRoutes = () => (
             <EmpleadoLayout/>
         </PrivateRoute>
     }>
+        {/* PAGINA DE INICIO */}
         <Route index element={<InicioEmpleado />}/>
+        {/* VISTA MI PERFIL */}
         <Route path="perfil" element={<IndexPerfil/>}/>
+        {/* VISTAS PERSONAS */}
         <Route path="personas" element={<IndexPersonas/>}/>
         <Route path="personas/create" element={<CreatePersona/>}/>
         <Route path="personas/update/:id" element={<UpdatePersona/>}/>
+        {/* VISTA A FLORES */}
         <Route path="flores" element={<IndexFlores/>}/>
         <Route path="flores/create" element={<CreateFlor/>}/>
         <Route path="flores/update/:id" element={<UpdateFlores/>}/>
         <Route path="flores/color" element={<Color/>}/>
         <Route path="flores/tipoflor" element={<TipoFlor/>}/>
+        {/*VISTA A INVENTARIO */}
+        <Route path="inventario" element={<IndexInventario/>}/>
+        <Route path="inventario/create" element={<CreateInventario/>}/>
+        <Route path="inventario/update/:id" element={<UpdateInventario/>}/>
     </Route>
 )

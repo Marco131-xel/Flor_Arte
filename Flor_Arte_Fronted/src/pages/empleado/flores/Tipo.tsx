@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import type { FormEvent } from "react";
 import { useNavigate } from "react-router-dom";
 import {
@@ -15,6 +15,9 @@ function TipoFlor() {
   const [tiposFlor, setTiposFlor] = useState<TipoFlorType[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+
+  // buscador
+  const [busqueda, setBusqueda] = useState("");
 
   // modal ver
   const [tipoFlorVer, setTipoFlorVer] = useState<TipoFlorType | null>(null);
@@ -48,6 +51,12 @@ function TipoFlor() {
       setLoading(false);
     }
   };
+
+  const tiposFlorFiltrados = useMemo(() => {
+    const termino = busqueda.trim().toLowerCase();
+    if (!termino) return tiposFlor;
+    return tiposFlor.filter((t) => t.nombre.toLowerCase().includes(termino));
+  }, [tiposFlor, busqueda]);
 
   const handleEliminar = async () => {
     if (!tipoFlorEliminar) return;
@@ -146,6 +155,28 @@ function TipoFlor() {
         </div>
       </div>
 
+      {/* BUSCADOR */}
+      <div className="tipoflor-search-box">
+        <i className="bi bi-search"></i>
+        <input
+          type="text"
+          className="tipoflor-search-input"
+          placeholder="Buscar tipo de flor por nombre..."
+          value={busqueda}
+          onChange={(e) => setBusqueda(e.target.value)}
+        />
+        {busqueda && (
+          <button
+            type="button"
+            className="tipoflor-search-clear"
+            onClick={() => setBusqueda("")}
+            title="Limpiar búsqueda"
+          >
+            <i className="bi bi-x-lg"></i>
+          </button>
+        )}
+      </div>
+
       {/* ERROR */}
       {error && <div className="tipoflor-error-box">{error}</div>}
 
@@ -154,9 +185,13 @@ function TipoFlor() {
         <div className="tipoflor-state-box">Cargando tipos de flor...</div>
       ) : tiposFlor.length === 0 ? (
         <div className="tipoflor-state-box">No hay tipos de flor registrados.</div>
+      ) : tiposFlorFiltrados.length === 0 ? (
+        <div className="tipoflor-state-box">
+          No se encontraron tipos de flor con "{busqueda}".
+        </div>
       ) : (
         <div className="tipoflor-grid">
-          {tiposFlor.map((tipo) => (
+          {tiposFlorFiltrados.map((tipo) => (
             <div key={tipo.idTipoFlor} className="tipoflor-card">
               <div className="tipoflor-card-img-box">
                 {tipo.imagenUrl ? (
@@ -216,6 +251,18 @@ function TipoFlor() {
               </button>
             </div>
             <div className="tipoflor-modal-body">
+              <div className="tipoflor-modal-img-box">
+                {tipoFlorVer.imagenUrl ? (
+                  <img
+                    src={tipoFlorVer.imagenUrl}
+                    alt={tipoFlorVer.nombre}
+                    className="tipoflor-modal-img"
+                  />
+                ) : (
+                  <span className="tipoflor-card-icon">🌸</span>
+                )}
+              </div>
+
               <div className="tipoflor-info-row">
                 <span className="tipoflor-info-label">ID</span>
                 <span className="tipoflor-info-value">{tipoFlorVer.idTipoFlor}</span>
