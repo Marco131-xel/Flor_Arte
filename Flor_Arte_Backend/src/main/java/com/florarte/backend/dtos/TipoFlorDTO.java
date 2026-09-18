@@ -18,4 +18,6 @@ public class TipoFlorDTO {
     private String nombre;
 
     private String descripcion;
+
+    private String imagenUrl;
 }

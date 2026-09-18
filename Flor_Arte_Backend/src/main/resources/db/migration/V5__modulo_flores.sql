@@ -8,7 +8,8 @@ CREATE TABLE color (
 CREATE TABLE tipo_flor (
     id_tipo_flor SERIAL PRIMARY KEY,
     nombre VARCHAR(100) NOT NULL UNIQUE,
-    descripcion TEXT
+    descripcion TEXT,
+    imagen_url TEXT
 );
 
 -- TABLA FLOR

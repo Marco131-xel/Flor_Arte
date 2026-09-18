@@ -1,7 +1,13 @@
 import { useEffect, useState } from "react";
+import type { FormEvent } from "react";
 import { useNavigate } from "react-router-dom";
-import { getColores, deleteColor } from "../../../services/shared/flor/florService";
-import type { Color as ColorType } from "../../../types/flor";
+import {
+  getColores,
+  createColor,
+  updateColor,
+  deleteColor,
+} from "../../../services/shared/flor/florService";
+import type { Color as ColorType, NewColor } from "../../../types/flor";
 
 function Color() {
   const navigate = useNavigate();
@@ -16,6 +22,13 @@ function Color() {
   // modal eliminar
   const [colorEliminar, setColorEliminar] = useState<ColorType | null>(null);
   const [eliminando, setEliminando] = useState(false);
+
+  // modal crear / editar (mismo formulario para ambos casos)
+  const [formAbierto, setFormAbierto] = useState(false);
+  const [colorEditando, setColorEditando] = useState<ColorType | null>(null);
+  const [nombreForm, setNombreForm] = useState("");
+  const [errorForm, setErrorForm] = useState<string | null>(null);
+  const [guardandoForm, setGuardandoForm] = useState(false);
 
   useEffect(() => {
     cargarColores();
@@ -48,6 +61,58 @@ function Color() {
     }
   };
 
+  const abrirCrear = () => {
+    setColorEditando(null);
+    setNombreForm("");
+    setErrorForm(null);
+    setFormAbierto(true);
+  };
+
+  const abrirEditar = (color: ColorType) => {
+    setColorEditando(color);
+    setNombreForm(color.nombre);
+    setErrorForm(null);
+    setFormAbierto(true);
+  };
+
+  const cerrarFormulario = () => {
+    if (guardandoForm) return;
+    setFormAbierto(false);
+  };
+
+  const handleGuardarColor = async (e: FormEvent) => {
+    e.preventDefault();
+    setErrorForm(null);
+
+    const nombreLimpio = nombreForm.trim();
+    if (!nombreLimpio) {
+      setErrorForm("El nombre es obligatorio.");
+      return;
+    }
+
+    const datos: NewColor = { nombre: nombreLimpio };
+
+    try {
+      setGuardandoForm(true);
+      if (colorEditando) {
+        const actualizado = await updateColor(colorEditando.idColor, datos);
+        setColores((prev) =>
+          prev.map((c) => (c.idColor === colorEditando.idColor ? actualizado : c))
+        );
+      } else {
+        const creado = await createColor(datos);
+        setColores((prev) => [...prev, creado]);
+      }
+      setFormAbierto(false);
+    } catch (err) {
+      setErrorForm(
+        colorEditando ? "No se pudo actualizar el color." : "No se pudo crear el color."
+      );
+    } finally {
+      setGuardandoForm(false);
+    }
+  };
+
   return (
     <div className="color-page">
       {/* HEADER */}
@@ -61,7 +126,7 @@ function Color() {
         </div>
 
         <div className="color-header-actions">
-          <button className="color-btn-primary" onClick={() => navigate("/colores/crear")}>
+          <button className="color-btn-primary" onClick={abrirCrear}>
             + Crear Color
           </button>
         </div>
@@ -94,7 +159,7 @@ function Color() {
                 <button
                   className="color-icon-btn color-icon-btn-edit"
                   title="Editar"
-                  onClick={() => navigate(`/colores/editar/${color.idColor}`)}
+                  onClick={() => abrirEditar(color)}
                 >
                   <i className="bi bi-pencil-square"></i>
                 </button>
@@ -136,6 +201,62 @@ function Color() {
                 Cerrar
               </button>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* MODAL CREAR / EDITAR */}
+      {formAbierto && (
+        <div className="color-overlay" onClick={cerrarFormulario}>
+          <div className="color-modal" onClick={(e) => e.stopPropagation()}>
+            <div className="color-modal-header">
+              <h2 className="color-modal-title">
+                {colorEditando ? "Editar color" : "Crear color"}
+              </h2>
+              <button className="color-close-x" onClick={cerrarFormulario}>
+                ✕
+              </button>
+            </div>
+            <form onSubmit={handleGuardarColor}>
+              <div className="color-modal-body">
+                {errorForm && <div className="color-form-error">{errorForm}</div>}
+                <div className="color-form-field">
+                  <label className="color-form-label" htmlFor="nombreColor">
+                    Nombre
+                  </label>
+                  <input
+                    id="nombreColor"
+                    type="text"
+                    className="color-form-input"
+                    placeholder="Ej. Rosa fucsia"
+                    value={nombreForm}
+                    onChange={(e) => setNombreForm(e.target.value)}
+                    autoFocus
+                  />
+                </div>
+              </div>
+              <div className="color-modal-footer">
+                <button
+                  type="button"
+                  className="color-btn-secondary"
+                  onClick={cerrarFormulario}
+                  disabled={guardandoForm}
+                >
+                  Cancelar
+                </button>
+                <button
+                  type="submit"
+                  className="color-btn-primary"
+                  disabled={guardandoForm}
+                >
+                  {guardandoForm
+                    ? "Guardando..."
+                    : colorEditando
+                    ? "Guardar Cambios"
+                    : "Guardar"}
+                </button>
+              </div>
+            </form>
           </div>
         </div>
       )}

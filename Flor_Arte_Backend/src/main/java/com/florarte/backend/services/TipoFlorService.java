@@ -32,6 +32,7 @@ public class TipoFlorService {
         TipoFlor tipoFlor = new TipoFlor();
         tipoFlor.setNombre(dto.getNombre().trim());
         tipoFlor.setDescripcion(dto.getDescripcion());
+        tipoFlor.setImagenUrl(dto.getImagenUrl());
 
         TipoFlor nuevo = tipoFlorRepository.save(tipoFlor);
         return toDto(nuevo);
@@ -62,6 +63,7 @@ public class TipoFlorService {
 
         tipoFlor.setNombre(nuevoNombre);
         tipoFlor.setDescripcion(dto.getDescripcion());
+        tipoFlor.setImagenUrl(dto.getImagenUrl());
 
         TipoFlor actualizado = tipoFlorRepository.save(tipoFlor);
         return toDto(actualizado);
@@ -84,7 +86,8 @@ public class TipoFlorService {
         return new TipoFlorDTO(
                 tipoFlor.getIdTipoFlor(),
                 tipoFlor.getNombre(),
-                tipoFlor.getDescripcion()
+                tipoFlor.getDescripcion(),
+                tipoFlor.getImagenUrl()
         );
     }
 }

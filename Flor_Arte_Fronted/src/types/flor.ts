@@ -7,6 +7,7 @@ export interface TipoFlor {
     idTipoFlor: number;
     nombre: string;
     descripcion: string;
+    imagenUrl: string;
 }
 
 export interface Flor {
@@ -27,6 +28,7 @@ export interface NewColor {
 export interface NewTipoFlor {
     nombre: string;
     descripcion: string;
+    imagenUrl?: string;
 }
 
 export interface NewFlor {

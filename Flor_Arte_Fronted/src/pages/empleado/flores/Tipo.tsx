@@ -1,7 +1,13 @@
 import { useEffect, useState } from "react";
+import type { FormEvent } from "react";
 import { useNavigate } from "react-router-dom";
-import { getTiposFlor, deleteTipoFlor } from "../../../services/shared/flor/florService";
-import type { TipoFlor as TipoFlorType } from "../../../types/flor";
+import {
+  getTiposFlor,
+  createTipoFlor,
+  updateTipoFlor,
+  deleteTipoFlor,
+} from "../../../services/shared/flor/florService";
+import type { TipoFlor as TipoFlorType, NewTipoFlor } from "../../../types/flor";
 
 function TipoFlor() {
   const navigate = useNavigate();
@@ -16,6 +22,15 @@ function TipoFlor() {
   // modal eliminar
   const [tipoFlorEliminar, setTipoFlorEliminar] = useState<TipoFlorType | null>(null);
   const [eliminando, setEliminando] = useState(false);
+
+  // modal crear / editar (mismo formulario para ambos casos)
+  const [formAbierto, setFormAbierto] = useState(false);
+  const [tipoEditando, setTipoEditando] = useState<TipoFlorType | null>(null);
+  const [nombreForm, setNombreForm] = useState("");
+  const [descripcionForm, setDescripcionForm] = useState("");
+  const [imagenUrlForm, setImagenUrlForm] = useState("");
+  const [errorForm, setErrorForm] = useState<string | null>(null);
+  const [guardandoForm, setGuardandoForm] = useState(false);
 
   useEffect(() => {
     cargarTiposFlor();
@@ -50,6 +65,68 @@ function TipoFlor() {
     }
   };
 
+  const abrirCrear = () => {
+    setTipoEditando(null);
+    setNombreForm("");
+    setDescripcionForm("");
+    setImagenUrlForm("");
+    setErrorForm(null);
+    setFormAbierto(true);
+  };
+
+  const abrirEditar = (tipo: TipoFlorType) => {
+    setTipoEditando(tipo);
+    setNombreForm(tipo.nombre);
+    setDescripcionForm(tipo.descripcion || "");
+    setImagenUrlForm(tipo.imagenUrl || "");
+    setErrorForm(null);
+    setFormAbierto(true);
+  };
+
+  const cerrarFormulario = () => {
+    if (guardandoForm) return;
+    setFormAbierto(false);
+  };
+
+  const handleGuardarTipoFlor = async (e: FormEvent) => {
+    e.preventDefault();
+    setErrorForm(null);
+
+    const nombreLimpio = nombreForm.trim();
+    if (!nombreLimpio) {
+      setErrorForm("El nombre es obligatorio.");
+      return;
+    }
+
+    const datos: NewTipoFlor = {
+      nombre: nombreLimpio,
+      descripcion: descripcionForm.trim(),
+      imagenUrl: imagenUrlForm.trim() || undefined,
+    };
+
+    try {
+      setGuardandoForm(true);
+      if (tipoEditando) {
+        await updateTipoFlor(tipoEditando.idTipoFlor, datos);
+      } else {
+        await createTipoFlor(datos);
+      }
+      // Se vuelve a pedir la lista completa al backend en vez de confiar en
+      // la forma del objeto que devuelve el endpoint de guardado, para
+      // evitar romper el render si la respuesta viene incompleta.
+      await cargarTiposFlor();
+      setFormAbierto(false);
+    } catch (err) {
+      setErrorForm(
+        tipoEditando
+          ? "No se pudo actualizar el tipo de flor."
+          : "No se pudo crear el tipo de flor."
+      );
+    } finally {
+      setGuardandoForm(false);
+    }
+  };
+
   return (
     <div className="tipoflor-page">
       {/* HEADER */}
@@ -63,10 +140,7 @@ function TipoFlor() {
         </div>
 
         <div className="tipoflor-header-actions">
-          <button
-            className="tipoflor-btn-primary"
-            onClick={() => navigate("/tipoflor/crear")}
-          >
+          <button className="tipoflor-btn-primary" onClick={abrirCrear}>
             + Crear Tipo de Flor
           </button>
         </div>
@@ -84,11 +158,16 @@ function TipoFlor() {
         <div className="tipoflor-grid">
           {tiposFlor.map((tipo) => (
             <div key={tipo.idTipoFlor} className="tipoflor-card">
-              {/* Placeholder de imagen: cuando el backend tenga campo de
-                  imagen (ej. tipo.imagenUrl), reemplazar el ícono por
-                  <img src={tipo.imagenUrl} className="tipoflor-card-img" /> */}
               <div className="tipoflor-card-img-box">
-                <span className="tipoflor-card-icon">🌸</span>
+                {tipo.imagenUrl ? (
+                  <img
+                    src={tipo.imagenUrl}
+                    alt={tipo.nombre}
+                    className="tipoflor-card-img"
+                  />
+                ) : (
+                  <span className="tipoflor-card-icon">🌸</span>
+                )}
               </div>
 
               <div className="tipoflor-card-body">
@@ -109,7 +188,7 @@ function TipoFlor() {
                 <button
                   className="tipoflor-icon-btn tipoflor-icon-btn-edit"
                   title="Editar"
-                  onClick={() => navigate(`/tipoflor/editar/${tipo.idTipoFlor}`)}
+                  onClick={() => abrirEditar(tipo)}
                 >
                   <i className="bi bi-pencil-square"></i>
                 </button>
@@ -157,6 +236,105 @@ function TipoFlor() {
                 Cerrar
               </button>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* MODAL CREAR / EDITAR */}
+      {formAbierto && (
+        <div className="tipoflor-overlay" onClick={cerrarFormulario}>
+          <div className="tipoflor-modal" onClick={(e) => e.stopPropagation()}>
+            <div className="tipoflor-modal-header">
+              <h2 className="tipoflor-modal-title">
+                {tipoEditando ? "Editar tipo de flor" : "Crear tipo de flor"}
+              </h2>
+              <button className="tipoflor-close-x" onClick={cerrarFormulario}>
+                ✕
+              </button>
+            </div>
+            <form onSubmit={handleGuardarTipoFlor}>
+              <div className="tipoflor-modal-body">
+                {errorForm && <div className="tipoflor-form-error">{errorForm}</div>}
+
+                <div className="tipoflor-form-field">
+                  <label className="tipoflor-form-label" htmlFor="nombreTipoFlor">
+                    Nombre
+                  </label>
+                  <input
+                    id="nombreTipoFlor"
+                    type="text"
+                    className="tipoflor-form-input"
+                    placeholder="Ej. Tulipán"
+                    value={nombreForm}
+                    onChange={(e) => setNombreForm(e.target.value)}
+                    autoFocus
+                  />
+                </div>
+
+                <div className="tipoflor-form-field">
+                  <label className="tipoflor-form-label" htmlFor="descripcionTipoFlor">
+                    Descripción
+                  </label>
+                  <textarea
+                    id="descripcionTipoFlor"
+                    className="tipoflor-form-textarea"
+                    placeholder="Descripción breve del tipo de flor (opcional)"
+                    value={descripcionForm}
+                    onChange={(e) => setDescripcionForm(e.target.value)}
+                  />
+                </div>
+
+                <div className="tipoflor-form-field">
+                  <label className="tipoflor-form-label" htmlFor="imagenUrlTipoFlor">
+                    URL de imagen
+                  </label>
+                  <input
+                    id="imagenUrlTipoFlor"
+                    type="url"
+                    className="tipoflor-form-input"
+                    placeholder="https://..."
+                    value={imagenUrlForm}
+                    onChange={(e) => setImagenUrlForm(e.target.value)}
+                  />
+
+                  <div className="tipoflor-form-preview">
+                    {imagenUrlForm.trim() ? (
+                      <img
+                        src={imagenUrlForm.trim()}
+                        alt="Vista previa"
+                        className="tipoflor-form-preview-img"
+                        onError={(e) => {
+                          (e.target as HTMLImageElement).style.display = "none";
+                        }}
+                      />
+                    ) : (
+                      <span className="tipoflor-card-icon">🌸</span>
+                    )}
+                  </div>
+                </div>
+              </div>
+              <div className="tipoflor-modal-footer">
+                <button
+                  type="button"
+                  className="tipoflor-btn-secondary"
+                  onClick={cerrarFormulario}
+                  disabled={guardandoForm}
+                >
+                  Cancelar
+                </button>
+                <button
+                  type="submit"
+                  className="tipoflor-btn-primary"
+                  disabled={guardandoForm}
+                >
+                  {guardandoForm
+                    ? "Guardando..."
+                    : tipoEditando
+                    ? "Guardar Cambios"
+                    : "Guardar"}
+                </button>
+              </div>
+            </form>
           </div>
         </div>
       )}
