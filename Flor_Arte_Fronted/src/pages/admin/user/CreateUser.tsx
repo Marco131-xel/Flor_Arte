@@ -27,10 +27,7 @@ function CreateUser() {
       setCargandoDatos(true);
       setError("");
 
-      const [personasData, usuariosData] = await Promise.all([
-        getPersonas(),
-        getUsuarios(),
-      ]);
+      const [personasData, usuariosData] = await Promise.all([getPersonas(), getUsuarios()]);
 
       setPersonas(personasData);
       setIdsConUsuario(new Set(usuariosData.map((u) => u.idPersona)));
@@ -44,10 +41,7 @@ function CreateUser() {
 
   // Empleados que AÚN NO tienen un usuario en el sistema
   const empleadosDisponibles = useMemo(
-    () =>
-      personas.filter(
-        (p) => p.tipoRol === "EMPLEADO" && !idsConUsuario.has(p.idPersona)
-      ),
+    () => personas.filter((p) => p.tipoRol === "EMPLEADO" && !idsConUsuario.has(p.idPersona)),
     [personas, idsConUsuario]
   );
 
@@ -106,26 +100,29 @@ function CreateUser() {
   };
 
   return (
-    <div className="persona-dark-container">
-      <div className="persona-dark-card">
-        <div className="persona-dark-header">
-          <h1>Crear usuario</h1>
-          <p>Registra el acceso al sistema para un empleado</p>
+    <div className="cp-page">
+      <div className="cp-card">
+        <div className="cp-header">
+          <h1 className="cp-title">Crear usuario</h1>
+          <p className="cp-subtitle">Registra el acceso al sistema para un empleado</p>
         </div>
 
-        {error && <div className="persona-dark-mensaje error">{error}</div>}
-        {success && <div className="persona-dark-mensaje exito">{success}</div>}
+        {error && <div className="cp-alert cp-alert-error">{error}</div>}
+        {success && <div className="cp-alert cp-alert-success">{success}</div>}
 
-        <form className="persona-dark-form" onSubmit={handleSubmit}>
+        <form className="cp-form" onSubmit={handleSubmit} noValidate>
           {/* Persona (rol EMPLEADO, sin usuario todavía) */}
-          <div className="persona-dark-group">
-            <label htmlFor="idPersona">Empleado</label>
+          <div className="cp-field">
+            <label htmlFor="idPersona" className="cp-label">
+              <i className="bi bi-person-badge-fill"></i> Empleado
+            </label>
 
             <select
               id="idPersona"
               value={idPersona}
               onChange={handlePersonaChange}
               disabled={loading || cargandoDatos || empleadosDisponibles.length === 0}
+              className="cp-select"
             >
               <option value="">
                 {cargandoDatos ? "Cargando empleados..." : "Seleccione un empleado"}
@@ -139,64 +136,73 @@ function CreateUser() {
             </select>
 
             {!cargandoDatos && empleadosDisponibles.length === 0 && (
-              <p className="zero-empleados">
-                No hay empleados disponibles
-              </p>
+              <span className="cp-hint cp-hint-warning">
+                <i className="bi bi-exclamation-circle-fill"></i> No hay empleados disponibles
+              </span>
             )}
           </div>
 
           {/* Nombre */}
-          <div className="persona-dark-group">
-            <label htmlFor="name">Nombre de usuario</label>
+          <div className="cp-field">
+            <label htmlFor="name" className="cp-label">
+              <i className="bi bi-person-fill"></i> Nombre de usuario
+            </label>
             <input
               id="name"
               type="text"
               value={name}
               onChange={(e) => setName(e.target.value)}
               placeholder="Ingrese el nombre"
+              className="cp-input"
             />
           </div>
 
           {/* Correo */}
-          <div className="persona-dark-group">
-            <label htmlFor="email">Correo electrónico</label>
+          <div className="cp-field">
+            <label htmlFor="email" className="cp-label">
+              <i className="bi bi-envelope-fill"></i> Correo electrónico
+            </label>
             <input
               id="email"
               type="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               placeholder="Ingrese el correo"
+              className="cp-input"
             />
             {email && (
-              <small className="consejo">
+              <span className="cp-hint">
                 Puedes usar el correo sugerido de la persona o escribir uno distinto
-              </small>
+              </span>
             )}
           </div>
 
           {/* Contraseña */}
-          <div className="persona-dark-group">
-            <label htmlFor="password">Contraseña</label>
+          <div className="cp-field">
+            <label htmlFor="password" className="cp-label">
+              <i className="bi bi-key-fill"></i> Contraseña
+            </label>
             <input
               id="password"
               type="password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               placeholder="Ingrese la contraseña"
+              className="cp-input"
             />
           </div>
 
-          <div className="persona-dark-acciones">
+          <div className="cp-actions">
             <button
               type="button"
-              className="persona-dark-btn-cancelar"
               onClick={() => navigate(-1)}
               disabled={loading}
+              className="cp-btn-secondary"
             >
               Cancelar
             </button>
 
-            <button type="submit" className="persona-dark-btn" disabled={loading || cargandoDatos}>
+            <button type="submit" disabled={loading || cargandoDatos} className="cp-btn-primary">
               {loading ? "Registrando..." : "Crear usuario"}
             </button>
           </div>

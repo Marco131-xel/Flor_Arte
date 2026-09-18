@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { createPersona } from "../../../services/admin/usuarioService";
+import "../../../styles/empleado/form.css";
 
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
@@ -68,10 +69,17 @@ function CreatePersona() {
       setIdRol("");
       setFieldErrors({});
     } catch (error: any) {
-      console.error("Error al crear usuario: ", error);
+      console.error("Error al crear persona: ", error);
 
-      if (error.response?.data?.error) {
-        setError(error.response.data.error);
+      const mensaje = (error.response?.data?.message ?? error.response?.data?.error) as
+        | string
+        | undefined;
+
+      if (mensaje?.toLowerCase().includes("dpi")) {
+        setFieldErrors((prev) => ({ ...prev, dpi: mensaje }));
+        setError("Revisa los campos marcados");
+      } else if (mensaje) {
+        setError(mensaje);
       } else {
         setError("Ocurrió un error al registrar la persona");
       }
@@ -81,33 +89,38 @@ function CreatePersona() {
   };
 
   return (
-    <div className="persona-dark-container">
-      <div className="persona-dark-card">
-        <div className="persona-dark-header">
-          <h1>Crear Persona</h1>
-          <p>Registra los datos personales en el sistema</p>
+    <div className="cp-page">
+      <div className="cp-card">
+        <div className="cp-header">
+          <h1 className="cp-title">Crear Persona</h1>
+          <p className="cp-subtitle">Registra los datos personales en el sistema</p>
         </div>
 
-        {error && <div className="persona-dark-mensaje error">{error}</div>}
-        {success && <div className="persona-dark-mensaje exito">{success}</div>}
+        {error && <div className="cp-alert cp-alert-error">{error}</div>}
+        {success && <div className="cp-alert cp-alert-success">{success}</div>}
 
-        <form className="persona-dark-form" onSubmit={handleSubmit} noValidate>
-          <div className={`persona-dark-group ${fieldErrors.nombre ? "invalid" : ""}`}>
-            <label htmlFor="nombre">Nombre *</label>
+        <form onSubmit={handleSubmit} noValidate className="cp-form">
+          {/* NOMBRE */}
+          <div className="cp-field">
+            <label htmlFor="nombre" className="cp-label">
+              <i className="bi bi-person-fill"></i> Nombre <span className="cp-required">*</span>
+            </label>
             <input
               id="nombre"
               type="text"
               value={nombre}
               onChange={(e) => setNombre(e.target.value)}
               placeholder="Ingrese el nombre"
+              className={`cp-input ${fieldErrors.nombre ? "cp-input-error" : ""}`}
             />
-            {fieldErrors.nombre && (
-              <span className="persona-dark-error-text">{fieldErrors.nombre}</span>
-            )}
+            {fieldErrors.nombre && <span className="cp-field-error">{fieldErrors.nombre}</span>}
           </div>
 
-          <div className="persona-dark-group">
-            <label htmlFor="telefono">Teléfono</label>
+          {/* TELEFONO */}
+          <div className="cp-field">
+            <label htmlFor="telefono" className="cp-label">
+              <i className="bi bi-telephone-fill"></i> Teléfono
+            </label>
             <input
               id="telefono"
               type="text"
@@ -116,42 +129,62 @@ function CreatePersona() {
               onChange={(e) => setTelefono(e.target.value.replace(/\D/g, ""))}
               placeholder="Ingrese el número de teléfono"
               maxLength={8}
+              className="cp-input"
             />
           </div>
 
-          <div className="persona-dark-group">
-            <label htmlFor="dpi">DPI</label>
+          {/* DPI */}
+          <div className="cp-field">
+            <label htmlFor="dpi" className="cp-label">
+              <i className="bi bi-card-text"></i> DPI
+            </label>
             <input
               id="dpi"
               type="text"
               inputMode="numeric"
               value={dpi}
-              onChange={(e) => setDpi(e.target.value.replace(/\D/g, ""))}
+              onChange={(e) => {
+                setDpi(e.target.value.replace(/\D/g, ""));
+                if (fieldErrors.dpi) {
+                  setFieldErrors((prev) => {
+                    const { dpi: _dpi, ...rest } = prev;
+                    return rest;
+                  });
+                }
+              }}
               placeholder="Ingrese el DPI"
               maxLength={13}
+              className={`cp-input ${fieldErrors.dpi ? "cp-input-error" : ""}`}
             />
+            {fieldErrors.dpi && <span className="cp-field-error">{fieldErrors.dpi}</span>}
           </div>
 
-          <div className={`persona-dark-group ${fieldErrors.correo ? "invalid" : ""}`}>
-            <label htmlFor="correo">Correo</label>
+          {/* CORREO */}
+          <div className="cp-field">
+            <label htmlFor="correo" className="cp-label">
+              <i className="bi bi-envelope-fill"></i> Correo
+            </label>
             <input
               id="correo"
               type="email"
               value={correo}
               onChange={(e) => setCorreo(e.target.value)}
               placeholder="Ingrese su correo"
+              className={`cp-input ${fieldErrors.correo ? "cp-input-error" : ""}`}
             />
-            {fieldErrors.correo && (
-              <span className="persona-dark-error-text">{fieldErrors.correo}</span>
-            )}
+            {fieldErrors.correo && <span className="cp-field-error">{fieldErrors.correo}</span>}
           </div>
 
-          <div className={`persona-dark-group ${fieldErrors.idRol ? "invalid" : ""}`}>
-            <label htmlFor="idRol">Rol *</label>
+          {/* ROL */}
+          <div className="cp-field">
+            <label htmlFor="idRol" className="cp-label">
+              <i className="bi bi-person-rolodex"></i> Rol <span className="cp-required">*</span>
+            </label>
             <select
               id="idRol"
               value={idRol}
               onChange={(e) => setIdRol(e.target.value)}
+              className={`cp-select ${fieldErrors.idRol ? "cp-input-error" : ""}`}
             >
               <option value="">Seleccione un rol</option>
               <option value="1">Administrador</option>
@@ -159,23 +192,22 @@ function CreatePersona() {
               <option value="3">Cliente</option>
               <option value="4">Proveedor</option>
             </select>
-            {fieldErrors.idRol && (
-              <span className="persona-dark-error-text">{fieldErrors.idRol}</span>
-            )}
+            {fieldErrors.idRol && <span className="cp-field-error">{fieldErrors.idRol}</span>}
           </div>
 
-          <div className="persona-dark-acciones">
+          {/* BOTONES DE ACCIONES */}
+          <div className="cp-actions">
             <button
               type="button"
-              className="persona-dark-btn-cancelar"
               onClick={() => navigate(-1)}
               disabled={loading}
+              className="cp-btn-secondary"
             >
               Cancelar
             </button>
 
-            <button type="submit" className="persona-dark-btn" disabled={loading}>
-              {loading ? "Registrando..." : "Crear persona"}
+            <button type="submit" disabled={loading} className="cp-btn-primary">
+              {loading ? "Registrando..." : "Crear Persona"}
             </button>
           </div>
         </form>

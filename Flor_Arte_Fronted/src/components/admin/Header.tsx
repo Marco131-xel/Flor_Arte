@@ -9,7 +9,7 @@ function Header({ toggleSidebar }: Props) {
   const displayName = user?.nombre || user?.email || "Usuario";
 
   return (
-    <header className="admin-header d-flex align-items-center justify-content-between px-3">
+    <header className="empleado-header d-flex align-items-center justify-content-between px-3">
       <div className="d-flex align-items-center gap-3">
         <button
           className="btn-menu"
@@ -19,13 +19,30 @@ function Header({ toggleSidebar }: Props) {
           <i className="bi bi-list"></i>
         </button>
 
-        <Link to="/admin" className="navbar-brand text-white fw-bold">
-          Sistema FlorArte
+        <Link
+          to="/admin"
+          className="navbar-brand text-white fw-bold d-flex align-items-center"
+          style={{ textDecoration: "none" }}
+        >
+          <img
+            src="/images/florarte.svg"
+            alt="FlorArte"
+            style={{
+              width: "45px",
+              height: "45px",
+              objectFit: "contain",
+              display: "block",
+            }}
+          />
+
+          <span style={{ marginLeft: "10px" }}>
+            Sistema FlorArte
+          </span>
         </Link>
       </div>
 
       <div className="d-flex align-items-center gap-3">
-        <Link to="/admin/perfil" className="admin-user text-decoration-none">
+        <Link to="/admin/perfil" className="empleado-user text-decoration-none">
           {displayName} <i className="bi bi-person-circle"></i>
         </Link>
       </div>

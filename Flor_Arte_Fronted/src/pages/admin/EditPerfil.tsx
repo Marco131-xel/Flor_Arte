@@ -14,6 +14,7 @@ function EditPerfil() {
   const [idRol, setIdRol] = useState("");
   const [idPersona, setIdPersona] = useState<number | null>(null);
 
+  const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
   const [cargando, setCargando] = useState(true);
   const [guardando, setGuardando] = useState(false);
   const [error, setError] = useState("");
@@ -53,9 +54,22 @@ function EditPerfil() {
       setGuardando(true);
       await updatePersona(idPersona, { nombre, telefono, dpi, correo, idRol });
       setSuccess("Perfil actualizado exitosamente");
+      setFieldErrors({});
     } catch (error: any) {
       console.error("Error al actualizar perfil:", error);
-      setError(error.response?.data?.error || "Ocurrió un error al actualizar tu perfil");
+
+      const mensaje = (error.response?.data?.message ?? error.response?.data?.error) as
+        | string
+        | undefined;
+
+      if (mensaje?.toLowerCase().includes("dpi")) {
+        setFieldErrors((prev) => ({ ...prev, dpi: mensaje }));
+        setError("Revisa los campos marcados");
+      } else if (mensaje) {
+        setError(mensaje);
+      } else {
+        setError("Ocurrió un error al actualizar tu perfil");
+      }
     } finally {
       setGuardando(false);
     }
@@ -63,39 +77,46 @@ function EditPerfil() {
 
   if (cargando) {
     return (
-      <div className="persona-dark-container">
-        <div className="persona-dark-card">
-          <p className="persona-dark-cargando">Cargando tu información...</p>
+      <div className="cp-page">
+        <div className="cp-card">
+          <p className="cp-cargando">Cargando tu información...</p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="persona-dark-container">
-      <div className="persona-dark-card">
-        <div className="persona-dark-header">
-          <h1>Editar mi perfil</h1>
-          <p>Actualiza tus datos personales</p>
+    <div className="cp-page">
+      <div className="cp-card">
+        <div className="cp-header">
+          <h1 className="cp-title">Editar mi perfil</h1>
+          <p className="cp-subtitle">Actualiza tus datos personales</p>
         </div>
 
-        {error && <div className="persona-dark-mensaje error">{error}</div>}
-        {success && <div className="persona-dark-mensaje exito">{success}</div>}
+        {error && <div className="cp-alert cp-alert-error">{error}</div>}
+        {success && <div className="cp-alert cp-alert-success">{success}</div>}
 
-        <form className="persona-dark-form" onSubmit={handleSubmit}>
-          <div className="persona-dark-group">
-            <label htmlFor="nombre">Nombre</label>
+        <form className="cp-form" onSubmit={handleSubmit} noValidate>
+          {/* NOMBRE */}
+          <div className="cp-field">
+            <label htmlFor="nombre" className="cp-label">
+              <i className="bi bi-person-fill"></i> Nombre
+            </label>
             <input
               id="nombre"
               type="text"
               value={nombre}
               onChange={(e) => setNombre(e.target.value)}
               placeholder="Ingrese el nombre"
+              className="cp-input"
             />
           </div>
 
-          <div className="persona-dark-group">
-            <label htmlFor="telefono">Teléfono</label>
+          {/* TELEFONO */}
+          <div className="cp-field">
+            <label htmlFor="telefono" className="cp-label">
+              <i className="bi bi-telephone-fill"></i> Teléfono
+            </label>
             <input
               id="telefono"
               type="text"
@@ -104,44 +125,63 @@ function EditPerfil() {
               onChange={(e) => setTelefono(e.target.value.replace(/\D/g, ""))}
               placeholder="Ingrese el número de teléfono"
               maxLength={8}
+              className="cp-input"
             />
           </div>
 
-          <div className="persona-dark-group">
-            <label htmlFor="dpi">DPI</label>
+          {/* DPI */}
+          <div className="cp-field">
+            <label htmlFor="dpi" className="cp-label">
+              <i className="bi bi-card-text"></i> DPI
+            </label>
             <input
               id="dpi"
               type="text"
               inputMode="numeric"
               value={dpi}
-              onChange={(e) => setDpi(e.target.value.replace(/\D/g, ""))}
+              onChange={(e) => {
+                setDpi(e.target.value.replace(/\D/g, ""));
+                if (fieldErrors.dpi) {
+                  setFieldErrors((prev) => {
+                    const { dpi: _dpi, ...rest } = prev;
+                    return rest;
+                  });
+                }
+              }}
               placeholder="Ingrese el DPI"
               maxLength={13}
+              className={`cp-input ${fieldErrors.dpi ? "cp-input-error" : ""}`}
             />
+            {fieldErrors.dpi && <span className="cp-field-error">{fieldErrors.dpi}</span>}
           </div>
 
-          <div className="persona-dark-group">
-            <label htmlFor="correo">Correo de contacto</label>
+          {/* CORREO */}
+          <div className="cp-field">
+            <label htmlFor="correo" className="cp-label">
+              <i className="bi bi-envelope-fill"></i> Correo de contacto
+            </label>
             <input
               id="correo"
               type="email"
               value={correo}
               onChange={(e) => setCorreo(e.target.value)}
               placeholder="Ingrese su correo"
+              className="cp-input"
             />
           </div>
 
-          <div className="persona-dark-acciones">
+          {/* BOTONES DE ACCIONES */}
+          <div className="cp-actions">
             <button
               type="button"
-              className="persona-dark-btn-cancelar"
               onClick={() => navigate("/admin/perfil")}
               disabled={guardando}
+              className="cp-btn-secondary"
             >
               Cancelar
             </button>
 
-            <button type="submit" className="persona-dark-btn" disabled={guardando}>
+            <button type="submit" disabled={guardando} className="cp-btn-primary">
               {guardando ? "Guardando..." : "Guardar cambios"}
             </button>
           </div>

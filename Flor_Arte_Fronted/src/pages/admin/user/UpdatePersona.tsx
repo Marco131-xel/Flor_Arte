@@ -1,6 +1,9 @@
 import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { getPersonaById, updatePersona } from "../../../services/admin/usuarioService";
+import "../../../styles/empleado/form.css";
+
+const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 function UpdatePersona() {
   const { id } = useParams();
@@ -15,6 +18,7 @@ function UpdatePersona() {
   const [idRolOriginal, setIdRolOriginal] = useState("");
   const [tipoRolOriginal, setTipoRolOriginal] = useState("");
 
+  const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
   const [loading, setLoading] = useState(false);
@@ -54,14 +58,25 @@ function UpdatePersona() {
     "4": "Proveedor",
   };
 
+  const validate = () => {
+    const errors: Record<string, string> = {};
+
+    if (correo.trim() && !EMAIL_REGEX.test(correo.trim())) {
+      errors.correo = "El correo no tiene un formato válido";
+    }
+
+    setFieldErrors(errors);
+    return Object.keys(errors).length === 0;
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
     setError("");
     setSuccess("");
 
-    if (!nombre) {
-      setError("Se necesita el nombre al menos");
+    if (!validate()) {
+      setError("Revisa los campos marcados");
       return;
     }
 
@@ -101,39 +116,46 @@ function UpdatePersona() {
 
   if (cargando) {
     return (
-      <div className="persona-dark-container">
-        <div className="persona-dark-card">
-          <p className="persona-dark-cargando">Cargando datos de la persona...</p>
+      <div className="cp-page">
+        <div className="cp-card">
+          <p className="cp-cargando">Cargando datos de la persona...</p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="persona-dark-container">
-      <div className="persona-dark-card">
-        <div className="persona-dark-header">
-          <h1>Editar Persona</h1>
-          <p>Actualiza los datos personales registrados</p>
+    <div className="cp-page">
+      <div className="cp-card">
+        <div className="cp-header">
+          <h1 className="cp-title">Editar Persona</h1>
+          <p className="cp-subtitle">Actualiza los datos personales registrados</p>
         </div>
 
-        {error && <div className="persona-dark-mensaje error">{error}</div>}
-        {success && <div className="persona-dark-mensaje exito">{success}</div>}
+        {error && <div className="cp-alert cp-alert-error">{error}</div>}
+        {success && <div className="cp-alert cp-alert-success">{success}</div>}
 
-        <form className="persona-dark-form" onSubmit={handleSubmit}>
-          <div className="persona-dark-group">
-            <label htmlFor="nombre">Nombre</label>
+        <form className="cp-form" onSubmit={handleSubmit} noValidate>
+          {/* NOMBRE */}
+          <div className="cp-field">
+            <label htmlFor="nombre" className="cp-label">
+              <i className="bi bi-person-fill"></i> Nombre
+            </label>
             <input
               id="nombre"
               type="text"
               value={nombre}
               onChange={(e) => setNombre(e.target.value)}
               placeholder="Ingrese el nombre"
+              className="cp-input"
             />
           </div>
 
-          <div className="persona-dark-group">
-            <label htmlFor="telefono">Teléfono</label>
+          {/* TELEFONO */}
+          <div className="cp-field">
+            <label htmlFor="telefono" className="cp-label">
+              <i className="bi bi-telephone-fill"></i> Teléfono
+            </label>
             <input
               id="telefono"
               type="text"
@@ -142,11 +164,15 @@ function UpdatePersona() {
               onChange={(e) => setTelefono(e.target.value.replace(/\D/g, ""))}
               placeholder="Ingrese el número de teléfono"
               maxLength={8}
+              className="cp-input"
             />
           </div>
 
-          <div className="persona-dark-group">
-            <label htmlFor="dpi">DPI</label>
+          {/* DPI */}
+          <div className="cp-field">
+            <label htmlFor="dpi" className="cp-label">
+              <i className="bi bi-card-text"></i> DPI
+            </label>
             <input
               id="dpi"
               type="text"
@@ -155,26 +181,36 @@ function UpdatePersona() {
               onChange={(e) => setDpi(e.target.value.replace(/\D/g, ""))}
               placeholder="Ingrese el DPI"
               maxLength={13}
+              className="cp-input"
             />
           </div>
 
-          <div className="persona-dark-group">
-            <label htmlFor="correo">Correo</label>
+          {/* CORREO */}
+          <div className="cp-field">
+            <label htmlFor="correo" className="cp-label">
+              <i className="bi bi-envelope-fill"></i> Correo
+            </label>
             <input
               id="correo"
               type="email"
               value={correo}
               onChange={(e) => setCorreo(e.target.value)}
               placeholder="Ingrese su correo"
+              className={`cp-input ${fieldErrors.correo ? "cp-input-error" : ""}`}
             />
+            {fieldErrors.correo && <span className="cp-field-error">{fieldErrors.correo}</span>}
           </div>
 
-          <div className="persona-dark-group">
-            <label htmlFor="idRol">Rol</label>
+          {/* ROL */}
+          <div className="cp-field">
+            <label htmlFor="idRol" className="cp-label">
+              <i className="bi bi-person-rolodex"></i> Rol
+            </label>
             <select
               id="idRol"
               value={idRol}
               onChange={(e) => setIdRol(e.target.value)}
+              className="cp-select"
             >
               <option value="">Seleccione un rol</option>
               <option value="1">Administrador</option>
@@ -182,29 +218,29 @@ function UpdatePersona() {
               <option value="3">Cliente</option>
               <option value="4">Proveedor</option>
             </select>
-            <span className="persona-dark-rol-actual">
-              Rol actual: {tipoRolOriginal}
-            </span>
+            <span className="cp-rol-actual">Rol actual: {tipoRolOriginal}</span>
           </div>
 
           {rolCambiado && (
-            <div className="persona-dark-mensaje advertencia">
-              ⚠️ Vas a cambiar el rol de <strong>{tipoRolOriginal}</strong> a{" "}
-              <strong>{ROLES[idRol] ?? idRol}</strong>. Esto puede afectar sus permisos en el sistema.
+            <div className="cp-mensaje-advertencia">
+              <i className="bi bi-exclamation-triangle-fill"></i> Vas a cambiar el rol de{" "}
+              <strong>{tipoRolOriginal}</strong> a <strong>{ROLES[idRol] ?? idRol}</strong>. Esto
+              puede afectar sus permisos en el sistema.
             </div>
           )}
 
-          <div className="persona-dark-acciones">
+          {/* BOTONES DE ACCIONES */}
+          <div className="cp-actions">
             <button
               type="button"
-              className="persona-dark-btn-cancelar"
               onClick={() => navigate(-1)}
               disabled={loading}
+              className="cp-btn-secondary"
             >
               Cancelar
             </button>
 
-            <button type="submit" className="persona-dark-btn" disabled={loading}>
+            <button type="submit" disabled={loading} className="cp-btn-primary">
               {loading ? "Guardando..." : "Guardar cambios"}
             </button>
           </div>

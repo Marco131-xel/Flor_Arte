@@ -1,6 +1,6 @@
 function Footer() {
   return (
-    <footer className="admin-footer">
+    <footer className="empleado-footer">
       Sistema FlorArte © 2026 - Desarrollado por POOL-COMUNITY
     </footer>
   );

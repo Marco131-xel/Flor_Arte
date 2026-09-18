@@ -1,999 +1,205 @@
-/* Layout general */
-.admin-layout {
-  min-height: 100vh;
-  display: flex;
-  flex-direction: column;
-}
-
-/* HEADER */
-.admin-header {
-  background: #000;
-  height: 60px;
-  color: white;
-  box-shadow: 0 3px 10px rgba(0, 0, 0, .3);
-  position: sticky;
-  top: 0;
-  z-index: 10;
-}
-
-.btn-menu {
-  background: transparent;
-  border: none;
-  color: #1abc9c;
-  font-size: 1.4rem;
-  line-height: 1;
-  cursor: pointer;
-  transition: color 0.2s;
-}
-
-.btn-menu:hover {
-  color: #16a085;
-}
-
-/* SIDEBAR */
-.admin-body {
-  flex: 1;
-  display: flex;
-}
-
-.admin-sidebar {
-  width: 230px;
-  flex-shrink: 0;
-  background: #111;
-  color: white;
-  transform: translateX(-100%);
-  transition: transform 0.3s ease-in-out, width 0.3s ease-in-out;
-  overflow: hidden;
-}
-
-.admin-sidebar.open {
-  transform: translateX(0);
-}
-
-.admin-sidebar:not(.open) {
-  width: 0;
-}
-
-.sidebar-menu {
-  list-style: none;
-  padding: 12px 0;
-  margin: 0;
-}
-
-.sidebar-link {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  padding: 12px 20px;
-  color: #d0d0d0;
-  text-decoration: none;
-  border-left: 4px solid transparent;
-  white-space: nowrap;
-  transition: background 0.2s, color 0.2s, border-color 0.2s;
-}
-
-.sidebar-link i {
-  width: 18px;
-  text-align: center;
-  font-size: 1.05rem;
-}
-
-.sidebar-link:hover {
-  background: rgba(26, 188, 156, 0.15);
-  color: #1abc9c;
-}
-
-/* estado activo: la sección donde estás parado */
-.sidebar-link.active {
-  background: #1abc9c;
-  color: #000;
-  font-weight: 600;
-  border-left: 4px solid #16a085;
-}
-
-/* Divider para separar logout */
-.sidebar-divider {
-  height: 1px;
-  background: #333;
-  margin: 10px 16px;
-}
-
-/* boton cerrar sesion dentro del sidebar */
-.sidebar-logout {
-  width: 100%;
-  background: transparent;
-  border: none;
-  padding: 12px 20px;
-  color: #d0d0d0;
-  text-align: left;
-  font-size: 1rem;
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  cursor: pointer;
-  white-space: nowrap;
-  transition: background 0.2s, color 0.2s, border-color 0.2s;
-  border-left: 4px solid transparent;
-}
-
-.sidebar-logout i {
-  width: 18px;
-  text-align: center;
-}
-
-.sidebar-logout:hover {
-  background: rgba(231, 76, 60, 0.15);
-  color: #e74c3c;
-  border-left: 4px solid #e74c3c;
-}
-
-/* CONTENIDO */
-.admin-content {
-  flex: 1;
-  padding: 25px;
-  background: #f5f6fa;
-}
-
-/* FOOTER */
-.admin-footer {
-  background: #000;
-  color: white;
-  text-align: center;
-  padding: 10px;
-  font-size: 0.85rem;
-}
-
-/* usuario */
-.admin-user {
-  color: #1abc9c;
-  font-weight: bold;
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  font-size: 0.9rem;
-}
-
-/* botón logout (si lo usas en otro lado, ej. header) */
-.btn-logout {
-  background: transparent;
-  border: 1px solid #1abc9c;
-  color: #1abc9c;
-  border-radius: 6px;
-  padding: 5px 12px;
-  transition: 0.2s;
-}
-
-.btn-logout:hover {
-  background: #1abc9c;
-  color: black;
-}
-
-/* SIDEBAR en móvil: overlay en vez de empujar contenido */
-@media (max-width: 768px) {
-  .admin-sidebar {
-    position: fixed;
-    top: 60px;
-    left: 0;
-    bottom: 0;
-    z-index: 20;
-    box-shadow: 4px 0 15px rgba(0, 0, 0, 0.3);
-  }
-}
-
-/*-------------------------------------------------------------------------*/
-/* Dashboard */
-.dashboard-card {
-  background: #fff;
-  border-radius: 12px;
-  padding: 18px;
-  display: flex;
-  align-items: center;
-  gap: 14px;
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.06);
-  height: 100%;
-}
-
-.dashboard-card-icon {
-  width: 46px;
-  height: 46px;
-  border-radius: 10px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 1.3rem;
-  flex-shrink: 0;
-}
-
-.dashboard-card-label {
-  font-size: 0.8rem;
-  color: #6c757d;
-  margin-bottom: 2px;
-}
-
-.dashboard-card-value {
-  margin: 0;
-  font-weight: 700;
-}
-
-.dashboard-panel {
-  background: #fff;
-  border-radius: 12px;
-  padding: 20px;
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.06);
-}
-
-
-
-/* PERFIL */
-.profile-wrapper {
-  display: flex;
-  justify-content: center;
-  padding-top: 10px;
-}
-
-.profile-card {
-  background: #111;
-  border-radius: 16px;
-  box-shadow: 0 4px 25px rgba(0, 0, 0, 0.25);
-  width: 100%;
-  max-width: 480px;
-  overflow: hidden;
-}
-
-.profile-banner {
-  background: #000;
-  height: 140px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border-bottom: 1px solid #222;
-}
-
-.profile-logo {
-  max-height: 100px;
-  max-width: 70%;
-  object-fit: contain;
-}
-
-.profile-avatar-wrap {
-  display: flex;
-  justify-content: center;
-  margin-top: -45px;
-}
-
-.profile-avatar {
-  width: 90px;
-  height: 90px;
-  border-radius: 50%;
-  background: #1abc9c;
-  color: #000;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 2.4rem;
-  border: 4px solid #111;
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
-}
-
-.profile-body {
-  padding: 16px 32px 32px;
-  text-align: center;
-}
-
-.profile-name {
-  font-weight: 700;
-  margin-bottom: 8px;
-  color: #fff;
-}
-
-.profile-badges {
-  display: flex;
-  justify-content: center;
-  gap: 8px;
-  margin-bottom: 20px;
-}
-
-.badge-rol {
-  background: #1abc9c22;
-  color: #e8c15a;
-  padding: 4px 12px;
-  border-radius: 20px;
-  font-size: 0.78rem;
-  font-weight: 600;
-  letter-spacing: 0.03em;
-}
-
-.badge-estado {
-  display: flex;
-  align-items: center;
-  gap: 4px;
-  padding: 4px 12px;
-  border-radius: 20px;
-  font-size: 0.78rem;
-  font-weight: 600;
-}
-
-.badge-estado.activo {
-  background: #1abc9c22;
-  color: #1abc9c;
-}
-
-.badge-estado.inactivo {
-  background: #e74c3c22;
-  color: #e74c3c;
-}
-
-.profile-divider {
-  height: 1px;
-  background: #292929;
-  margin: 0 0 20px;
-}
-
-.profile-fields {
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
-  text-align: left;
-}
-
-.profile-field {
-  display: flex;
-  align-items: center;
-  gap: 14px;
-  background: #1a1a1a;
-  border-radius: 10px;
-  padding: 12px 14px;
-}
-
-.profile-field-icon {
-  width: 38px;
-  height: 38px;
-  border-radius: 8px;
-  background: #1abc9c22;
-  color: #1abc9c;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 1rem;
-  flex-shrink: 0;
-}
-
-.profile-field-label {
-  font-size: 0.75rem;
-  color: #8a8a9a;
-  text-transform: uppercase;
-  letter-spacing: 0.03em;
-}
-
-.profile-field-value {
-  margin: 2px 0 0;
-  font-weight: 600;
-  color: #fff;
-}
-
-.profile-actions {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-  margin-top: 28px;
-}
-
-.profile-actions-row {
-  display: flex;
-  gap: 12px;
-}
-
-.btn-profile-edit,
-.btn-profile-password,
-.btn-profile-logout {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  padding: 10px 16px;
-  border-radius: 8px;
-  font-weight: 600;
-  font-size: 0.9rem;
-  cursor: pointer;
-  transition: 0.2s;
-  border: none;
-}
-
-.profile-actions-row .btn-profile-edit,
-.profile-actions-row .btn-profile-password {
-  flex: 1;
-}
-
-.btn-profile-edit {
-  background: #1abc9c;
-  color: #000;
-}
-
-.btn-profile-edit:hover {
-  background: #16a085;
-}
-
-.btn-profile-password {
-  background: transparent;
-  color: #e8c15a;
-  border: 1px solid #e8c15a;
-}
-
-.btn-profile-password:hover {
-  background: #e8c15a22;
-}
-
-.btn-profile-logout {
-  width: 100%;
-  background: transparent;
-  color: #e74c3c;
-  border: 1px solid #e74c3c;
-}
-
-.btn-profile-logout:hover {
-  background: #e74c3c22;
-}
-
-/* TABLAS PARA LA VISTA DE USUARIOS DEL ADMIN */
-.usuarios-container {
-  padding: 30px;
-  min-height: 100vh;
-  background:
-    radial-gradient(circle at 15% 0%, rgba(124, 58, 237, 0.07), transparent 40%),
-    radial-gradient(circle at 100% 20%, rgba(20, 184, 166, 0.06), transparent 35%),
-    #f4f5f9;
-}
-.usuarios-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 25px;
-}
-
-.usuarios-header h1 {
-  margin: 0;
-  font-size: 28px;
-  color: #1e293b;
-  letter-spacing: -0.02em;
-}
-
-.usuarios-header p {
-  margin-top: 6px;
-  color: #64748b;
-}
-
-.btn-nuevo {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  background: linear-gradient(135deg, #7c3aed, #6d28d9);
-  color: white;
-  border: none;
-  padding: 11px 20px;
-  border-radius: 10px;
-  cursor: pointer;
-  font-weight: 600;
-  font-size: 0.9rem;
-  box-shadow: 0 4px 12px rgba(124, 58, 237, 0.3);
-  transition: transform 0.15s, box-shadow 0.15s, background 0.2s;
-}
-
-.btn-nuevo i {
-  font-size: 0.85rem;
-}
-
-.btn-nuevo:hover {
-  background: linear-gradient(135deg, #8b5cf6, #7c3aed);
-  transform: translateY(-2px);
-  box-shadow: 0 6px 16px rgba(124, 58, 237, 0.4);
-}
-
-.btn-nuevo:active {
-  transform: translateY(0);
-  box-shadow: 0 2px 8px rgba(124, 58, 237, 0.3);
-}
-
-.tabla-container {
-  background: white;
-  border-radius: 16px;
-  overflow-x: auto;
-  overflow-y: auto;
-  max-height: 420px;
-  box-shadow: 0 4px 16px rgba(15, 23, 42, 0.06), 0 1px 3px rgba(15, 23, 42, 0.08);
-  border: 1px solid #eef0f4;
-}
-
-.usuarios-table {
-  width: 100%;
-  border-collapse: collapse;
-}
-
-.usuarios-table thead th {
-  background: #0d0d0d;
-  color: white;
-  font-size: 13px;
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
-  text-align: left;
-  padding: 16px 15px;
-}
-
-.usuarios-table td {
-  padding: 14px 15px;
-  border-top: 1px solid #f1f5f9;
-  color: #334155;
-  vertical-align: middle;
-}
-
-.usuarios-table tbody tr {
-  transition: background-color 0.15s;
-}
-
-.usuarios-table tbody tr:hover {
-  background: #fafbff;
-}
-
-.rol {
-  background: #ede9fe;
-  color: #6d28d9;
-  padding: 5px 10px;
-  border-radius: 20px;
-  font-size: 13px;
-  font-weight: 600;
-}
-
-.estado {
-  padding: 5px 10px;
-  border-radius: 20px;
-  font-size: 13px;
-  font-weight: 600;
-}
-
-.estado.activo {
-  background: #dcfce7;
-  color: #15803d;
-}
-
-.estado.inactivo {
-  background: #fee2e2;
-  color: #b91c1c;
-}
 
-.persona-nombre {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  font-weight: 500;
-}
-
-.avatar-circulo {
-  width: 32px;
-  height: 32px;
-  border-radius: 50%;
-  background: linear-gradient(135deg, #7c3aed, #14b8a6);
-  color: white;
-  font-weight: 700;
-  font-size: 13px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-  text-transform: uppercase;
-}
-
-.acciones {
-  display: flex;
-  gap: 6px;
-}
-
-.btn-icono {
-  width: 34px;
-  height: 34px;
-  border: none;
-  border-radius: 50%;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 15px;
-  cursor: pointer;
-  transition: transform 0.15s, box-shadow 0.15s, background-color 0.15s;
-}
-
-.btn-icono:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 4px 10px rgba(15, 23, 42, 0.15);
-}
-
-.btn-icono-ver {
-  background: #fef3e2;
-  color: #cf550f;
-}
-.btn-icono-ver:hover { background: #fce4c2; }
-
-.btn-icono-editar {
-  background: #e0f2fe;
-  color: #0369a1;
-}
-.btn-icono-editar:hover { background: #cbe9fb; }
-
-.btn-icono-eliminar {
-  background: #fee2e2;
-  color: #b91c1c;
-}
-.btn-icono-eliminar:hover { background: #fbcaca; }
-
-.mensaje {
-  background: white;
-  padding: 30px;
-  text-align: center;
-  border-radius: 12px;
-}
-
-.mensaje.error {
-  color: #b91c1c;
-}
-
-.sin-usuarios {
-  text-align: center;
-  padding: 30px !important;
-  color: #64748b !important;
-}
-
-/* TARJETA PARA CREAR PERSONAS */
-.persona-dark-container {
-  display: flex;
-  justify-content: center;
-  padding: 2rem;
-}
-
-.persona-dark-card {
-  background-color: #0d0d0d;
-  border-radius: 16px;
-  width: 100%;
-  max-width: 480px;
-  padding: 2rem;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
-}
 
-.persona-dark-header {
-  margin-bottom: 1.5rem;
-}
-
-.persona-dark-header h1 {
-  color: #ffffff;
-  font-size: 1.4rem;
-  font-weight: 700;
-  margin-bottom: 0.25rem;
-}
-
-.persona-dark-header p {
-  color: #9ca3af;
-  font-size: 0.85rem;
-}
-
-.persona-dark-form {
-  display: flex;
-  flex-direction: column;
-  gap: 1.1rem;
-}
-
-.persona-dark-group {
-  display: flex;
-  flex-direction: column;
-  background-color: #1a1a1a;
-  border-radius: 10px;
-  padding: 0.75rem 1rem;
-}
-
-.persona-dark-group label {
-  font-size: 0.7rem;
-  font-weight: 600;
-  color: #9ca3af;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-  margin-bottom: 0.35rem;
-}
-
-.persona-dark-group input,
-.persona-dark-group select {
-  background: transparent;
-  border: none;
-  color: #ffffff;
-  font-size: 0.95rem;
-  font-weight: 600;
-  padding: 0;
-  outline: none;
-}
 
-.persona-dark-group input::placeholder {
-  color: #6b7280;
-  font-weight: 400;
-}
-
-.persona-dark-group select option {
-  background-color: #1a1a1a;
-  color: #ffffff;
-}
-
-.persona-dark-group:focus-within {
-  outline: 1px solid #14b8a6; /* teal, igual al acento de los íconos de la tarjeta de perfil */
-}
-
-.persona-dark-btn {
-  margin-top: 0.5rem;
-  background-color: #14b8a6;
-  color: #0d0d0d;
-  border: none;
-  padding: 0.8rem;
-  border-radius: 999px; /* pill, igual que "Editar perfil" */
-  font-weight: 700;
-  font-size: 0.95rem;
-  cursor: pointer;
-  transition: background-color 0.2s;
-}
-
-.persona-dark-btn:hover:not(:disabled) {
-  background-color: #0d9488;
-}
 
-.persona-dark-btn:disabled {
-  background-color: #374151;
-  color: #9ca3af;
-  cursor: not-allowed;
-}
 
-.persona-dark-mensaje {
-  padding: 0.7rem 1rem;
-  border-radius: 8px;
-  font-size: 0.85rem;
-  margin-bottom: 1rem;
-  font-weight: 600;
-}
+/*
+  usuarios.css — clases EXCLUSIVAS del admin (IndexUser).
+  Todo lo demás (personas-page, personas-header, personas-title,
+  personas-btn-primary, personas-table-card, personas-table,
+  personas-tr, personas-td-*, personas-acciones, personas-icon-btn*,
+  personas-overlay, personas-modal*, personas-info-row/label/value,
+  personas-btn-secondary/danger, personas-badge, personas-badge-cliente,
+  personas-badge-proveedor, personas-state-box, personas-error-box, etc.)
+  ya existe en styles/empleado/table.css y se reutiliza tal cual,
+  por eso IndexUser.tsx importa ambos archivos.
+*/
 
-.persona-dark-mensaje.error {
-  background-color: rgba(239, 68, 68, 0.15);
-  color: #f87171;
-  border: 1px solid rgba(239, 68, 68, 0.3);
+/* Separación entre la sección de Personas y la de Usuarios */
+.personas-header-usuarios {
+  margin-top: 2.5rem;
 }
 
-.persona-dark-mensaje.exito {
-  background-color: rgba(20, 184, 166, 0.15);
-  color: #2dd4bf;
-  border: 1px solid rgba(20, 184, 166, 0.3);
+/* Roles que solo existen en la vista de admin (Personas puede ser
+   CLIENTE/PROVEEDOR/ADMIN/EMPLEADO; Usuarios usa el mismo set de roles) */
+.personas-badge-admin {
+  background: var(--fa-primary-soft);
+  color: var(--fa-primary);
 }
 
-.persona-dark-acciones {
-  display: flex;
-  gap: 0.75rem;
-  margin-top: 0.5rem;
+.personas-badge-empleado {
+  background: var(--fa-hover-soft);
+  color: var(--fa-hover);
 }
 
-.persona-dark-acciones .persona-dark-btn {
-  flex: 1;
-  margin-top: 0; /* ya lo maneja el gap del contenedor */
+.personas-badge-default {
+  background: var(--fa-white-dim);
+  color: var(--fa-ink-dim);
 }
 
-.persona-dark-btn-cancelar {
-  flex: 1;
-  background-color: transparent;
-  color: #9ca3af;
-  border: 1px solid #374151;
-  padding: 0.8rem;
-  border-radius: 999px;
-  font-weight: 700;
-  font-size: 0.95rem;
-  cursor: pointer;
-  transition: background-color 0.2s, border-color 0.2s, color 0.2s;
+/* Estado del Usuario (columna "Estado" y modal "Ver usuario") */
+.personas-badge-activo {
+  background: var(--fa-gold-soft);
+  color: var(--fa-gold);
 }
 
-.persona-dark-btn-cancelar:hover:not(:disabled) {
-  background-color: #1a1a1a;
-  border-color: #6b7280;
-  color: #ffffff;
+.personas-badge-inactivo {
+  background: rgba(178, 69, 58, 0.16);
+  color: var(--fa-danger);
 }
 
-.persona-dark-btn-cancelar:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
+/* Chip para "Tu registro" / "Tu usuario", en vez de mostrar los
+   botones de acción cuando la fila es la del usuario actual */
+.personas-badge-tu {
+  background: var(--fa-cream-dim);
+  color: var(--fa-ink-dim);
+  font-style: italic;
 }
 
-.consejo {
-  color: #2AA63E;
-}
+/*
+  usuarios-form.css — clases EXCLUSIVAS del formulario de admin (CreateUser).
+  Todo lo demás (cp-page, cp-card, cp-header, cp-title, cp-subtitle,
+  cp-alert*, cp-form, cp-field, cp-label, cp-input, cp-select,
+  cp-field-error, cp-actions, cp-btn-primary/secondary, etc.) ya existe
+  en styles/empleado/form.css y se reutiliza tal cual — por eso
+  CreateUser.tsx importa ambos archivos.
 
-/* borde de error, mismo estilo que el focus pero en rojo */
-.persona-dark-group.invalid {
-  outline: 1px solid #ef4444;
-}
+  Este formulario no tiene equivalente en el empleado (el empleado ya
+  no puede crear usuarios), así que lo único nuevo es el texto de
+  ayuda bajo un campo (cp-hint) y su variante de advertencia.
+*/
 
-.persona-dark-error-text {
-  color: #f87171;
-  font-size: 0.75rem;
+/* Texto de ayuda bajo un input/select (p. ej. el aviso del correo sugerido) */
+.cp-hint {
+  display: block;
   margin-top: 0.35rem;
+  font-size: 0.8rem;
+  color: var(--fa-ink-dim);
+}
+
+/* Variante para cuando el select no tiene opciones disponibles
+   (p. ej. "No hay empleados disponibles") */
+.cp-hint-warning {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  color: var(--fa-danger);
   font-weight: 500;
 }
 
-/* texto pequeño mostrando el rol actual debajo del select */
-.persona-dark-rol-actual {
-  margin-top: 0.4rem;
-  font-size: 0.75rem;
-  color: #6b7280;
+
+/*
+  usuarios-form.css — clases EXCLUSIVAS del formulario de admin (CreateUser).
+  Todo lo demás (cp-page, cp-card, cp-header, cp-title, cp-subtitle,
+  cp-alert*, cp-form, cp-field, cp-label, cp-input, cp-select,
+  cp-field-error, cp-actions, cp-btn-primary/secondary, etc.) ya existe
+  en styles/empleado/form.css y se reutiliza tal cual — por eso
+  CreateUser.tsx importa ambos archivos.
+
+  Este formulario no tiene equivalente en el empleado (el empleado ya
+  no puede crear usuarios), así que lo único nuevo es el texto de
+  ayuda bajo un campo (cp-hint) y su variante de advertencia.
+*/
+
+/* Texto de ayuda bajo un input/select (p. ej. el aviso del correo sugerido) */
+.cp-hint {
+  display: block;
+  margin-top: 0.35rem;
+  font-size: 0.8rem;
+  color: var(--fa-ink-dim);
 }
 
-/* advertencia de cambio de rol (ámbar, distinto de error/éxito) */
-.persona-dark-mensaje.advertencia {
-  background-color: rgba(245, 158, 11, 0.15);
-  color: #fbbf24;
-  border: 1px solid rgba(245, 158, 11, 0.3);
-}
-
-/* campos de solo lectura (persona asociada, contraseña) */
-.persona-dark-group-readonly {
-  background-color: #141414;
-}
-
-.persona-dark-valor-fijo {
-  color: #d1d5db;
-  font-size: 0.95rem;
-  font-weight: 600;
-}
-
-.persona-dark-password-row {
+/* Variante para cuando el select no tiene opciones disponibles
+   (p. ej. "No hay empleados disponibles") */
+.cp-hint-warning {
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  gap: 0.35rem;
+  color: var(--fa-danger);
+  font-weight: 500;
+}
+
+/* Alerta informativa (aviso), además de cp-alert-error / cp-alert-success
+   que ya existen en form.css */
+.cp-alert-info {
+  background: var(--fa-primary-soft);
+  color: var(--fa-primary);
+  border: 1px solid rgba(121, 125, 17, 0.25);
+}
+
+/* Campo de solo lectura (p. ej. "Persona asociada", "Contraseña") */
+.cp-field-readonly {
+  opacity: 0.9;
+}
+
+.cp-value-fixed {
+  display: inline-block;
+  padding: 0.6rem 0.85rem;
+  border-radius: 8px;
+  background: var(--fa-cream-dim);
+  color: var(--fa-ink-dim);
+  font-size: 0.95rem;
+}
+
+/* Fila que combina el valor fijo de la contraseña con el botón de acción */
+.cp-password-row {
+  display: flex;
+  align-items: center;
   gap: 0.75rem;
   flex-wrap: wrap;
 }
 
-/* botón secundario, más discreto que el principal teal */
-.persona-dark-btn-secundario {
-  background-color: transparent;
-  color: #14b8a6;
-  border: 1px solid #14b8a6;
+/* Botón secundario pequeño dentro de un campo (p. ej. "Enviar cambio de contraseña") */
+.cp-btn-inline {
+  background: transparent;
+  border: 1px solid var(--fa-hover);
+  color: var(--fa-hover);
+  border-radius: 8px;
   padding: 0.45rem 0.9rem;
-  border-radius: 999px;
-  font-weight: 600;
-  font-size: 0.8rem;
+  font-size: 0.85rem;
   cursor: pointer;
-  transition: background-color 0.2s, color 0.2s;
-  white-space: nowrap;
+  transition: background 0.15s ease, color 0.15s ease;
 }
 
-.persona-dark-btn-secundario:hover {
-  background-color: rgba(20, 184, 166, 0.15);
+.cp-btn-inline:hover {
+  background: var(--fa-hover);
+  color: var(--fa-white);
 }
 
-/* mensaje informativo (azul), distinto de error/éxito/advertencia */
-.persona-dark-mensaje.info {
-  background-color: rgba(59, 130, 246, 0.15);
-  color: #60a5fa;
-  border: 1px solid rgba(59, 130, 246, 0.3);
+/*
+  perfil.css (admin) — clases EXCLUSIVAS del perfil de admin.
+  Todo lo demás (perfil-wrapper, perfil-card, perfil-banner, perfil-avatar,
+  perfil-body, perfil-name, perfil-badges, perfil-badge, perfil-divider,
+  perfil-fields, perfil-field, perfil-status, perfil-status--error,
+  perfil-actions, btn-perfil, btn-perfil-primary, btn-perfil-logout)
+  ya existe en styles/empleado/perfil.css y se reutiliza tal cual —
+  por eso Perfil.tsx importa ambos archivos.
+
+  El admin tiene dos cosas que el empleado no tiene en su perfil:
+  1) un botón extra "Editar perfil" (btn-perfil-secondary)
+  2) el badge de Estado (perfil-badge-activo / perfil-badge-inactivo)
+*/
+
+/* Botón "Editar perfil": outline, distinto del primario (cambiar
+   contraseña) y del de logout */
+.btn-perfil-secondary {
+  background: transparent;
+  border: 1px solid var(--fa-primary);
+  color: var(--fa-primary);
 }
 
-.zero-empleados {
-  color: #9F0712;
+.btn-perfil-secondary:hover {
+  background: var(--fa-primary);
+  color: var(--fa-white);
 }
 
-/* ===== OVERLAY BASE (compartido por ambos modales) ===== */
-.modal-overlay {
-  position: fixed;
-  inset: 0;
-  background-color: rgba(0, 0, 0, 0.6);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 1000;
-  padding: 1rem;
+/* Badge de estado del usuario, junto al badge de rol */
+.perfil-badge-activo {
+  background: var(--fa-gold-soft);
+  color: var(--fa-gold);
 }
 
-/* ===== MODAL "VER PERSONA" ===== */
-.ver-persona-caja {
-  background-color: #0d0d0d;
-  border-radius: 14px;
-  padding: 1.75rem;
-  max-width: 380px;
-  width: 100%;
-  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.5);
-}
-
-.ver-persona-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  border-bottom: 1px solid #1a1a1a;
-  padding-bottom: 1rem;
-  margin-bottom: 1rem;
-}
-
-.ver-persona-header h2 {
-  color: #ffffff;
-  font-size: 1.15rem;
-  margin: 0;
-}
-
-.ver-persona-campo {
-  display: flex;
-  flex-direction: column;
-  background-color: #1a1a1a;
-  border-radius: 10px;
-  padding: 0.7rem 1rem;
-  margin-bottom: 0.75rem;
-}
-
-.ver-persona-label {
-  font-size: 0.7rem;
-  font-weight: 600;
-  color: #9ca3af;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-  margin-bottom: 0.25rem;
-}
-
-.ver-persona-valor {
-  color: #ffffff;
-  font-weight: 600;
-  font-size: 0.95rem;
-}
-
-.ver-persona-caja .persona-dark-btn-cancelar {
-  width: 100%;
-  margin-top: 0.5rem;
-}
-
-/* ===== MODAL "ELIMINAR PERSONA" ===== */
-.modal-caja {
-  background-color: #0d0d0d;
-  border-radius: 14px;
-  padding: 1.75rem;
-  max-width: 400px;
-  width: 100%;
-  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.5);
-}
-
-.modal-caja h2 {
-  color: #ffffff;
-  font-size: 1.2rem;
-  margin-bottom: 0.75rem;
-}
-
-.modal-caja p {
-  color: #9ca3af;
-  font-size: 0.9rem;
-  line-height: 1.4;
-  margin-bottom: 1.5rem;
-}
-
-.modal-caja p strong {
-  color: #ffffff;
-}
-
-.modal-acciones {
-  display: flex;
-  gap: 0.75rem;
-}
-
-.modal-acciones button {
-  flex: 1;
-}
-
-.modal-btn-confirmar {
-  background-color: #dc2626;
-  color: #ffffff;
-  border: none;
-  padding: 0.8rem;
-  border-radius: 999px;
-  font-weight: 700;
-  font-size: 0.9rem;
-  cursor: pointer;
-  transition: background-color 0.2s;
-}
-
-.modal-btn-confirmar:hover:not(:disabled) {
-  background-color: #b91c1c;
-}
-
-.modal-btn-confirmar:disabled {
-  opacity: 0.6;
-  cursor: not-allowed;
+.perfil-badge-inactivo {
+  background: rgba(178, 69, 58, 0.16);
+  color: var(--fa-danger);
 }

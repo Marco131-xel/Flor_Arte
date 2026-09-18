@@ -1,133 +1,121 @@
 import { Link } from "react-router-dom";
-import styles from "../../styles/admin/landing.module.css";
+import { useEffect, useState } from "react";
 
-const modules = [
-  {
-    icon: "bi-box-seam",
-    title: "Inventario",
-    text: "Registra el ingreso de flores por proveedor, con cantidades y precios de compra.",
-  },
-  {
-    icon: "bi-bag-check",
-    title: "Pedidos",
-    text: "Administra pedidos pequeños y por mayor, cada uno con su propio recibo.",
-  },
-  {
-    icon: "bi-flower2",
-    title: "Arreglos",
-    text: "Registra los materiales usados en cada arreglo y su ganancia.",
-  },
-  {
-    icon: "bi-calendar-event",
-    title: "Eventos",
-    text: "Consulta fechas disponibles y la flor comprometida para cada evento.",
-  },
-  {
-    icon: "bi-bar-chart-line",
-    title: "Reportes",
-    text: "Consulta ventas, pérdidas y ganancias para decidir con datos reales.",
-  },
-];
+interface StatCard {
+  label: string;
+  value: string | number;
+  icon: string;
+  link: string;
+  accent: "primary" | "gold" | "teal";
+}
 
-function InicioAdmin() {
+interface StatGroup {
+  title: string;
+  items: StatCard[];
+}
+
+function IndexAdmin() {
+  const [saludo, setSaludo] = useState("Hola");
+  const user = JSON.parse(localStorage.getItem("user") || "{}");
+  const nombre = user?.nombre || user?.email?.split("@")[0] || "de nuevo";
+
+  useEffect(() => {
+    const hora = new Date().getHours();
+    if (hora < 12) setSaludo("Buenos días");
+    else if (hora < 19) setSaludo("Buenas tardes");
+    else setSaludo("Buenas noches");
+  }, []);
+
+  const fechaHoy = new Date().toLocaleDateString("es-GT", {
+    weekday: "long",
+    day: "numeric",
+    month: "long",
+  });
+
+  // TODO: reemplazar estos valores con los datos reales que devuelva cada servicio
+  // (getUsuarios/getPersonas para el primer grupo; pedidos/arreglos/eventos/reportes
+  // para el segundo, cuando el admin también tenga esos módulos). Por ahora quedan
+  // como placeholder.
+  const statGroups: StatGroup[] = [
+    {
+      title: "Usuarios",
+      items: [
+        { label: "Personas registradas", value: 24, icon: "bi-people", link: "/admin/usuarios", accent: "primary" },
+        { label: "Usuarios del sistema", value: 12, icon: "bi-person-badge", link: "/admin/usuarios", accent: "teal" },
+        { label: "Usuarios activos", value: 10, icon: "bi-person-check", link: "/admin/usuarios", accent: "gold" },
+        { label: "Cuentas inactivas", value: 2, icon: "bi-person-x", link: "/admin/usuarios", accent: "primary" },
+      ],
+    },
+    {
+      title: "Operaciones",
+      items: [
+        { label: "Pedidos pendientes", value: 8, icon: "bi-bag-plus", link: "/admin/pedidos", accent: "primary" },
+        { label: "Arreglos en proceso", value: 3, icon: "bi-gift", link: "/admin/arreglos", accent: "gold" },
+        { label: "Eventos próximos", value: 2, icon: "bi-calendar-event", link: "/admin/eventos", accent: "teal" },
+        { label: "Reportes del mes", value: 5, icon: "bi-bar-chart-line", link: "/admin/reportes", accent: "primary" },
+      ],
+    },
+  ];
+
+  const accesos = [
+    { label: "Gestionar Personas y Usuarios", icon: "bi-people", link: "/admin/usuarios" },
+    { label: "Nueva Persona", icon: "bi-person-plus", link: "/admin/usuarios/crear-Persona" },
+    { label: "Nuevo Usuario", icon: "bi-person-fill-add", link: "/admin/usuarios/crear" },
+    { label: "Mi Perfil", icon: "bi-person-circle", link: "/admin/perfil" },
+  ];
+
   return (
-    <div className={styles.page}>
-      <header className={styles.nav}>
-        <span className={styles.navBrand}>
-          <i className="bi bi-flower2"></i> Flor Arte
-        </span>
-        <Link to="/login" className={styles.navCta}>
-          Iniciar sesión
-        </Link>
-      </header>
+    <div className="inicio-wrapper">
+      <div className="inicio-hero">
+        <div className="inicio-hero-content">
+          <div className="inicio-logo-container">
+            <img src="/images/florarte.png" alt="Flor Arte" className="inicio-logo" />
+          </div>
 
-      <section className={styles.hero}>
-        <p className={styles.eyebrow}>Sistema de gestión floral</p>
-        <h1 className={styles.heroTitle}>
-          Todo florece cuando <br className={styles.heroBreak} />
-          el negocio está en orden.
-        </h1>
-        <p className={styles.heroSubtitle}>
-          Centraliza el inventario, los pedidos, los arreglos y los eventos de
-          tu floristería en un solo lugar, sin cuadernos ni mensajes
-          perdidos.
-        </p>
-        <Link to="/login" className={styles.heroCta}>
-          Entrar al sistema <i className="bi bi-arrow-right"></i>
-        </Link>
-      </section>
+          <div className="inicio-hero-text">
+            <p className="inicio-fecha">{fechaHoy}</p>
 
-      <section className={styles.problem}>
-        <div className={styles.problemText}>
-          <p className={styles.eyebrow}>El problema</p>
-          <p>
-            Hoy el ingreso de flores no se registra, los pedidos se manejan
-            por cuaderno o WhatsApp, y no hay forma clara de saber qué se
-            perdió ni cuánto se ganó. Flor Arte ordena cada una de esas
-            operaciones y actualiza el inventario automáticamente cuando se
-            vende, se arma un arreglo o se separa flor para un evento.
-          </p>
+            <h1 className="inicio-saludo">
+              {saludo}, <span>{nombre}</span>
+            </h1>
+
+            <p className="inicio-sub">Este es el resumen de administración de Flor Arte.</p>
+          </div>
         </div>
-      </section>
+      </div>
 
-      <section className={styles.modules}>
-        <p className={styles.eyebrow}>Cómo se conecta todo</p>
-        <h2 className={styles.sectionTitle}>Un mismo tallo, cinco módulos</h2>
+      {statGroups.map((grupo) => (
+        <div className="inicio-section" key={grupo.title}>
+          <h2 className="inicio-section-title">{grupo.title}</h2>
+          <div className="stat-grid">
+            {grupo.items.map((s) => (
+              <Link to={s.link} key={s.label} className={`stat-card stat-card--${s.accent}`}>
+                <div className="stat-icon">
+                  <i className={`bi ${s.icon}`}></i>
+                </div>
+                <div>
+                  <p className="stat-value">{s.value}</p>
+                  <p className="stat-label">{s.label}</p>
+                </div>
+              </Link>
+            ))}
+          </div>
+        </div>
+      ))}
 
-        <div className={styles.vine}>
-          <svg
-            className={styles.vineLine}
-            viewBox="0 0 4 100"
-            preserveAspectRatio="none"
-            aria-hidden="true"
-          >
-            <path d="M2 0 L2 100" stroke="#c9a13e" strokeWidth="2" />
-          </svg>
-
-          {modules.map((m) => (
-            <div className={styles.vineItem} key={m.title}>
-              <span className={styles.vineNode}>
-                <i className={`bi ${m.icon}`}></i>
-              </span>
-              <div>
-                <h3 className={styles.vineTitle}>{m.title}</h3>
-                <p className={styles.vineText}>{m.text}</p>
-              </div>
-            </div>
+      <div className="inicio-section">
+        <h2 className="inicio-section-title">Accesos rápidos</h2>
+        <div className="acceso-grid">
+          {accesos.map((a) => (
+            <Link to={a.link} key={a.label} className="acceso-card">
+              <i className={`bi ${a.icon}`}></i>
+              <span>{a.label}</span>
+            </Link>
           ))}
         </div>
-      </section>
-
-      <section className={styles.benefits}>
-        <div className={styles.benefitCard}>
-          <i className="bi bi-shield-check"></i>
-          <h3>Menos pérdidas</h3>
-          <p>Sabes qué flor se echa a perder y cuánto representa.</p>
-        </div>
-        <div className={styles.benefitCard}>
-          <i className="bi bi-calendar-check"></i>
-          <h3>Cero conflictos de reserva</h3>
-          <p>El calendario de eventos evita comprometer la misma fecha dos veces.</p>
-        </div>
-        <div className={styles.benefitCard}>
-          <i className="bi bi-graph-up"></i>
-          <h3>Decisiones con datos</h3>
-          <p>Reportes de ventas, pedidos y arreglos listos para consultar.</p>
-        </div>
-      </section>
-
-      <section className={styles.ctaFinal}>
-        <h2 className={styles.sectionTitle}>Empieza a ordenar tu floristería</h2>
-        <Link to="/login" className={styles.heroCta}>
-          Iniciar sesión <i className="bi bi-arrow-right"></i>
-        </Link>
-      </section>
-
-      <footer className={styles.footer}>
-        Sistema FlorArte © 2026 - Desarrollado por POOL-COMUNITY
-      </footer>
+      </div>
     </div>
   );
 }
 
-export default InicioAdmin;
+export default IndexAdmin;

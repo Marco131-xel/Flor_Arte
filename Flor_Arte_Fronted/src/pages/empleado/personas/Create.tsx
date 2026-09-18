@@ -71,8 +71,15 @@ function CreatePersona() {
         } catch (error: any) {
             console.error("Error al crear persona: ", error);
 
-            if (error.response?.data?.error) {
-                setError(error.response.data.error);
+            const mensaje = (error.response?.data?.message ?? error.response?.data?.error) as
+                | string
+                | undefined;
+
+            if (mensaje?.toLowerCase().includes("dpi")) {
+                setFieldErrors((prev) => ({ ...prev, dpi: mensaje }));
+                setError("Revisa los campos marcados");
+            } else if (mensaje) {
+                setError(mensaje);
             } else {
                 setError("Ocurrió un error al registrar la persona");
             }
@@ -135,11 +142,22 @@ function CreatePersona() {
                             type="text"
                             inputMode="numeric"
                             value={dpi}
-                            onChange={(e) => setDpi(e.target.value.replace(/\D/g, ""))}
+                            onChange={(e) => {
+                                setDpi(e.target.value.replace(/\D/g, ""));
+                                if (fieldErrors.dpi) {
+                                    setFieldErrors((prev) => {
+                                        const { dpi: _dpi, ...rest } = prev;
+                                        return rest;
+                                    });
+                                }
+                            }}
                             placeholder="Ingrese el DPI"
                             maxLength={13}
-                            className="cp-input"
+                            className={`cp-input ${fieldErrors.dpi ? "cp-input-error" : ""}`}
                         />
+                        {fieldErrors.dpi && (
+                            <span className="cp-field-error">{fieldErrors.dpi}</span>
+                        )}
                     </div>
 
                     {/* CORREO */}

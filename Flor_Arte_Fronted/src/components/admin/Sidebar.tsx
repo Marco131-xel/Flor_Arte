@@ -14,7 +14,7 @@ function Sidebar({ open }: Props) {
     `sidebar-link ${isActive ? "active" : ""}`;
 
   return (
-    <aside className={`admin-sidebar ${open ? "open" : ""}`}>
+    <aside className={`empleado-sidebar ${open ? "open" : ""}`}>
       <ul className="sidebar-menu">
         <li>
           <NavLink to="/admin" end className={linkClass}>
@@ -24,7 +24,7 @@ function Sidebar({ open }: Props) {
 
         <li>
           <NavLink to="/admin/flores" className={linkClass}>
-            <i className="bi bi-people"></i> Gestionar Flores
+            <i className="bi bi-flower3"></i> Gestionar Flores
           </NavLink>
         </li>
 

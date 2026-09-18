@@ -9,13 +9,13 @@ function AdminLayout() {
   const [sidebarOpen, setSidebarOpen] = useState(true);
 
   return (
-    <div className="admin-layout">
+    <div className="empleado-layout">
       <Header toggleSidebar={() => setSidebarOpen(!sidebarOpen)} />
 
-      <div className="admin-body">
+      <div className="empleado-body">
         <Sidebar open={sidebarOpen} />
 
-        <main className="admin-content">
+        <main className="empleado-content">
           <Outlet />
         </main>
       </div>

@@ -29,85 +29,65 @@ function Perfil() {
     window.location.href = "/login";
   };
 
-  if (loading) return <p>Cargando perfil...</p>;
-  if (error) return <div className="alert alert-danger">{error}</div>;
+  if (loading) return <p className="perfil-status">Cargando perfil...</p>;
+  if (error) return <div className="perfil-status perfil-status--error">{error}</div>;
   if (!profile) return null;
 
   return (
-    <div className="profile-wrapper">
-      <div className="profile-card">
-        <div className="profile-banner">
-          <img src="/images/florarte.png" alt="Flor Arte" className="profile-logo" />
+    <div className="perfil-wrapper">
+      <div className="perfil-card">
+        <div className="perfil-banner">
+          <img src="/images/florarte.png" alt="Flor Arte" className="perfil-avatar" />
         </div>
 
-        <div className="profile-body">
-          <h3 className="profile-name">{profile.name}</h3>
+        <div className="perfil-body">
+          <h3 className="perfil-name">{profile.name}</h3>
 
-          <div className="profile-badges">
+          <div className="perfil-badges">
             {profile.persona?.rol?.tipo && (
-              <span className="badge-rol">{profile.persona.rol.tipo}</span>
+              <span className="perfil-badge">{profile.persona.rol.tipo}</span>
             )}
-            <span className={`badge-estado ${profile.estado ? "activo" : "inactivo"}`}>
-              <i className={`bi ${profile.estado ? "bi-check-circle-fill" : "bi-x-circle-fill"}`}></i>
+            <span className={`perfil-badge ${profile.estado ? "perfil-badge-activo" : "perfil-badge-inactivo"}`}>
+              <i className={`bi ${profile.estado ? "bi-check-circle-fill" : "bi-x-circle-fill"}`}></i>{" "}
               {profile.estado ? "Activo" : "Inactivo"}
             </span>
           </div>
 
-          <div className="profile-divider"></div>
+          <div className="perfil-divider" />
 
-          <div className="profile-fields">
-            <div className="profile-field">
-              <div className="profile-field-icon">
-                <i className="bi bi-person-fill"></i>
-              </div>
-              <div>
-                <span className="profile-field-label">Nombre completo</span>
-                <p className="profile-field-value">{profile.persona?.nombre || "No registrado"}</p>
-              </div>
+          <div className="perfil-fields">
+            <div className="perfil-field">
+              <span><i className="bi bi-person"></i> Nombre Completo</span>
+              <p>{profile.persona?.nombre || "No registrado"}</p>
             </div>
 
-            <div className="profile-field">
-              <div className="profile-field-icon">
-                <i className="bi bi-envelope-fill"></i>
-              </div>
-              <div>
-                <span className="profile-field-label">Correo</span>
-                <p className="profile-field-value">{profile.email}</p>
-              </div>
+            <div className="perfil-field">
+              <span><i className="bi bi-envelope"></i> Correo</span>
+              <p>{profile.email}</p>
             </div>
 
-            <div className="profile-field">
-              <div className="profile-field-icon">
-                <i className="bi bi-telephone-fill"></i>
-              </div>
-              <div>
-                <span className="profile-field-label">Teléfono</span>
-                <p className="profile-field-value">{profile.persona?.telefono || "No registrado"}</p>
-              </div>
+            <div className="perfil-field">
+              <span><i className="bi bi-telephone"></i> Teléfono</span>
+              <p>{profile.persona?.telefono || "No registrado"}</p>
             </div>
 
-            <div className="profile-field">
-              <div className="profile-field-icon">
-                <i className="bi bi-card-text"></i>
-              </div>
-              <div>
-                <span className="profile-field-label">DPI</span>
-                <p className="profile-field-value">{profile.persona?.dpi || "No registrado"}</p>
-              </div>
+            <div className="perfil-field">
+              <span><i className="bi bi-credit-card-2-front"></i> DPI</span>
+              <p>{profile.persona?.dpi || "No registrado"}</p>
             </div>
           </div>
+        </div>
 
-          <div className="profile-actions">
-            <button className="btn-profile-edit" onClick={() => navigate("/admin/perfil/editar")}>
-              <i className="bi bi-pencil-fill"></i> Editar perfil
-            </button>
-            <button className="btn-profile-password" onClick={() => navigate("/admin/perfil/cambiar-password")}>
-              <i className="bi bi-key-fill"></i> Cambiar contraseña
-            </button>
-            <button className="btn-profile-logout" onClick={handleLogout}>
-              <i className="bi bi-box-arrow-right"></i> Cerrar sesión
-            </button>
-          </div>
+        <div className="perfil-actions">
+          <button className="btn-perfil btn-perfil-secondary" onClick={() => navigate("/admin/perfil/editar")}>
+            <i className="bi bi-pencil"></i> Editar perfil
+          </button>
+          <button className="btn-perfil btn-perfil-primary" onClick={() => navigate("/admin/perfil/cambiar-password")}>
+            <i className="bi bi-key"></i> Cambiar contraseña
+          </button>
+          <button className="btn-perfil btn-perfil-logout" onClick={handleLogout}>
+            <i className="bi bi-box-arrow-right"></i> Cerrar sesión
+          </button>
         </div>
       </div>
     </div>

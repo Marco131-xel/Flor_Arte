@@ -9,7 +9,7 @@ function UpdateUser() {
   const [email, setEmail] = useState("");
   const [estado, setEstado] = useState(true);
   const [personaNombre, setPersonaNombre] = useState("");
-  const [idPersona, setIdPersona] = useState(""); // se sigue mandando al backend, pero no se edita
+  const [idPersona, setIdPersona] = useState("");
 
   const [estadoOriginal, setEstadoOriginal] = useState(true);
 
@@ -99,67 +99,73 @@ function UpdateUser() {
 
   if (loading) {
     return (
-      <div className="persona-dark-container">
-        <div className="persona-dark-card">
-          <p className="persona-dark-cargando">Cargando usuario...</p>
+      <div className="cp-page">
+        <div className="cp-card">
+          <p className="cp-cargando">Cargando usuario...</p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="persona-dark-container">
-      <div className="persona-dark-card">
-        <div className="persona-dark-header">
-          <h1>Editar usuario</h1>
-          <p>Actualiza el acceso al sistema</p>
+    <div className="cp-page">
+      <div className="cp-card">
+        <div className="cp-header">
+          <h1 className="cp-title">Editar usuario</h1>
+          <p className="cp-subtitle">Actualiza el acceso al sistema</p>
         </div>
 
-        {error && <div className="persona-dark-mensaje error">{error}</div>}
-        {success && <div className="persona-dark-mensaje exito">{success}</div>}
-        {aviso && <div className="persona-dark-mensaje info">{aviso}</div>}
+        {error && <div className="cp-alert cp-alert-error">{error}</div>}
+        {success && <div className="cp-alert cp-alert-success">{success}</div>}
+        {aviso && <div className="cp-alert cp-alert-info">{aviso}</div>}
 
-        <form className="persona-dark-form" onSubmit={handleSubmit}>
+        <form className="cp-form" onSubmit={handleSubmit} noValidate>
           {/* Persona asociada: solo lectura */}
-          <div className="persona-dark-group persona-dark-group-readonly">
-            <label>Persona asociada</label>
-            <span className="persona-dark-valor-fijo">{personaNombre}</span>
+          <div className="cp-field cp-field-readonly">
+            <label className="cp-label">
+              <i className="bi bi-person-badge-fill"></i> Persona asociada
+            </label>
+            <span className="cp-value-fixed">{personaNombre}</span>
           </div>
 
           {/* Correo */}
-          <div className="persona-dark-group">
-            <label htmlFor="email">Correo electrónico</label>
+          <div className="cp-field">
+            <label htmlFor="email" className="cp-label">
+              <i className="bi bi-envelope-fill"></i> Correo electrónico
+            </label>
             <input
               id="email"
               type="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               placeholder="Ingrese el correo"
+              className="cp-input"
             />
           </div>
 
           {/* Contraseña: ya no editable directamente */}
-          <div className="persona-dark-group persona-dark-group-readonly">
-            <label>Contraseña</label>
-            <div className="persona-dark-password-row">
-              <span className="persona-dark-valor-fijo">••••••••</span>
-              <button
-                type="button"
-                className="persona-dark-btn-secundario"
-                onClick={handleCambiarPassword}
-              >
+          <div className="cp-field cp-field-readonly">
+            <label className="cp-label">
+              <i className="bi bi-key-fill"></i> Contraseña
+            </label>
+            <div className="cp-password-row">
+              <span className="cp-value-fixed">••••••••</span>
+              <button type="button" className="cp-btn-inline" onClick={handleCambiarPassword}>
                 Enviar cambio de contraseña
               </button>
             </div>
           </div>
 
           {/* Estado */}
-          <div className="persona-dark-group">
-            <label htmlFor="estado">Estado</label>
+          <div className="cp-field">
+            <label htmlFor="estado" className="cp-label">
+              <i className="bi bi-toggle2-on"></i> Estado
+            </label>
             <select
               id="estado"
               value={estado ? "activo" : "inactivo"}
               onChange={(e) => setEstado(e.target.value === "activo")}
+              className="cp-select"
             >
               <option value="activo">Activo</option>
               <option value="inactivo">Inactivo</option>
@@ -167,26 +173,26 @@ function UpdateUser() {
           </div>
 
           {estadoCambiado && (
-            <div className="persona-dark-mensaje advertencia">
-              ⚠️ Vas a dejar a <strong>{personaNombre}</strong> como{" "}
-              <strong>{estado ? "Activo" : "Inactivo"}</strong>.{" "}
+            <div className="cp-mensaje-advertencia">
+              <i className="bi bi-exclamation-triangle-fill"></i> Vas a dejar a{" "}
+              <strong>{personaNombre}</strong> como <strong>{estado ? "Activo" : "Inactivo"}</strong>.{" "}
               {estado
                 ? "Podrá volver a iniciar sesión en el sistema."
                 : "No podrá iniciar sesión mientras esté inactivo."}
             </div>
           )}
 
-          <div className="persona-dark-acciones">
+          <div className="cp-actions">
             <button
               type="button"
-              className="persona-dark-btn-cancelar"
               onClick={() => navigate(-1)}
               disabled={guardando}
+              className="cp-btn-secondary"
             >
               Cancelar
             </button>
 
-            <button type="submit" className="persona-dark-btn" disabled={guardando}>
+            <button type="submit" disabled={guardando} className="cp-btn-primary">
               {guardando ? "Guardando..." : "Guardar cambios"}
             </button>
           </div>
