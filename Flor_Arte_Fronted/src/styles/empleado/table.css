@@ -85,12 +85,58 @@
 }
 
 /* ===== TABLA ===== */
+/* ===== TABLA CON SCROLL ===== */
 .personas-table-card {
   background: var(--fa-white);
   border-radius: 14px;
   box-shadow: 0 4px 18px rgba(17, 17, 16, 0.06);
-  overflow: hidden;
   border: 1px solid var(--fa-white-dim);
+
+  /* scroll: ~8 filas visibles, después aparece la barra */
+  max-height: 530px;
+  overflow: auto;
+  scrollbar-gutter: stable;
+}
+
+/* Encabezado fijo mientras haces scroll */
+.personas-table thead th {
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  background: var(--fa-primary);
+}
+
+/* Fila de total fija abajo (inventario y pedidos) */
+.personas-tr-total td {
+  position: sticky;
+  bottom: 0;
+  z-index: 2;
+  background: var(--fa-cream-dim);
+}
+
+/* Barra de scroll con tus colores */
+.personas-table-card {
+  scrollbar-width: thin;
+  scrollbar-color: var(--fa-primary) transparent;
+}
+
+.personas-table-card::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+.personas-table-card::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.personas-table-card::-webkit-scrollbar-thumb {
+  background: var(--fa-primary);
+  border-radius: 999px;
+  border: 2px solid var(--fa-white);
+}
+
+.personas-table-card::-webkit-scrollbar-thumb:hover {
+  background: var(--fa-hover);
 }
 
 .personas-table {

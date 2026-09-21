@@ -19,6 +19,10 @@ import IndexInventario from "../pages/empleado/inventario/Index";
 import CreateInventario from "../pages/empleado/inventario/Create";
 import UpdateInventario from "../pages/empleado/inventario/Update";
 import Merma from "../pages/empleado/inventario/Merma";
+// modulo pedidos
+import IndexPedidos from "../pages/empleado/pedidos/Index";
+import CreatePedidos from "../pages/empleado/pedidos/Create";
+import UpdatePedidos from "../pages/empleado/pedidos/Update";
 
 export const EmpleadoRoutes = () => (
     <Route path="/empleado" element={
@@ -45,5 +49,9 @@ export const EmpleadoRoutes = () => (
         <Route path="inventario/create" element={<CreateInventario/>}/>
         <Route path="inventario/update/:id" element={<UpdateInventario/>}/>
         <Route path="inventario/merma" element={<Merma/>}/>
+        {/* VISTA A PEDIDOS */}
+        <Route path="pedidos" element={<IndexPedidos/>}/>
+        <Route path="pedidos/create" element={<CreatePedidos/>}/>
+        <Route path="pedidos/update/:id" element={<UpdatePedidos/>}/>
     </Route>
 )

@@ -126,6 +126,237 @@
   color: var(--fa-gold);
 }
 
+/* ---------- Notificaciones ---------- */
+
+.notif {
+  position: relative;
+}
+
+.empleado-header .notif-btn {
+  position: relative;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  background: transparent;
+  color: var(--fa-white);
+  font-size: 1.1rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: border-color var(--fa-transition), background var(--fa-transition);
+}
+
+.empleado-header .notif-btn:hover,
+.empleado-header .notif-btn[aria-expanded="true"] {
+  border-color: var(--fa-hover);
+  background: var(--fa-hover-soft);
+}
+
+.empleado-header .notif-btn:focus-visible {
+  outline: 2px solid var(--fa-gold);
+  outline-offset: 2px;
+}
+
+.empleado-header .notif-btn .bi-bell-fill {
+  color: var(--fa-gold);
+}
+
+/* globito con la cantidad */
+.notif-badge {
+  position: absolute;
+  top: -4px;
+  right: -4px;
+  min-width: 19px;
+  height: 19px;
+  padding: 0 5px;
+  border-radius: 999px;
+  background: var(--fa-danger);
+  color: #fff;
+  font-size: 11px;
+  font-weight: 700;
+  line-height: 19px;
+  text-align: center;
+  border: 2px solid var(--fa-primary);
+}
+
+/* panel desplegable */
+.notif-panel {
+  position: absolute;
+  top: calc(100% + 12px);
+  right: 0;
+  width: 370px;
+  max-width: 92vw;
+  background: var(--fa-white);
+  color: var(--fa-ink);
+  border: 1px solid var(--fa-white-dim);
+  border-radius: 14px;
+  box-shadow: 0 16px 40px rgba(17, 17, 16, 0.22);
+  overflow: hidden;
+  z-index: 60;
+  animation: notifIn 0.16s ease-out;
+}
+
+@keyframes notifIn {
+  from {
+    opacity: 0;
+    transform: translateY(-6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.notif-panel-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 14px 16px;
+  background: var(--fa-primary-soft);
+  border-bottom: 1px solid var(--fa-white-dim);
+}
+
+.notif-panel-title {
+  margin: 0;
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--fa-ink);
+}
+
+.notif-mark-all {
+  border: none;
+  background: transparent;
+  color: var(--fa-hover);
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+  padding: 4px;
+}
+
+.notif-mark-all:hover {
+  text-decoration: underline;
+}
+
+.notif-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  max-height: 380px;
+  overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: var(--fa-primary) transparent;
+}
+
+.notif-item {
+  width: 100%;
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 13px 16px;
+  border: none;
+  border-bottom: 1px solid var(--fa-cream-dim);
+  background: transparent;
+  text-align: left;
+  cursor: pointer;
+  transition: background 0.12s ease;
+}
+
+.notif-list li:last-child .notif-item {
+  border-bottom: none;
+}
+
+.notif-item:hover {
+  background: var(--fa-cream-dim);
+}
+
+/* sin leer: fondo suave para distinguirlo */
+.notif-item-new {
+  background: var(--fa-primary-soft);
+}
+
+.notif-icon {
+  width: 36px;
+  height: 36px;
+  flex-shrink: 0;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 16px;
+}
+
+.notif-icon-pedido {
+  background: var(--fa-gold-soft);
+  color: #8a6a14;
+}
+
+.notif-icon-stock {
+  background: rgba(178, 69, 58, 0.16);
+  color: var(--fa-danger);
+}
+
+.notif-text {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.notif-text strong {
+  font-size: 13px;
+  color: var(--fa-ink);
+}
+
+.notif-text span {
+  font-size: 13px;
+  line-height: 1.4;
+  color: var(--fa-ink-dim);
+}
+
+.notif-dot {
+  width: 9px;
+  height: 9px;
+  margin-top: 6px;
+  flex-shrink: 0;
+  border-radius: 50%;
+  background: var(--fa-hover);
+}
+
+.notif-empty {
+  padding: 32px 20px;
+  text-align: center;
+  color: var(--fa-ink-dim);
+}
+
+.notif-empty i {
+  font-size: 28px;
+  color: var(--fa-white-dim);
+}
+
+.notif-empty p {
+  margin: 8px 0 4px;
+  font-weight: 700;
+  color: var(--fa-ink);
+}
+
+.notif-empty span {
+  font-size: 13px;
+}
+
+.notif-icon-usuario {
+  background: rgba(17, 17, 16, 0.12);
+  color: var(--fa-ink);
+}
+
+.notif-icon-empleado {
+  background: var(--fa-hover-soft);
+  color: var(--fa-hover);
+}
+
 /* ---------- Sidebar ---------- */
 
 .empleado-sidebar {

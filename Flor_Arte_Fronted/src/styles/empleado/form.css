@@ -950,3 +950,503 @@
   opacity: 0.6;
   cursor: not-allowed;
 }
+
+/* ===== BARRA DE HERRAMIENTAS (buscador + filtros) ===== */
+.personas-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 14px;
+  margin-bottom: 18px;
+}
+
+.personas-toolbar .personas-search-box {
+  margin-bottom: 0;
+  flex: 1 1 320px;
+}
+
+/* ===== CHIPS DE FILTRO POR ESTADO ===== */
+.personas-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.personas-chip {
+  padding: 7px 14px;
+  border-radius: 999px;
+  border: 1px solid var(--fa-white-dim);
+  background: var(--fa-white);
+  color: var(--fa-ink-dim);
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  text-transform: capitalize;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.personas-chip:hover {
+  border-color: var(--fa-primary);
+  color: var(--fa-primary);
+}
+
+.personas-chip-active {
+  background: var(--fa-primary);
+  border-color: var(--fa-primary);
+  color: var(--fa-white);
+}
+
+.personas-chip-active:hover {
+  color: var(--fa-white);
+  background: var(--fa-hover);
+  border-color: var(--fa-hover);
+}
+
+/* ===== BADGES DE ESTADO DEL PEDIDO ===== */
+.personas-badge-estado-pendiente {
+  background: var(--fa-gold-soft);
+  color: #8a6a14;
+}
+
+.personas-badge-estado-en-proceso {
+  background: rgba(63, 110, 160, 0.18);
+  color: #2e5580;
+}
+
+.personas-badge-estado-listo {
+  background: var(--fa-primary-soft);
+  color: var(--fa-primary);
+}
+
+.personas-badge-estado-entregado {
+  background: var(--fa-hover-soft);
+  color: var(--fa-hover);
+}
+
+.personas-badge-estado-cancelado {
+  background: rgba(178, 69, 58, 0.14);
+  color: var(--fa-danger);
+}
+
+.personas-badge-estado-confirmado {
+  background: rgba(63, 110, 160, 0.18);
+  color: #2e5580;
+}
+
+.personas-badge-estado-preparando {
+  background: rgba(200, 116, 42, 0.18);
+  color: #a35a1a;
+}
+
+/* ===== BOTÓN DE ACCIÓN: CAMBIAR ESTADO ===== */
+.personas-icon-btn-estado:hover {
+  background: var(--fa-primary-soft);
+  color: var(--fa-primary);
+}
+
+/* ===== MODAL: SELECTOR DE ESTADO ===== */
+.personas-estado-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  width: 100%;
+}
+
+.personas-estado-option {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 14px;
+  border-radius: 10px;
+  border: 1.5px solid var(--fa-white-dim);
+  background: var(--fa-white);
+  color: var(--fa-hover);
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.personas-estado-option:hover:not(:disabled) {
+  background: var(--fa-cream-dim);
+  border-color: var(--fa-primary);
+}
+
+.personas-estado-option-active {
+  border-color: var(--fa-hover);
+  background: var(--fa-hover-soft);
+}
+
+.personas-estado-option:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.personas-btn-primary:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* Que la columna de acciones no se apriete con 4 botones */
+.personas-acciones {
+  flex-wrap: nowrap;
+}
+
+/* ===== SELECTOR DE ESTADO (editar pedido) ===== */
+.ci-estados {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.ci-estado-chip {
+  padding: 8px 14px;
+  border-radius: 999px;
+  border: 1px solid var(--fa-white-dim);
+  background: var(--fa-white);
+  color: var(--fa-ink-dim);
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.ci-estado-chip:hover {
+  border-color: var(--fa-primary);
+  color: var(--fa-primary);
+}
+
+.ci-estado-chip-on,
+.ci-estado-chip-on:hover {
+  background: var(--fa-primary);
+  border-color: var(--fa-primary);
+  color: var(--fa-white);
+}
+
+/* ===== BARRA DE HERRAMIENTAS ===== */
+.personas-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-bottom: 14px;
+}
+
+.personas-toolbar .personas-search-box {
+  margin-bottom: 0;
+  flex: 1 1 320px;
+}
+
+.personas-toolbar-right {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+/* ===== COMBOBOX DE ROLES ===== */
+.personas-select {
+  position: relative;
+  min-width: 200px;
+}
+
+.personas-select-trigger {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 11px 14px;
+  border: 1px solid var(--fa-white-dim);
+  border-radius: 10px;
+  background: var(--fa-white);
+  color: var(--fa-ink);
+  font-size: 14px;
+  cursor: pointer;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.personas-select-trigger:hover {
+  border-color: var(--fa-primary);
+}
+
+.personas-select-trigger:focus-visible,
+.personas-select-trigger[aria-expanded="true"] {
+  outline: none;
+  border-color: var(--fa-hover);
+  box-shadow: 0 0 0 3px var(--fa-hover-soft);
+}
+
+/* cuando hay un rol elegido, se resalta */
+.personas-select-trigger-on {
+  border-color: var(--fa-primary);
+  background: var(--fa-primary-soft);
+  font-weight: 600;
+}
+
+.personas-select-trigger > i:first-child {
+  color: var(--fa-primary);
+}
+
+.personas-select-text {
+  flex: 1;
+  text-align: left;
+}
+
+.personas-select-chevron {
+  font-size: 12px;
+  color: var(--fa-ink-dim);
+}
+
+.personas-select-panel {
+  position: absolute;
+  top: calc(100% + 6px);
+  left: 0;
+  right: 0;
+  z-index: 60;
+  padding: 6px;
+  background: var(--fa-white);
+  border: 1px solid var(--fa-white-dim);
+  border-radius: 12px;
+  box-shadow: 0 12px 30px rgba(17, 17, 16, 0.14);
+  animation: personasModalIn 0.14s ease-out;
+}
+
+.personas-select-item {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 9px 12px;
+  border: none;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--fa-ink);
+  font-size: 14px;
+  text-align: left;
+  cursor: pointer;
+  transition: background 0.12s ease;
+}
+
+.personas-select-item:hover {
+  background: var(--fa-cream-dim);
+}
+
+.personas-select-item-on {
+  background: var(--fa-hover-soft);
+  color: var(--fa-hover);
+  font-weight: 700;
+}
+
+.personas-select-item-on:hover {
+  background: var(--fa-hover-soft);
+}
+
+/* ===== EXTRAS ===== */
+.personas-btn-link {
+  border: none;
+  background: transparent;
+  color: var(--fa-hover);
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  padding: 6px 4px;
+}
+
+.personas-btn-link:hover {
+  text-decoration: underline;
+}
+
+.personas-result-count {
+  margin: 0 0 10px;
+  font-size: 13px;
+  color: var(--fa-ink-dim);
+}
+
+@media (max-width: 720px) {
+  .personas-toolbar {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .personas-toolbar-right {
+    flex-wrap: wrap;
+  }
+
+  .personas-select {
+    flex: 1;
+  }
+}
+
+
+/* ===== TOOLBAR ===== */
+.personas-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-bottom: 14px;
+}
+
+.personas-toolbar .personas-search-box {
+  margin-bottom: 0;
+  flex: 1 1 320px;
+}
+
+.personas-toolbar-right {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+/* ===== COMBOBOX ===== */
+.personas-select {
+  position: relative;
+  min-width: 200px;
+}
+
+.personas-select-trigger {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 11px 14px;
+  border: 1px solid var(--fa-white-dim);
+  border-radius: 10px;
+  background: var(--fa-white);
+  color: var(--fa-ink);
+  font-size: 14px;
+  cursor: pointer;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.personas-select-trigger:hover {
+  border-color: var(--fa-primary);
+}
+
+.personas-select-trigger:focus-visible,
+.personas-select-trigger[aria-expanded="true"] {
+  outline: none;
+  border-color: var(--fa-hover);
+  box-shadow: 0 0 0 3px var(--fa-hover-soft);
+}
+
+.personas-select-trigger-on {
+  border-color: var(--fa-primary);
+  background: var(--fa-primary-soft);
+  font-weight: 600;
+}
+
+.personas-select-trigger > i:first-child {
+  color: var(--fa-primary);
+}
+
+.personas-select-text {
+  flex: 1;
+  text-align: left;
+}
+
+.personas-select-chevron {
+  font-size: 12px;
+  color: var(--fa-ink-dim);
+}
+
+.personas-select-panel {
+  position: absolute;
+  top: calc(100% + 6px);
+  left: 0;
+  right: 0;
+  z-index: 60;
+  padding: 6px;
+  background: var(--fa-white);
+  border: 1px solid var(--fa-white-dim);
+  border-radius: 12px;
+  box-shadow: 0 12px 30px rgba(17, 17, 16, 0.14);
+  animation: personasModalIn 0.14s ease-out;
+}
+
+.personas-select-item {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 9px 12px;
+  border: none;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--fa-ink);
+  font-size: 14px;
+  text-align: left;
+  cursor: pointer;
+  transition: background 0.12s ease;
+}
+
+.personas-select-item:hover {
+  background: var(--fa-cream-dim);
+}
+
+.personas-select-item-on,
+.personas-select-item-on:hover {
+  background: var(--fa-hover-soft);
+  color: var(--fa-hover);
+  font-weight: 700;
+}
+
+.personas-select-item-label {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+/* puntito de color junto a cada estado */
+.personas-estado-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  padding: 0;
+  flex-shrink: 0;
+}
+
+.personas-estado-dot.personas-badge-estado-pendiente { background: var(--fa-gold); }
+.personas-estado-dot.personas-badge-estado-confirmado { background: #2e5580; }
+.personas-estado-dot.personas-badge-estado-preparando { background: #c8742a; }
+.personas-estado-dot.personas-badge-estado-listo { background: var(--fa-primary); }
+.personas-estado-dot.personas-badge-estado-entregado { background: var(--fa-hover); }
+.personas-estado-dot.personas-badge-estado-cancelado { background: var(--fa-danger); }
+
+/* ===== EXTRAS ===== */
+.personas-btn-link {
+  border: none;
+  background: transparent;
+  color: var(--fa-hover);
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  padding: 6px 4px;
+}
+
+.personas-btn-link:hover {
+  text-decoration: underline;
+}
+
+.personas-result-count {
+  margin: 0 0 10px;
+  font-size: 13px;
+  color: var(--fa-ink-dim);
+}
+
+@media (max-width: 720px) {
+  .personas-toolbar {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .personas-toolbar-right {
+    flex-wrap: wrap;
+  }
+
+  .personas-select {
+    flex: 1;
+  }
+}
