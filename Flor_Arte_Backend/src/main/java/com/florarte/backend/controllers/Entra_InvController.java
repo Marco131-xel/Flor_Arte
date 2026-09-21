@@ -63,9 +63,8 @@ public class Entra_InvController {
     // Actualizar entrada de inventario
     @PreAuthorize("hasAnyRole('ADMINISTRADOR', 'EMPLEADO')")
     @PutMapping({"/update/{id}", "/{id}"})
-    public ResponseEntity<?> update(@PathVariable Integer id, @Valid @RequestBody Entrada_InventarioDTO dto) {
-        Entrada_InventarioDTO actualizada = entraInvService.update(id, dto);
-        return ResponseEntity.ok(Map.of("message", "Entrada de inventario actualizada exitosamente", "entrada", actualizada));
+    public ResponseEntity<?> update(@PathVariable Integer id, @RequestBody Entrada_InventarioDTO dto) {
+        return ResponseEntity.ok(entraInvService.update(id, dto));
     }
 
     // Eliminar entrada de inventario

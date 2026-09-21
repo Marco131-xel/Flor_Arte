@@ -111,22 +111,52 @@ public class Entra_InvService {
     // Actualizar entrada de inventario
     @Transactional
     public Entrada_InventarioDTO update(Integer id, Entrada_InventarioDTO dto) {
-        Entrada_Inventario entrada = entraInvRepository.findByIdWithPersona(id)
-                .orElseThrow(() -> new RuntimeException("Entrada de inventario no encontrada con id: " + id));
+        Entrada_Inventario entrada = entraInvRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Entrada no encontrada con id: " + id));
 
         Persona persona = personaRepository.findById(dto.getIdPersona())
-                .orElseThrow(() -> new RuntimeException("Persona/Proveedor no encontrado con id: " + dto.getIdPersona()));
+                .orElseThrow(() -> new RuntimeException("Proveedor no encontrado con id: " + dto.getIdPersona()));
 
+        if (dto.getDetalles() == null || dto.getDetalles().isEmpty()) {
+            throw new IllegalArgumentException("La entrada debe tener al menos un detalle");
+        }
+
+        // 1. Revertir stock y borrar los detalles existentes
+        for (Detalle_Entrada anterior : detaEntraRepository.findByIdEntrada(id)) {
+            Flor flor = florRepository.findById(anterior.getIdFlor())
+                    .orElseThrow(() -> new RuntimeException("Flor no encontrada: " + anterior.getIdFlor()));
+
+            if (flor.getStock() < anterior.getCantidad()) {
+                throw new IllegalStateException(
+                        "No se puede editar: ya se usaron flores de esta entrada (" + flor.getStock() + " en stock)");
+            }
+
+            flor.setStock(flor.getStock() - anterior.getCantidad());
+            florRepository.save(flor);
+        }
+        detaEntraRepository.deleteAll(detaEntraRepository.findByIdEntrada(id));
+
+        // 2. Actualizar cabecera
         entrada.setIdPersona(dto.getIdPersona());
-        if (dto.getFecha() != null) {
-            entrada.setFecha(dto.getFecha());
-        }
-        if (dto.getTotal() != null) {
-            entrada.setTotal(dto.getTotal());
+        entraInvRepository.save(entrada);
+
+        // 3. Crear los nuevos detalles (aumenta stock + registra ENTRADA)
+        BigDecimal total = BigDecimal.ZERO;
+        List<Detalle_EntradaDTO> detallesGuardados = new ArrayList<>();
+
+        for (Detalle_EntradaDTO detalleDto : dto.getDetalles()) {
+            detalleDto.setIdEntrada(id);
+            Detalle_EntradaDTO guardado = detaEntraService.saveSinRecalcular(detalleDto);
+            detallesGuardados.add(guardado);
+            total = total.add(guardado.getSubtotal());
         }
 
-        Entrada_Inventario actualizada = entraInvRepository.save(entrada);
-        return toDto(actualizada, persona.getNombre());
+        entrada.setTotal(total);
+        entraInvRepository.save(entrada);
+
+        return new Entrada_InventarioDTO(
+                entrada.getIdEntrada(), entrada.getIdPersona(), persona.getNombre(),
+                entrada.getFecha(), total, detallesGuardados);
     }
 
     // Eliminar entrada de inventario

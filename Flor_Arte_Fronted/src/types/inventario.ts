@@ -32,12 +32,13 @@ export interface New_Deta_Entra {
 }
 
 export interface Movimiento_Inventario {
-    idMovimientoInventario: number;
-    idFlor: number;
-    tipoMovimiento: string;
-    cantidad: number;
-    motivo: string;
-    fecha: string;
+  idMovimientoInventario: number;
+  idFlor: number;
+  nombreFlor: string;
+  tipoMovimiento: string;
+  cantidad: number;
+  motivo: string;
+  fecha: string;
 }
 
 export interface New_Mov_Inv {
@@ -45,7 +46,7 @@ export interface New_Mov_Inv {
     tipoMovimiento: string;
     cantidad: number;
     motivo: string;
-    fecha: string;
+    fecha?: string;
 }
 
 

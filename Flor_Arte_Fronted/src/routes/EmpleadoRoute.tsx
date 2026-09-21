@@ -18,6 +18,7 @@ import TipoFlor from "../pages/empleado/flores/Tipo";
 import IndexInventario from "../pages/empleado/inventario/Index";
 import CreateInventario from "../pages/empleado/inventario/Create";
 import UpdateInventario from "../pages/empleado/inventario/Update";
+import Merma from "../pages/empleado/inventario/Merma";
 
 export const EmpleadoRoutes = () => (
     <Route path="/empleado" element={
@@ -43,5 +44,6 @@ export const EmpleadoRoutes = () => (
         <Route path="inventario" element={<IndexInventario/>}/>
         <Route path="inventario/create" element={<CreateInventario/>}/>
         <Route path="inventario/update/:id" element={<UpdateInventario/>}/>
+        <Route path="inventario/merma" element={<Merma/>}/>
     </Route>
 )

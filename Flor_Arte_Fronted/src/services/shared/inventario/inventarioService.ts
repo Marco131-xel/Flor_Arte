@@ -39,7 +39,7 @@ export const getEntradaInventarioById = async (id: number): Promise<Entrada_Inve
 };
 
 // actualizar entrada
-export const updateEntradaInventario = async (id: number, entradaData: New_Entra_Inv): Promise<Entrada_Inventario> => {
+export const updateEntradaInventario = async (id: number, entradaData: New_Entra_Inv_Completa): Promise<Entrada_Inventario> => {
   const response = await api.put<Entrada_Inventario>(`/entrada_inventario/update/${id}`,entradaData);
 
   return response.data;
