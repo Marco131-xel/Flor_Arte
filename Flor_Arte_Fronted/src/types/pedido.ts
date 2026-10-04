@@ -23,6 +23,7 @@ export interface Pedido {
   idEmpleado: number | null;
   nombreEmpleado: string | null;
   estado: string;
+  fecha: string | null;
   total: number;
   detalles: Detalle_Pedido[];
 }
@@ -46,4 +47,8 @@ export interface Update_Pedido {
   idCliente: number;
   idEmpleado?: number;
   estado: string;
+}
+
+export interface Update_Pedido_Completo extends Update_Pedido {
+  detalles: (New_Deta_Pedido_Item & { idDetallePedido?: number })[];
 }

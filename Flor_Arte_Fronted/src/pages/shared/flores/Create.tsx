@@ -135,7 +135,7 @@ function CreateFlor() {
     try {
       setGuardando(true);
       await createFlor(nuevaFlor);
-      navigate(-1);
+      navigate("..");
     } catch (err) {
       setError("No se pudo crear la flor. Intenta de nuevo.");
     } finally {
@@ -146,7 +146,7 @@ function CreateFlor() {
   return (
     <div className="crear-flor-page">
       <div className="crear-flor-header">
-        <button className="crear-flor-btn-back" onClick={() => navigate(-1)}>
+        <button className="crear-flor-btn-back" onClick={() => navigate("..")}>
           ← Volver a Flores
         </button>
         <h1 className="crear-flor-title">
@@ -344,7 +344,7 @@ function CreateFlor() {
               <button
                 type="button"
                 className="crear-flor-btn-secondary"
-                onClick={() => navigate(-1)}
+                onClick={() => navigate("..")}
                 disabled={guardando}
               >
                 Cancelar

@@ -162,7 +162,7 @@ function Merma() {
           <i className="bi bi-exclamation-circle" aria-hidden="true"></i>
           <span>{errorCarga}</span>
         </div>
-        <button type="button" className="ci-btn-secondary" onClick={() => navigate(-1)}>
+        <button type="button" className="ci-btn-secondary" onClick={() => navigate("..")}>
           Volver
         </button>
       </div>
@@ -172,7 +172,7 @@ function Merma() {
   return (
     <div className="ci-page">
       <header className="ci-header">
-        <button type="button" className="ci-back" onClick={() => navigate(-1)}>
+        <button type="button" className="ci-back" onClick={() => navigate("..")}>
           <i className="bi bi-arrow-left" aria-hidden="true"></i> Inventario
         </button>
 
@@ -353,7 +353,7 @@ function Merma() {
             <button
               type="button"
               className="ci-btn-secondary"
-              onClick={() => navigate(-1)}
+              onClick={() => navigate("..")}
               disabled={guardando}
             >
               Cancelar

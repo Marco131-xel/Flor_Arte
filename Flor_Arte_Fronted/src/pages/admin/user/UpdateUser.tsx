@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { getUsuarioById, updateUsuario } from "../../../services/admin/usuarioService";
+import AccionPendiente from "../../../components/AccionPendiente";
 
 function UpdateUser() {
   const { id } = useParams();
@@ -15,7 +16,6 @@ function UpdateUser() {
 
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
-  const [aviso, setAviso] = useState("");
   const [loading, setLoading] = useState(true);
   const [guardando, setGuardando] = useState(false);
 
@@ -44,12 +44,6 @@ function UpdateUser() {
   };
 
   const estadoCambiado = estado !== estadoOriginal;
-
-  const handleCambiarPassword = () => {
-    // TODO: cuando el backend tenga el endpoint, esto disparará
-    // el envío de un correo de restablecimiento de contraseña.
-    setAviso("Se enviará un correo al usuario para que restablezca su contraseña (función en desarrollo).");
-  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -117,7 +111,6 @@ function UpdateUser() {
 
         {error && <div className="cp-alert cp-alert-error">{error}</div>}
         {success && <div className="cp-alert cp-alert-success">{success}</div>}
-        {aviso && <div className="cp-alert cp-alert-info">{aviso}</div>}
 
         <form className="cp-form" onSubmit={handleSubmit} noValidate>
           {/* Persona asociada: solo lectura */}
@@ -150,9 +143,12 @@ function UpdateUser() {
             </label>
             <div className="cp-password-row">
               <span className="cp-value-fixed">••••••••</span>
-              <button type="button" className="cp-btn-inline" onClick={handleCambiarPassword}>
+              <AccionPendiente
+                className="cp-btn-inline"
+                mensaje="El envío de correos de restablecimiento aún no está disponible."
+              >
                 Enviar cambio de contraseña
-              </button>
+              </AccionPendiente>
             </div>
           </div>
 

@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { getMyData } from "../../services/userService";
 import type { UserFull } from "../../types/user";
+import AccionPendiente from "../../components/AccionPendiente";
 
 function Perfil() {
   const [profile, setProfile] = useState<UserFull | null>(null);
@@ -82,9 +83,12 @@ function Perfil() {
           <button className="btn-perfil btn-perfil-secondary" onClick={() => navigate("/admin/perfil/editar")}>
             <i className="bi bi-pencil"></i> Editar perfil
           </button>
-          <button className="btn-perfil btn-perfil-primary" onClick={() => navigate("/admin/perfil/cambiar-password")}>
+          <AccionPendiente
+            className="btn-perfil btn-perfil-primary"
+            mensaje="El cambio de contraseña aún no está disponible."
+          >
             <i className="bi bi-key"></i> Cambiar contraseña
-          </button>
+          </AccionPendiente>
           <button className="btn-perfil btn-perfil-logout" onClick={handleLogout}>
             <i className="bi bi-box-arrow-right"></i> Cerrar sesión
           </button>

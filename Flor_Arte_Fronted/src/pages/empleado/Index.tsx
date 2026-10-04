@@ -1,5 +1,5 @@
 import { Link } from "react-router-dom";
-import { useEffect, useState } from "react";
+import { useResumenInicio } from "../../hooks/useResumenInicio";
 
 interface StatCard {
   label: string;
@@ -10,16 +10,11 @@ interface StatCard {
 }
 
 function Index() {
-  const [saludo, setSaludo] = useState("Hola");
+  const { valor, errores, cargando, reintentar } = useResumenInicio(false);
+  const hora = new Date().getHours();
+  const saludo = hora < 12 ? "Buenos días" : hora < 19 ? "Buenas tardes" : "Buenas noches";
   const user = JSON.parse(localStorage.getItem("user") || "{}");
   const nombre = user?.nombre || user?.email?.split("@")[0] || "de nuevo";
-
-  useEffect(() => {
-    const hora = new Date().getHours();
-    if (hora < 12) setSaludo("Buenos días");
-    else if (hora < 19) setSaludo("Buenas tardes");
-    else setSaludo("Buenas noches");
-  }, []);
 
   const fechaHoy = new Date().toLocaleDateString("es-GT", {
     weekday: "long",
@@ -27,13 +22,11 @@ function Index() {
     month: "long",
   });
 
-  // TODO: reemplazar estos valores con los datos reales que devuelvan tus servicios
-  // (pedidos, arreglos, eventos, reportes). Por ahora quedan como placeholder.
   const stats: StatCard[] = [
-    { label: "Pedidos pendientes", value: 8, icon: "bi-bag-plus", link: "/empleado/pedidos", accent: "primary" },
-    { label: "Arreglos en proceso", value: 3, icon: "bi-gift", link: "/empleado/arreglos", accent: "gold" },
-    { label: "Eventos próximos", value: 2, icon: "bi-calendar-event", link: "/empleado/eventos", accent: "teal" },
-    { label: "Reportes del mes", value: 5, icon: "bi-bar-chart-line", link: "/empleado/reportes", accent: "primary" },
+    { label: "Pedidos pendientes", value: valor("pedidos"), icon: "bi-bag-plus", link: "/empleado/pedidos", accent: "primary" },
+    { label: "Arreglos en proceso", value: "Pendiente", icon: "bi-gift", link: "/empleado/arreglos", accent: "gold" },
+    { label: "Eventos próximos", value: "Pendiente", icon: "bi-calendar-event", link: "/empleado/eventos", accent: "teal" },
+    { label: "Reportes del mes", value: "Pendiente", icon: "bi-bar-chart-line", link: "/empleado/reportes", accent: "primary" },
   ];
 
   const accesos = [
@@ -77,14 +70,26 @@ function Index() {
   </div>
 </div>
 
-      <div className="stat-grid">
+      {errores.length > 0 && (
+        <div className="alert alert-warning d-flex flex-wrap align-items-center gap-2" role="alert">
+          <span>No se pudieron cargar los datos de {errores.join(", ")}. Intenta de nuevo.</span>
+          <button type="button" className="btn btn-outline-secondary btn-sm" onClick={reintentar} disabled={cargando}>
+            Reintentar
+          </button>
+        </div>
+      )}
+      <p className="text-secondary small">
+        Los módulos marcados como «Pendiente» todavía no tienen indicadores disponibles.
+      </p>
+
+      <div className="stat-grid" aria-busy={cargando}>
         {stats.map((s) => (
           <Link to={s.link} key={s.label} className={`stat-card stat-card--${s.accent}`}>
             <div className="stat-icon">
               <i className={`bi ${s.icon}`}></i>
             </div>
             <div>
-              <p className="stat-value">{s.value}</p>
+              <p className={`stat-value${typeof s.value === "string" ? " fs-6" : ""}`}>{s.value}</p>
               <p className="stat-label">{s.label}</p>
             </div>
           </Link>

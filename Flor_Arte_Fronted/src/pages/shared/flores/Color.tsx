@@ -131,7 +131,7 @@ const handleGuardarColor = async (e: FormEvent) => {
       {/* HEADER */}
       <div className="color-header">
         <div>
-          <button className="color-btn-back" onClick={() => navigate(-1)}>
+          <button className="color-btn-back" onClick={() => navigate("..")}>
             ← Volver a Flores
           </button>
           <h1 className="color-title">Colores</h1>

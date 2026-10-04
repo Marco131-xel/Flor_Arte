@@ -1,5 +1,5 @@
 import { Link } from "react-router-dom";
-import { useEffect, useState } from "react";
+import { useResumenInicio } from "../../hooks/useResumenInicio";
 
 interface StatCard {
   label: string;
@@ -15,16 +15,11 @@ interface StatGroup {
 }
 
 function IndexAdmin() {
-  const [saludo, setSaludo] = useState("Hola");
+  const { valor, errores, cargando, reintentar } = useResumenInicio(true);
+  const hora = new Date().getHours();
+  const saludo = hora < 12 ? "Buenos días" : hora < 19 ? "Buenas tardes" : "Buenas noches";
   const user = JSON.parse(localStorage.getItem("user") || "{}");
   const nombre = user?.nombre || user?.email?.split("@")[0] || "de nuevo";
-
-  useEffect(() => {
-    const hora = new Date().getHours();
-    if (hora < 12) setSaludo("Buenos días");
-    else if (hora < 19) setSaludo("Buenas tardes");
-    else setSaludo("Buenas noches");
-  }, []);
 
   const fechaHoy = new Date().toLocaleDateString("es-GT", {
     weekday: "long",
@@ -32,27 +27,23 @@ function IndexAdmin() {
     month: "long",
   });
 
-  // TODO: reemplazar estos valores con los datos reales que devuelva cada servicio
-  // (getUsuarios/getPersonas para el primer grupo; pedidos/arreglos/eventos/reportes
-  // para el segundo, cuando el admin también tenga esos módulos). Por ahora quedan
-  // como placeholder.
   const statGroups: StatGroup[] = [
     {
       title: "Usuarios",
       items: [
-        { label: "Personas registradas", value: 24, icon: "bi-people", link: "/admin/usuarios", accent: "primary" },
-        { label: "Usuarios del sistema", value: 12, icon: "bi-person-badge", link: "/admin/usuarios", accent: "teal" },
-        { label: "Usuarios activos", value: 10, icon: "bi-person-check", link: "/admin/usuarios", accent: "gold" },
-        { label: "Cuentas inactivas", value: 2, icon: "bi-person-x", link: "/admin/usuarios", accent: "primary" },
+        { label: "Personas registradas", value: valor("personas"), icon: "bi-people", link: "/admin/usuarios", accent: "primary" },
+        { label: "Usuarios del sistema", value: valor("usuarios"), icon: "bi-person-badge", link: "/admin/usuarios", accent: "teal" },
+        { label: "Usuarios activos", value: valor("activos"), icon: "bi-person-check", link: "/admin/usuarios", accent: "gold" },
+        { label: "Cuentas inactivas", value: valor("inactivos"), icon: "bi-person-x", link: "/admin/usuarios", accent: "primary" },
       ],
     },
     {
       title: "Operaciones",
       items: [
-        { label: "Pedidos pendientes", value: 8, icon: "bi-bag-plus", link: "/admin/pedidos", accent: "primary" },
-        { label: "Arreglos en proceso", value: 3, icon: "bi-gift", link: "/admin/arreglos", accent: "gold" },
-        { label: "Eventos próximos", value: 2, icon: "bi-calendar-event", link: "/admin/eventos", accent: "teal" },
-        { label: "Reportes del mes", value: 5, icon: "bi-bar-chart-line", link: "/admin/reportes", accent: "primary" },
+        { label: "Pedidos pendientes", value: valor("pedidos"), icon: "bi-bag-plus", link: "/admin/pedidos", accent: "primary" },
+        { label: "Arreglos en proceso", value: "Pendiente", icon: "bi-gift", link: "/admin/arreglos", accent: "gold" },
+        { label: "Eventos próximos", value: "Pendiente", icon: "bi-calendar-event", link: "/admin/eventos", accent: "teal" },
+        { label: "Reportes del mes", value: "Pendiente", icon: "bi-bar-chart-line", link: "/admin/reportes", accent: "primary" },
       ],
     },
   ];
@@ -84,17 +75,29 @@ function IndexAdmin() {
         </div>
       </div>
 
+      {errores.length > 0 && (
+        <div className="alert alert-warning d-flex flex-wrap align-items-center gap-2" role="alert">
+          <span>No se pudieron cargar los datos de {errores.join(", ")}. Intenta de nuevo.</span>
+          <button type="button" className="btn btn-outline-secondary btn-sm" onClick={reintentar} disabled={cargando}>
+            Reintentar
+          </button>
+        </div>
+      )}
+      <p className="text-secondary small">
+        Los módulos marcados como «Pendiente» todavía no tienen indicadores disponibles.
+      </p>
+
       {statGroups.map((grupo) => (
         <div className="inicio-section" key={grupo.title}>
           <h2 className="inicio-section-title">{grupo.title}</h2>
-          <div className="stat-grid">
+          <div className="stat-grid" aria-busy={cargando}>
             {grupo.items.map((s) => (
               <Link to={s.link} key={s.label} className={`stat-card stat-card--${s.accent}`}>
                 <div className="stat-icon">
                   <i className={`bi ${s.icon}`}></i>
                 </div>
                 <div>
-                  <p className="stat-value">{s.value}</p>
+                  <p className={`stat-value${typeof s.value === "string" ? " fs-6" : ""}`}>{s.value}</p>
                   <p className="stat-label">{s.label}</p>
                 </div>
               </Link>

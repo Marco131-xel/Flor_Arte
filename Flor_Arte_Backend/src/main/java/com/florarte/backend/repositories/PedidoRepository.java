@@ -12,7 +12,7 @@ import java.util.Optional;
 @Repository
 public interface PedidoRepository extends JpaRepository<Pedido, Integer> {
 
-    @Query("SELECT p FROM Pedido p LEFT JOIN FETCH p.cliente LEFT JOIN FETCH p.empleado ORDER BY p.idPedido DESC")
+    @Query("SELECT p FROM Pedido p LEFT JOIN FETCH p.cliente LEFT JOIN FETCH p.empleado ORDER BY p.fecha DESC, p.idPedido DESC")
     List<Pedido> findAllWithPersonas();
 
     @Query("SELECT p FROM Pedido p LEFT JOIN FETCH p.cliente LEFT JOIN FETCH p.empleado WHERE p.idPedido = :id")

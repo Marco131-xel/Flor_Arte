@@ -8,6 +8,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
 import java.util.List;
 
 @JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
@@ -31,6 +32,9 @@ public class Pedido {
 
     @Column(name = "estado", nullable = false, length = 30)
     private String estado = "PENDIENTE";
+
+    @Column(name = "fecha", nullable = false)
+    private LocalDateTime fecha = LocalDateTime.now();
 
     @Column(name = "total", nullable = false, precision = 10, scale = 2)
     private BigDecimal total = BigDecimal.ZERO;

@@ -8,21 +8,9 @@ import IndexPerfil from "../pages/empleado/perfil/Index";
 import IndexPersonas from "../pages/empleado/personas/Index";
 import CreatePersona from "../pages/empleado/personas/Create";
 import UpdatePersona from "../pages/empleado/personas/Update";
-// modulo flor
-import IndexFlores from "../pages/empleado/flores/Index";
-import CreateFlor from "../pages/empleado/flores/Create";
-import UpdateFlores from "../pages/empleado/flores/Update";
-import Color from "../pages/empleado/flores/Color";
-import TipoFlor from "../pages/empleado/flores/Tipo";
-// modulo inventario
-import IndexInventario from "../pages/empleado/inventario/Index";
-import CreateInventario from "../pages/empleado/inventario/Create";
-import UpdateInventario from "../pages/empleado/inventario/Update";
-import Merma from "../pages/empleado/inventario/Merma";
-// modulo pedidos
-import IndexPedidos from "../pages/empleado/pedidos/Index";
-import CreatePedidos from "../pages/empleado/pedidos/Create";
-import UpdatePedidos from "../pages/empleado/pedidos/Update";
+import { GestionRoutes } from "./GestionRoutes";
+import ModuloPendiente from "../pages/ModuloPendiente";
+import NotFound from "../pages/NotFound";
 
 export const EmpleadoRoutes = () => (
     <Route path="/empleado" element={
@@ -32,26 +20,17 @@ export const EmpleadoRoutes = () => (
     }>
         {/* PAGINA DE INICIO */}
         <Route index element={<InicioEmpleado />}/>
+        <Route path="arreglos" element={<ModuloPendiente nombre="Arreglos" inicio="/empleado" />} />
+        <Route path="eventos" element={<ModuloPendiente nombre="Eventos" inicio="/empleado" />} />
+        <Route path="reportes" element={<ModuloPendiente nombre="Reportes" inicio="/empleado" />} />
+        <Route path="recibos" element={<ModuloPendiente nombre="Recibos" inicio="/empleado" />} />
         {/* VISTA MI PERFIL */}
         <Route path="perfil" element={<IndexPerfil/>}/>
         {/* VISTAS PERSONAS */}
         <Route path="personas" element={<IndexPersonas/>}/>
         <Route path="personas/create" element={<CreatePersona/>}/>
         <Route path="personas/update/:id" element={<UpdatePersona/>}/>
-        {/* VISTA A FLORES */}
-        <Route path="flores" element={<IndexFlores/>}/>
-        <Route path="flores/create" element={<CreateFlor/>}/>
-        <Route path="flores/update/:id" element={<UpdateFlores/>}/>
-        <Route path="flores/color" element={<Color/>}/>
-        <Route path="flores/tipoflor" element={<TipoFlor/>}/>
-        {/*VISTA A INVENTARIO */}
-        <Route path="inventario" element={<IndexInventario/>}/>
-        <Route path="inventario/create" element={<CreateInventario/>}/>
-        <Route path="inventario/update/:id" element={<UpdateInventario/>}/>
-        <Route path="inventario/merma" element={<Merma/>}/>
-        {/* VISTA A PEDIDOS */}
-        <Route path="pedidos" element={<IndexPedidos/>}/>
-        <Route path="pedidos/create" element={<CreatePedidos/>}/>
-        <Route path="pedidos/update/:id" element={<UpdatePedidos/>}/>
+        {GestionRoutes()}
+        <Route path="*" element={<NotFound inicio="/empleado" />} />
     </Route>
 )

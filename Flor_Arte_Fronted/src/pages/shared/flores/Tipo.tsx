@@ -141,7 +141,7 @@ function TipoFlor() {
       {/* HEADER */}
       <div className="tipoflor-header">
         <div>
-          <button className="tipoflor-btn-back" onClick={() => navigate(-1)}>
+          <button className="tipoflor-btn-back" onClick={() => navigate("..")}>
             ← Volver a Flores
           </button>
           <h1 className="tipoflor-title">Tipos de Flor</h1>

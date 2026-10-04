@@ -219,14 +219,14 @@ function IndexEntradaInventario() {
         <div className="flor-header-actions">
           <button
             className="personas-btn-primary"
-            onClick={() => navigate("/empleado/inventario/create")}
+            onClick={() => navigate("create")}
           >
             <i className="bi bi-plus-lg"></i>
             <span>Nueva Entrada</span>
           </button>
           <button
             className="personas-btn-secondary personas-btn-merma"
-            onClick={() => navigate("/empleado/inventario/merma")}
+            onClick={() => navigate("merma")}
           >
             <i className="bi bi-exclamation-triangle"></i>
             <span> Registrar Merma</span>
@@ -312,7 +312,7 @@ function IndexEntradaInventario() {
                           className="personas-icon-btn personas-icon-btn-edit"
                           onClick={() =>
                             navigate(
-                              `/empleado/inventario/update/${entrada.idEntrada}`
+                              `update/${entrada.idEntrada}`
                             )
                           }
                           title="Editar"

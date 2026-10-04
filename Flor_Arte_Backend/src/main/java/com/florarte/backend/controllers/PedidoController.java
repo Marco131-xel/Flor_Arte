@@ -1,6 +1,7 @@
 package com.florarte.backend.controllers;
 
 import com.florarte.backend.dtos.PedidoDTO;
+import com.florarte.backend.dtos.UpdatePedidoCompletoDTO;
 import com.florarte.backend.services.PedidoService;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -50,6 +51,14 @@ public class PedidoController {
     @PutMapping({"/update/{id}", "/{id}"})
     public ResponseEntity<?> update(@PathVariable Integer id, @Valid @RequestBody PedidoDTO dto) {
         PedidoDTO actualizado = pedidoService.update(id, dto);
+        return ResponseEntity.ok(Map.of("message", "Pedido actualizado exitosamente", "pedido", actualizado));
+    }
+
+    @PreAuthorize("hasAnyRole('ADMINISTRADOR', 'EMPLEADO')")
+    @PutMapping("/update-completo/{id}")
+    public ResponseEntity<?> updateCompleto(@PathVariable Integer id,
+                                           @Valid @RequestBody UpdatePedidoCompletoDTO dto) {
+        PedidoDTO actualizado = pedidoService.updateCompleto(id, dto);
         return ResponseEntity.ok(Map.of("message", "Pedido actualizado exitosamente", "pedido", actualizado));
     }
 

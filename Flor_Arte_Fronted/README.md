@@ -1,4 +1,30 @@
-# React + TypeScript + Vite
+# FlorArte — Frontend
+
+## Configuración del backend
+
+Copia `.env.example` a `.env` y ajusta la dirección base del backend:
+
+```env
+VITE_API_URL=http://localhost:8080
+```
+
+No agregues `/auth` ni `/login`: cada servicio añade su propia ruta. La misma
+dirección se utiliza para iniciar sesión y para las demás consultas.
+Si falta la variable o está vacía, la aplicación mostrará un error de configuración
+en la consola del navegador.
+
+Después de cambiar `.env`, reinicia `npm run dev`.
+Para producción, configura `VITE_API_URL` en el entorno de compilación o en
+`.env.production` con la dirección pública de tu backend antes de ejecutar
+`npm run build`. La dirección queda incorporada al compilado; cambiarla requiere
+volver a compilar. Una variable del entorno de ejecución de la compilación tiene
+prioridad sobre los archivos `.env`.
+
+Los archivos `.env` se excluyen de Git; `.env.example` sirve como plantilla.
+Las variables `VITE_` son públicas en el navegador y no deben contener contraseñas
+ni claves privadas.
+
+## Notas de la plantilla React + TypeScript + Vite
 
 This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
 

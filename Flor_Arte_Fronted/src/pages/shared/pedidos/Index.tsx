@@ -16,6 +16,20 @@ const ESTADOS = [
   "CANCELADO",
 ];
 
+function formatFecha(fechaIso: string | null) {
+  if (!fechaIso) return "Sin fecha";
+  const fecha = new Date(fechaIso);
+  if (Number.isNaN(fecha.getTime())) return "Fecha no disponible";
+
+  return fecha.toLocaleString("es-GT", {
+    day: "numeric",
+    month: "short",
+    year: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+  });
+}
+
 function quetzales(valor: number) {
   return `Q${valor.toLocaleString("es-GT", {
     minimumFractionDigits: 2,
@@ -298,7 +312,7 @@ function IndexPedidos() {
         <div className="personas-header-actions">
           <button
             className="personas-btn-primary"
-            onClick={() => navigate("/empleado/pedidos/create")}
+            onClick={() => navigate("create")}
           >
             <i className="bi bi-plus-lg"></i>
             <span>Nuevo Pedido</span>
@@ -362,6 +376,7 @@ function IndexPedidos() {
               <thead>
                 <tr>
                   <th>ID</th>
+                  <th>Fecha</th>
                   <th>Cliente</th>
                   <th>Atendido por</th>
                   <th>Estado</th>
@@ -372,13 +387,13 @@ function IndexPedidos() {
               <tbody>
                 {pedidos.length === 0 ? (
                   <tr>
-                    <td colSpan={6} className="personas-empty-row">
+                    <td colSpan={7} className="personas-empty-row">
                       No hay pedidos registrados.
                     </td>
                   </tr>
                 ) : pedidosFiltrados.length === 0 ? (
                   <tr>
-                    <td colSpan={6} className="personas-empty-row">
+                    <td colSpan={7} className="personas-empty-row">
                       No se encontraron pedidos con esos filtros.
                     </td>
                   </tr>
@@ -386,6 +401,9 @@ function IndexPedidos() {
                   pedidosFiltrados.map((pedido) => (
                     <tr key={pedido.idPedido} className="personas-tr">
                       <td className="personas-td-muted">#{pedido.idPedido}</td>
+                      <td className="personas-td-muted text-nowrap">
+                        {formatFecha(pedido.fecha)}
+                      </td>
                       <td className="personas-td-nombre">
                         {pedido.nombreCliente}
                       </td>
@@ -418,7 +436,7 @@ function IndexPedidos() {
                             title="Editar"
                             onClick={() =>
                               navigate(
-                                `/empleado/pedidos/update/${pedido.idPedido}`
+                                `update/${pedido.idPedido}`
                               )
                             }
                           >
@@ -447,7 +465,7 @@ function IndexPedidos() {
               {pedidosFiltrados.length > 0 && (
                 <tfoot>
                   <tr className="personas-tr-total">
-                    <td colSpan={4} className="personas-td-total-label">
+                    <td colSpan={5} className="personas-td-total-label">
                       Total {hayFiltros ? "(filtrado)" : "general"}
                     </td>
                     <td className="personas-td-total">
@@ -479,6 +497,12 @@ function IndexPedidos() {
             </div>
 
             <div className="personas-modal-body">
+              <div className="personas-info-row">
+                <span className="personas-info-label">Fecha</span>
+                <span className="personas-info-value">
+                  {formatFecha(pedidoVer.fecha)}
+                </span>
+              </div>
               <div className="personas-info-row">
                 <span className="personas-info-label">Cliente</span>
                 <span className="personas-info-value">

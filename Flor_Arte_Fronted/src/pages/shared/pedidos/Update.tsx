@@ -1,19 +1,34 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import type { FormEvent, KeyboardEvent, ReactNode } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 
-import { createEntradaCompleta } from "../../../services/shared/inventario/inventarioService";
+import {
+  getPedidoById,
+  updatePedidoCompleto,
+} from "../../../services/shared/pedido/pedidoService";
 import { getPersonas } from "../../../services/admin/usuarioService";
 import { getFlores } from "../../../services/shared/flor/florService";
 
 import type { Persona } from "../../../types/user";
 import type { Flor } from "../../../types/flor";
+import type { Pedido } from "../../../types/pedido";
+
+const ESTADOS = [
+  "PENDIENTE",
+  "CONFIRMADO",
+  "PREPARANDO",
+  "LISTO",
+  "ENTREGADO",
+  "CANCELADO",
+];
 
 interface DetalleFormulario {
+  idDetallePedido?: number; // si existe, la línea ya está guardada en el backend
   idFlor: number;
   nombreFlor: string;
   cantidad: number;
-  precioCompra: number;
+  precio: number;
+  stock: number; // máximo que se puede pedir de esta flor
 }
 
 interface Opcion {
@@ -166,85 +181,133 @@ function Combo({
   );
 }
 
-function CreateInventario() {
+function UpdatePedidos() {
   const navigate = useNavigate();
+  const { id } = useParams(); // la ruta debe ser .../update/:id
+  const idPedido = Number(id);
 
+  const [pedido, setPedido] = useState<Pedido | null>(null);
   const [personas, setPersonas] = useState<Persona[]>([]);
   const [flores, setFlores] = useState<Flor[]>([]);
   const [cargando, setCargando] = useState(true);
 
-  const [idPersona, setIdPersona] = useState<number | null>(null);
+  const [idCliente, setIdCliente] = useState<number | null>(null);
+  const [estado, setEstado] = useState("");
+
   const [idFlor, setIdFlor] = useState<number | null>(null);
   const [cantidad, setCantidad] = useState("");
-  const [precioCompra, setPrecioCompra] = useState("");
+  const [precio, setPrecio] = useState("");
 
   const [detalles, setDetalles] = useState<DetalleFormulario[]>([]);
   const [guardando, setGuardando] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  const cargarDatos = async () => {
+    try {
+      setCargando(true);
+      setError(null);
+
+      const [pedidoData, personasData, floresData] = await Promise.all([
+        getPedidoById(idPedido),
+        getPersonas(),
+        getFlores(),
+      ]);
+
+      setPedido(pedidoData);
+      setPersonas(personasData);
+      setFlores(floresData);
+      setIdCliente(pedidoData.idCliente);
+      setEstado(pedidoData.estado);
+
+      // Solo los pedidos activos tienen unidades reservadas que se pueden reutilizar.
+      setDetalles(
+        (pedidoData.detalles ?? []).map((d) => {
+          const flor = floresData.find((f) => f.idFlor === d.idFlor);
+          return {
+            idDetallePedido: d.idDetallePedido,
+            idFlor: d.idFlor,
+            nombreFlor: d.nombreFlor,
+            cantidad: d.cantidad,
+            precio: d.precio,
+            stock: (flor?.stock ?? 0) + (pedidoData.estado === "CANCELADO" ? 0 : d.cantidad),
+          };
+        })
+      );
+    } catch (err) {
+      console.error(err);
+      setError(
+        mensajeDeError(err, "No se pudo cargar el pedido. Recarga la página.")
+      );
+    } finally {
+      setCargando(false);
+    }
+  };
+
   useEffect(() => {
-    const cargarCatalogos = async () => {
-      try {
-        setCargando(true);
-        setError(null);
-
-        const [personasData, floresData] = await Promise.all([
-          getPersonas(),
-          getFlores(),
-        ]);
-
-        setPersonas(personasData);
-        setFlores(floresData);
-      } catch (err) {
-        console.error(err);
-        setError(
-          mensajeDeError(
-            err,
-            "No se pudieron cargar los proveedores y las flores. Recarga la página."
-          )
-        );
-      } finally {
-        setCargando(false);
-      }
-    };
-
-    cargarCatalogos();
-  }, []);
+    if (!idPedido) {
+      setError("Pedido no válido.");
+      setCargando(false);
+      return;
+    }
+    cargarDatos();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [idPedido]);
 
   const nombreFlor = (flor: Flor) =>
     `${flor.nombreTipoFlor} ${flor.nombreColor}`.trim();
 
-  const opcionesProveedor: Opcion[] = useMemo(
+  const opcionesCliente: Opcion[] = useMemo(
     () =>
       personas
-        .filter((p) => p.tipoRol?.toLowerCase() === "proveedor")
+        .filter((p) => p.tipoRol?.toLowerCase() === "cliente")
         .map((p) => ({ id: p.idPersona, etiqueta: p.nombre })),
     [personas]
   );
 
   const opcionesFlor: Opcion[] = useMemo(
-    () => flores.map((f) => ({ id: f.idFlor, etiqueta: nombreFlor(f) })),
+    () =>
+      flores
+        .filter((f) => f.estado && f.stock > 0)
+        .map((f) => ({
+          id: f.idFlor,
+          etiqueta: `${nombreFlor(f)} — ${f.stock} u.`,
+        })),
     [flores]
   );
 
-  const proveedor = opcionesProveedor.find((p) => p.id === idPersona);
-
-  const totalEntrada = detalles.reduce(
-    (suma, d) => suma + d.cantidad * d.precioCompra,
+  const totalPedido = detalles.reduce(
+    (suma, d) => suma + d.cantidad * d.precio,
     0
   );
-
   const unidades = detalles.reduce((suma, d) => suma + d.cantidad, 0);
 
-  const subtotalPrevio = Number(cantidad || 0) * Number(precioCompra || 0);
+  const florSeleccionada = flores.find((f) => f.idFlor === idFlor);
+  const subtotalPrevio = Number(cantidad || 0) * Number(precio || 0);
+
+  const cantidadNum = Number(cantidad);
+  const excedeStockPrevio =
+    estado !== "CANCELADO" &&
+    florSeleccionada != null &&
+    Number.isInteger(cantidadNum) &&
+    cantidadNum > florSeleccionada.stock;
 
   const puedeAgregar =
-    idFlor !== null && Number(cantidad) > 0 && precioCompra !== "";
+    idFlor !== null &&
+    Number.isInteger(cantidadNum) &&
+    cantidadNum > 0 &&
+    precio !== "" &&
+    !excedeStockPrevio;
 
   const soloPositivo = (valor: string) => valor.replace(/-/g, "");
 
   const bloquearNegativo = (e: KeyboardEvent<HTMLInputElement>) => {
     if (e.key === "-" || e.key === "e") e.preventDefault();
+  };
+
+  const elegirFlor = (idSel: number) => {
+    setIdFlor(idSel);
+    const flor = flores.find((f) => f.idFlor === idSel);
+    setPrecio(flor ? String(flor.precio) : "");
   };
 
   const agregarDetalle = () => {
@@ -254,17 +317,22 @@ function CreateInventario() {
     if (!flor) return setError("Selecciona una flor.");
 
     const cant = Number(cantidad);
-    const precio = Number(precioCompra);
+    const prec = Number(precio);
 
     if (!Number.isInteger(cant) || cant <= 0)
       return setError("La cantidad debe ser un número entero mayor que 0.");
 
-    if (Number.isNaN(precio) || precio < 0)
-      return setError("El precio de compra no puede ser negativo.");
+    if (Number.isNaN(prec) || prec < 0)
+      return setError("El precio no puede ser negativo.");
+
+    if (estado !== "CANCELADO" && cant > flor.stock)
+      return setError(
+        `Solo hay ${flor.stock} unidades de ${nombreFlor(flor)} en stock.`
+      );
 
     if (detalles.some((d) => d.idFlor === flor.idFlor))
       return setError(
-        `${nombreFlor(flor)} ya está en la lista. Edita la cantidad en la tabla.`
+        `${nombreFlor(flor)} ya está en el pedido. Edita la cantidad en la tabla.`
       );
 
     setDetalles((prev) => [
@@ -273,18 +341,19 @@ function CreateInventario() {
         idFlor: flor.idFlor,
         nombreFlor: nombreFlor(flor),
         cantidad: cant,
-        precioCompra: precio,
+        precio: prec,
+        stock: flor.stock,
       },
     ]);
 
     setIdFlor(null);
     setCantidad("");
-    setPrecioCompra("");
+    setPrecio("");
   };
 
   const editarDetalle = (
     idFlorEditado: number,
-    campo: "cantidad" | "precioCompra",
+    campo: "cantidad" | "precio",
     valor: string
   ) => {
     setDetalles((prev) =>
@@ -300,39 +369,78 @@ function CreateInventario() {
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
+    if (guardando) return;
     setError(null);
 
-    if (!idPersona) return setError("Selecciona un proveedor.");
+    if (!pedido) return;
+    if (!idCliente) return setError("Selecciona un cliente.");
     if (detalles.length === 0)
-      return setError("Agrega al menos una flor a la entrada.");
-    if (detalles.some((d) => d.cantidad <= 0))
-      return setError("Todas las cantidades deben ser mayores que 0.");
+      return setError("El pedido debe tener al menos una flor.");
+    if (detalles.some((d) => !Number.isInteger(d.cantidad) || d.cantidad <= 0))
+      return setError("Todas las cantidades deben ser enteros mayores que 0.");
+    if (detalles.some((d) => !Number.isFinite(d.precio) || d.precio < 0))
+      return setError("Todos los precios deben ser válidos y no negativos.");
+    if (estado !== "CANCELADO" && detalles.some((d) => d.cantidad > d.stock))
+      return setError(
+        "Alguna flor supera el stock disponible. Ajusta la cantidad."
+      );
 
     try {
       setGuardando(true);
-
-      await createEntradaCompleta({
-        idPersona,
+      await updatePedidoCompleto(pedido.idPedido, {
+        idCliente,
+        idEmpleado: pedido.idEmpleado ?? undefined,
+        estado,
         detalles: detalles.map((d) => ({
+          idDetallePedido: d.idDetallePedido,
           idFlor: d.idFlor,
           cantidad: d.cantidad,
-          precioCompra: d.precioCompra,
+          precio: d.precio,
         })),
       });
 
-      navigate(-1);
+      navigate("..");
     } catch (err) {
       console.error(err);
       setError(
         mensajeDeError(
           err,
-          "No se pudo guardar la entrada. Revisa los datos e inténtalo otra vez."
+          "No se pudo guardar el pedido. Revisa los datos e inténtalo otra vez."
         )
       );
+      // Conservar el formulario y el mensaje para que el usuario pueda corregirlo.
     } finally {
       setGuardando(false);
     }
   };
+
+  if (cargando && !pedido) {
+    return (
+      <div className="ci-page">
+        <div className="ci-empty">
+          <p>Cargando pedido…</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (!pedido) {
+    return (
+      <div className="ci-page">
+        <div className="ci-error" role="alert">
+          <i className="bi bi-exclamation-circle" aria-hidden="true"></i>
+          <span>{error ?? "No se encontró el pedido."}</span>
+        </div>
+        <button
+          type="button"
+          className="ci-back"
+          onClick={() => navigate("..")}
+        >
+          <i className="bi bi-arrow-left" aria-hidden="true"></i> Pedidos
+        </button>
+      </div>
+    );
+  }
 
   return (
     <div className="ci-page">
@@ -340,14 +448,14 @@ function CreateInventario() {
         <button
           type="button"
           className="ci-back"
-          onClick={() => navigate(-1)}
+          onClick={() => navigate("..")}
         >
-          <i className="bi bi-arrow-left" aria-hidden="true"></i> Inventario
+          <i className="bi bi-arrow-left" aria-hidden="true"></i> Pedidos
         </button>
 
-        <h1 className="ci-title">Nueva entrada de inventario</h1>
+        <h1 className="ci-title">Editar pedido #{pedido.idPedido}</h1>
         <p className="ci-subtitle">
-          Registra las flores que ingresan y el precio al que las compraste.
+          Cambia el cliente, el estado o las flores del pedido.
         </p>
       </header>
 
@@ -362,28 +470,52 @@ function CreateInventario() {
         <section className="ci-card">
           <div className="ci-grid">
             <Combo
-              id="proveedor"
-              etiqueta="Proveedor"
+              id="cliente"
+              etiqueta="Cliente"
               icono={<i className="bi bi-person-badge" aria-hidden="true"></i>}
-              opciones={opcionesProveedor}
-              valor={idPersona}
-              onSelect={setIdPersona}
-              placeholder="Selecciona un proveedor"
-              textoBusqueda="Buscar proveedor…"
-              textoVacio="Ningún proveedor coincide"
+              opciones={opcionesCliente}
+              valor={idCliente}
+              onSelect={setIdCliente}
+              placeholder="Selecciona un cliente"
+              textoBusqueda="Buscar cliente…"
+              textoVacio="Ningún cliente coincide"
               cargando={cargando}
             />
 
+            <div className="ci-field">
+              <span className="ci-label">
+                <i className="bi bi-arrow-repeat" aria-hidden="true"></i> Estado
+              </span>
+              <div className="ci-estados" role="radiogroup" aria-label="Estado">
+                {ESTADOS.map((e) => (
+                  <button
+                    key={e}
+                    type="button"
+                    role="radio"
+                    aria-checked={estado === e}
+                    className={
+                      estado === e
+                        ? "ci-estado-chip ci-estado-chip-on"
+                        : "ci-estado-chip"
+                    }
+                    onClick={() => setEstado(e)}
+                  >
+                    {e}
+                  </button>
+                ))}
+              </div>
+            </div>
+
             <Combo
               id="flor"
-              etiqueta="Flor"
+              etiqueta="Agregar flor"
               icono={<i className="bi bi-flower3" aria-hidden="true"></i>}
               opciones={opcionesFlor}
               valor={idFlor}
-              onSelect={setIdFlor}
+              onSelect={elegirFlor}
               placeholder="Selecciona una flor"
               textoBusqueda="Buscar flor…"
-              textoVacio="Ninguna flor coincide"
+              textoVacio="Ninguna flor con stock coincide"
               cargando={cargando}
             />
 
@@ -398,29 +530,36 @@ function CreateInventario() {
                 step="1"
                 inputMode="numeric"
                 placeholder="0"
-                className="ci-input"
+                className={
+                  excedeStockPrevio ? "ci-input ci-input-invalid" : "ci-input"
+                }
                 value={cantidad}
                 onKeyDown={bloquearNegativo}
                 onChange={(e) => setCantidad(soloPositivo(e.target.value))}
               />
+              {excedeStockPrevio && florSeleccionada && (
+                <span className="ci-field-error">
+                  Supera el stock disponible ({florSeleccionada.stock} u.)
+                </span>
+              )}
             </div>
 
             <div className="ci-field">
-              <label className="ci-label" htmlFor="precioCompra">
+              <label className="ci-label" htmlFor="precio">
                 <i className="bi bi-coin" aria-hidden="true"></i> Precio de
-                compra
+                venta
               </label>
               <input
-                id="precioCompra"
+                id="precio"
                 type="number"
                 min="0"
                 step="0.01"
                 inputMode="decimal"
                 placeholder="0.00"
                 className="ci-input"
-                value={precioCompra}
+                value={precio}
                 onKeyDown={bloquearNegativo}
-                onChange={(e) => setPrecioCompra(soloPositivo(e.target.value))}
+                onChange={(e) => setPrecio(soloPositivo(e.target.value))}
               />
             </div>
           </div>
@@ -429,7 +568,7 @@ function CreateInventario() {
             <p className="ci-add-preview">
               {subtotalPrevio > 0
                 ? `Subtotal de esta línea ${quetzales(subtotalPrevio)}`
-                : "Elige la flor, la cantidad y el precio."}
+                : "Elige la flor, la cantidad y el precio para agregar una línea."}
             </p>
 
             <button
@@ -444,7 +583,7 @@ function CreateInventario() {
 
           <div className="ci-detalles">
             <div className="ci-detalles-head">
-              <h2 className="ci-detalles-title">Flores de esta entrada</h2>
+              <h2 className="ci-detalles-title">Flores del pedido</h2>
               <span className="ci-badge">
                 {detalles.length} {detalles.length === 1 ? "flor" : "flores"}
               </span>
@@ -453,11 +592,8 @@ function CreateInventario() {
             {detalles.length === 0 ? (
               <div className="ci-empty">
                 <i className="bi bi-flower3" aria-hidden="true"></i>
-                <p>Aún no hay flores en la entrada.</p>
-                <span>
-                  Agrega la primera con el formulario de arriba; podrás editar
-                  cantidades antes de guardar.
-                </span>
+                <p>El pedido no tiene flores.</p>
+                <span>Agrega al menos una para poder guardar los cambios.</span>
               </div>
             ) : (
               <div className="ci-table-wrap">
@@ -483,8 +619,13 @@ function CreateInventario() {
                           <input
                             type="number"
                             min="1"
+                            max={estado === "CANCELADO" ? undefined : d.stock}
                             step="1"
-                            className="ci-input-mini"
+                            className={
+                              estado !== "CANCELADO" && d.cantidad > d.stock
+                                ? "ci-input-mini ci-input-invalid"
+                                : "ci-input-mini"
+                            }
                             aria-label={`Cantidad de ${d.nombreFlor}`}
                             value={d.cantidad}
                             onKeyDown={bloquearNegativo}
@@ -501,20 +642,16 @@ function CreateInventario() {
                             step="0.01"
                             className="ci-input-mini"
                             aria-label={`Precio de ${d.nombreFlor}`}
-                            value={d.precioCompra}
+                            value={d.precio}
                             onKeyDown={bloquearNegativo}
                             onChange={(e) =>
-                              editarDetalle(
-                                d.idFlor,
-                                "precioCompra",
-                                e.target.value
-                              )
+                              editarDetalle(d.idFlor, "precio", e.target.value)
                             }
                           />
                         </td>
 
                         <td className="ci-col-num ci-td-subtotal">
-                          {quetzales(d.cantidad * d.precioCompra)}
+                          {quetzales(d.cantidad * d.precio)}
                         </td>
 
                         <td className="ci-col-action">
@@ -533,9 +670,9 @@ function CreateInventario() {
 
                   <tfoot>
                     <tr>
-                      <td colSpan={3}>Total de la entrada</td>
+                      <td colSpan={3}>Total del pedido</td>
                       <td className="ci-col-num ci-td-total">
-                        {quetzales(totalEntrada)}
+                        {quetzales(totalPedido)}
                       </td>
                       <td></td>
                     </tr>
@@ -551,8 +688,16 @@ function CreateInventario() {
 
           <dl className="ci-summary-body">
             <div className="ci-summary-row">
-              <dt>Proveedor</dt>
-              <dd>{proveedor?.etiqueta || "Sin elegir"}</dd>
+              <dt>Cliente</dt>
+              <dd>
+                {opcionesCliente.find((c) => c.id === idCliente)?.etiqueta ||
+                  "Sin elegir"}
+              </dd>
+            </div>
+
+            <div className="ci-summary-row">
+              <dt>Estado</dt>
+              <dd>{estado}</dd>
             </div>
 
             <div className="ci-summary-row">
@@ -568,7 +713,7 @@ function CreateInventario() {
 
           <div className="ci-summary-total">
             <span>Total</span>
-            <strong>{quetzales(totalEntrada)}</strong>
+            <strong>{quetzales(totalPedido)}</strong>
           </div>
 
           <div className="ci-actions">
@@ -577,13 +722,13 @@ function CreateInventario() {
               className="ci-btn-primary"
               disabled={guardando || cargando || detalles.length === 0}
             >
-              {guardando ? "Guardando…" : "Guardar entrada"}
+              {guardando ? "Guardando…" : "Guardar cambios"}
             </button>
 
             <button
               type="button"
               className="ci-btn-secondary"
-              onClick={() => navigate(-1)}
+              onClick={() => navigate("..")}
               disabled={guardando}
             >
               Cancelar
@@ -595,4 +740,4 @@ function CreateInventario() {
   );
 }
 
-export default CreateInventario;
+export default UpdatePedidos;

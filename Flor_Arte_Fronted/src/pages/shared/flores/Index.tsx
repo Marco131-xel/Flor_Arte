@@ -171,19 +171,19 @@ function IndexFlores() {
         <div className="flor-header-actions">
           <button
             className="flor-btn-secondary"
-            onClick={() => navigate("/empleado/flores/color")}
+            onClick={() => navigate("color")}
           >
             Ver Colores
           </button>
           <button
             className="flor-btn-secondary"
-            onClick={() => navigate("/empleado/flores/tipoflor")}
+            onClick={() => navigate("tipoflor")}
           >
             Ver Tipos de Flor
           </button>
           <button
             className="flor-btn-primary"
-            onClick={() => navigate("/empleado/flores/create")}
+            onClick={() => navigate("create")}
           >
             <i className="bi bi-patch-plus"></i>Crear
           </button>
@@ -308,7 +308,7 @@ function IndexFlores() {
                         <button
                           className="flor-icon-btn flor-icon-btn-edit"
                           title="Editar"
-                          onClick={() => navigate(`/empleado/flores/update/${flor.idFlor}`)}
+                          onClick={() => navigate(`update/${flor.idFlor}`)}
                         >
                           <i className="bi bi-pencil-square"></i>
                         </button>

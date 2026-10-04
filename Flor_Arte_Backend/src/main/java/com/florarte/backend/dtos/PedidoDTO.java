@@ -7,6 +7,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Data
@@ -26,6 +27,8 @@ public class PedidoDTO {
     private String nombreEmpleado;
 
     private String estado;
+
+    private LocalDateTime fecha;
 
     @DecimalMin(value = "0.0", inclusive = true, message = "El total no puede ser negativo")
     private BigDecimal total;

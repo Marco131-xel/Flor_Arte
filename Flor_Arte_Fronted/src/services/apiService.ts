@@ -1,10 +1,14 @@
 import axios from "axios";
 
-const API_URL = "http://localhost:8080";
+import { API_URL } from "../config/api";
 
-export const api = axios.create({
+const configuracion = {
   baseURL: API_URL,
-});
+};
+
+// Ambos clientes comparten la conexión; solo el privado adjunta la sesión.
+export const apiPublica = axios.create(configuracion);
+export const api = axios.create(configuracion);
 
 api.interceptors.request.use((config) => {
   const token = localStorage.getItem("token");

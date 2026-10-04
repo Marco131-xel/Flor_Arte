@@ -1,13 +1,12 @@
 import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
 import { getMyData } from "../../../services/userService";
 import type { UserFull } from "../../../types/user";
+import AccionPendiente from "../../../components/AccionPendiente";
 
 function IndexPerfil() {
   const [profile, setProfile] = useState<UserFull | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
-  const navigate = useNavigate();
 
   const usuarioActual = JSON.parse(localStorage.getItem("user") || "{}");
 
@@ -75,9 +74,12 @@ function IndexPerfil() {
         </div>
 
         <div className="perfil-actions">
-          <button className="btn-perfil btn-perfil-primary" onClick={() => navigate("/empleado/perfil/cambiar-password")}>
+          <AccionPendiente
+            className="btn-perfil btn-perfil-primary"
+            mensaje="El cambio de contraseña aún no está disponible."
+          >
             <i className="bi bi-key"></i> Cambiar contraseña
-          </button>
+          </AccionPendiente>
           <button className="btn-perfil btn-perfil-logout" onClick={handleLogout}>
             <i className="bi bi-box-arrow-right"></i> Cerrar sesión
           </button>

@@ -2,7 +2,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import type { FormEvent, KeyboardEvent, ReactNode } from "react";
 import { useNavigate } from "react-router-dom";
 
-import { createPedido } from "../../../services/shared/pedido/pedidoService";
+import { createEntradaCompleta } from "../../../services/shared/inventario/inventarioService";
 import { getPersonas } from "../../../services/admin/usuarioService";
 import { getFlores } from "../../../services/shared/flor/florService";
 
@@ -13,8 +13,7 @@ interface DetalleFormulario {
   idFlor: number;
   nombreFlor: string;
   cantidad: number;
-  precio: number;
-  stock: number;
+  precioCompra: number;
 }
 
 interface Opcion {
@@ -167,30 +166,23 @@ function Combo({
   );
 }
 
-function CreatePedido() {
+function CreateInventario() {
   const navigate = useNavigate();
-  const usuarioActual = JSON.parse(localStorage.getItem("user") || "{}");
-  const idEmpleado = usuarioActual.id;
 
   const [personas, setPersonas] = useState<Persona[]>([]);
   const [flores, setFlores] = useState<Flor[]>([]);
   const [cargando, setCargando] = useState(true);
 
-  const [idCliente, setIdCliente] = useState<number | null>(null);
+  const [idPersona, setIdPersona] = useState<number | null>(null);
   const [idFlor, setIdFlor] = useState<number | null>(null);
   const [cantidad, setCantidad] = useState("");
-  const [precio, setPrecio] = useState("");
+  const [precioCompra, setPrecioCompra] = useState("");
 
   const [detalles, setDetalles] = useState<DetalleFormulario[]>([]);
   const [guardando, setGuardando] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    if (!usuarioActual.id) {
-        setError("No se pudo identificar el usuario");
-        return;
-    }
-
     const cargarCatalogos = async () => {
       try {
         setCargando(true);
@@ -208,7 +200,7 @@ function CreatePedido() {
         setError(
           mensajeDeError(
             err,
-            "No se pudieron cargar los clientes y las flores. Recarga la página."
+            "No se pudieron cargar los proveedores y las flores. Recarga la página."
           )
         );
       } finally {
@@ -222,64 +214,37 @@ function CreatePedido() {
   const nombreFlor = (flor: Flor) =>
     `${flor.nombreTipoFlor} ${flor.nombreColor}`.trim();
 
-  const opcionesCliente: Opcion[] = useMemo(
+  const opcionesProveedor: Opcion[] = useMemo(
     () =>
       personas
-        .filter((p) => p.tipoRol?.toLowerCase() === "cliente")
+        .filter((p) => p.tipoRol?.toLowerCase() === "proveedor")
         .map((p) => ({ id: p.idPersona, etiqueta: p.nombre })),
     [personas]
   );
 
-  const floresActivas = useMemo(
-    () => flores.filter((f) => f.estado && f.stock > 0),
+  const opcionesFlor: Opcion[] = useMemo(
+    () => flores.map((f) => ({ id: f.idFlor, etiqueta: nombreFlor(f) })),
     [flores]
   );
 
-  const opcionesFlor: Opcion[] = useMemo(
-    () =>
-      floresActivas.map((f) => ({
-        id: f.idFlor,
-        etiqueta: `${nombreFlor(f)} — ${f.stock} u.`,
-      })),
-    [floresActivas]
-  );
+  const proveedor = opcionesProveedor.find((p) => p.id === idPersona);
 
-  const cliente = opcionesCliente.find((c) => c.id === idCliente);
-
-  const totalPedido = detalles.reduce(
-    (suma, d) => suma + d.cantidad * d.precio,
+  const totalEntrada = detalles.reduce(
+    (suma, d) => suma + d.cantidad * d.precioCompra,
     0
   );
 
   const unidades = detalles.reduce((suma, d) => suma + d.cantidad, 0);
 
-  const florSeleccionada = flores.find((f) => f.idFlor === idFlor);
-
-  const subtotalPrevio = Number(cantidad || 0) * Number(precio || 0);
-
-  const cantidadNum = Number(cantidad);
-  const excedeStockPrevio =
-    florSeleccionada != null &&
-    Number.isInteger(cantidadNum) &&
-    cantidadNum > florSeleccionada.stock;
+  const subtotalPrevio = Number(cantidad || 0) * Number(precioCompra || 0);
 
   const puedeAgregar =
-    idFlor !== null &&
-    Number.isInteger(cantidadNum) &&
-    cantidadNum > 0 &&
-    precio !== "" &&
-    !excedeStockPrevio;
+    idFlor !== null && Number(cantidad) > 0 && precioCompra !== "";
 
   const soloPositivo = (valor: string) => valor.replace(/-/g, "");
 
   const bloquearNegativo = (e: KeyboardEvent<HTMLInputElement>) => {
     if (e.key === "-" || e.key === "e") e.preventDefault();
-  };
-
-  const elegirFlor = (id: number) => {
-    setIdFlor(id);
-    const flor = flores.find((f) => f.idFlor === id);
-    setPrecio(flor ? String(flor.precio) : "");
   };
 
   const agregarDetalle = () => {
@@ -289,22 +254,17 @@ function CreatePedido() {
     if (!flor) return setError("Selecciona una flor.");
 
     const cant = Number(cantidad);
-    const prec = Number(precio);
+    const precio = Number(precioCompra);
 
     if (!Number.isInteger(cant) || cant <= 0)
       return setError("La cantidad debe ser un número entero mayor que 0.");
 
-    if (Number.isNaN(prec) || prec < 0)
-      return setError("El precio no puede ser negativo.");
-
-    if (cant > flor.stock)
-      return setError(
-        `Solo hay ${flor.stock} unidades de ${nombreFlor(flor)} en stock.`
-      );
+    if (Number.isNaN(precio) || precio < 0)
+      return setError("El precio de compra no puede ser negativo.");
 
     if (detalles.some((d) => d.idFlor === flor.idFlor))
       return setError(
-        `${nombreFlor(flor)} ya está en el pedido. Edita la cantidad en la tabla.`
+        `${nombreFlor(flor)} ya está en la lista. Edita la cantidad en la tabla.`
       );
 
     setDetalles((prev) => [
@@ -313,19 +273,18 @@ function CreatePedido() {
         idFlor: flor.idFlor,
         nombreFlor: nombreFlor(flor),
         cantidad: cant,
-        precio: prec,
-        stock: flor.stock,
+        precioCompra: precio,
       },
     ]);
 
     setIdFlor(null);
     setCantidad("");
-    setPrecio("");
+    setPrecioCompra("");
   };
 
   const editarDetalle = (
     idFlorEditado: number,
-    campo: "cantidad" | "precio",
+    campo: "cantidad" | "precioCompra",
     valor: string
   ) => {
     setDetalles((prev) =>
@@ -343,40 +302,31 @@ function CreatePedido() {
     e.preventDefault();
     setError(null);
 
-    if (!idCliente) return setError("Selecciona un cliente.");
-    if (!idEmpleado)
-      return setError(
-        "No se pudo identificar al empleado de la sesión. Vuelve a iniciar sesión."
-      );
+    if (!idPersona) return setError("Selecciona un proveedor.");
     if (detalles.length === 0)
-      return setError("Agrega al menos una flor al pedido.");
+      return setError("Agrega al menos una flor a la entrada.");
     if (detalles.some((d) => d.cantidad <= 0))
       return setError("Todas las cantidades deben ser mayores que 0.");
-    if (detalles.some((d) => d.cantidad > d.stock))
-      return setError(
-        "Alguna flor supera el stock disponible. Ajusta la cantidad."
-      );
 
     try {
       setGuardando(true);
 
-      await createPedido({
-        idCliente,
-        idEmpleado,
+      await createEntradaCompleta({
+        idPersona,
         detalles: detalles.map((d) => ({
           idFlor: d.idFlor,
           cantidad: d.cantidad,
-          precio: d.precio,
+          precioCompra: d.precioCompra,
         })),
       });
 
-      navigate(-1);
+      navigate("..");
     } catch (err) {
       console.error(err);
       setError(
         mensajeDeError(
           err,
-          "No se pudo crear el pedido. Revisa los datos e inténtalo otra vez."
+          "No se pudo guardar la entrada. Revisa los datos e inténtalo otra vez."
         )
       );
     } finally {
@@ -387,13 +337,17 @@ function CreatePedido() {
   return (
     <div className="ci-page">
       <header className="ci-header">
-        <button type="button" className="ci-back" onClick={() => navigate(-1)}>
-          <i className="bi bi-arrow-left" aria-hidden="true"></i> Pedidos
+        <button
+          type="button"
+          className="ci-back"
+          onClick={() => navigate("..")}
+        >
+          <i className="bi bi-arrow-left" aria-hidden="true"></i> Inventario
         </button>
 
-        <h1 className="ci-title">Nuevo pedido</h1>
+        <h1 className="ci-title">Nueva entrada de inventario</h1>
         <p className="ci-subtitle">
-          Elige al cliente y agrega las flores que va a llevar.
+          Registra las flores que ingresan y el precio al que las compraste.
         </p>
       </header>
 
@@ -408,15 +362,15 @@ function CreatePedido() {
         <section className="ci-card">
           <div className="ci-grid">
             <Combo
-              id="cliente"
-              etiqueta="Cliente"
+              id="proveedor"
+              etiqueta="Proveedor"
               icono={<i className="bi bi-person-badge" aria-hidden="true"></i>}
-              opciones={opcionesCliente}
-              valor={idCliente}
-              onSelect={setIdCliente}
-              placeholder="Selecciona un cliente"
-              textoBusqueda="Buscar cliente…"
-              textoVacio="Ningún cliente coincide"
+              opciones={opcionesProveedor}
+              valor={idPersona}
+              onSelect={setIdPersona}
+              placeholder="Selecciona un proveedor"
+              textoBusqueda="Buscar proveedor…"
+              textoVacio="Ningún proveedor coincide"
               cargando={cargando}
             />
 
@@ -426,10 +380,10 @@ function CreatePedido() {
               icono={<i className="bi bi-flower3" aria-hidden="true"></i>}
               opciones={opcionesFlor}
               valor={idFlor}
-              onSelect={elegirFlor}
+              onSelect={setIdFlor}
               placeholder="Selecciona una flor"
               textoBusqueda="Buscar flor…"
-              textoVacio="Ninguna flor con stock coincide"
+              textoVacio="Ninguna flor coincide"
               cargando={cargando}
             />
 
@@ -444,36 +398,29 @@ function CreatePedido() {
                 step="1"
                 inputMode="numeric"
                 placeholder="0"
-                className={
-                  excedeStockPrevio ? "ci-input ci-input-invalid" : "ci-input"
-                }
+                className="ci-input"
                 value={cantidad}
                 onKeyDown={bloquearNegativo}
                 onChange={(e) => setCantidad(soloPositivo(e.target.value))}
               />
-              {excedeStockPrevio && florSeleccionada && (
-                <span className="ci-field-error">
-                  Supera el stock disponible ({florSeleccionada.stock} u.)
-                </span>
-              )}
             </div>
 
             <div className="ci-field">
-              <label className="ci-label" htmlFor="precio">
+              <label className="ci-label" htmlFor="precioCompra">
                 <i className="bi bi-coin" aria-hidden="true"></i> Precio de
-                venta
+                compra
               </label>
               <input
-                id="precio"
+                id="precioCompra"
                 type="number"
                 min="0"
                 step="0.01"
                 inputMode="decimal"
                 placeholder="0.00"
                 className="ci-input"
-                value={precio}
+                value={precioCompra}
                 onKeyDown={bloquearNegativo}
-                onChange={(e) => setPrecio(soloPositivo(e.target.value))}
+                onChange={(e) => setPrecioCompra(soloPositivo(e.target.value))}
               />
             </div>
           </div>
@@ -497,7 +444,7 @@ function CreatePedido() {
 
           <div className="ci-detalles">
             <div className="ci-detalles-head">
-              <h2 className="ci-detalles-title">Flores del pedido</h2>
+              <h2 className="ci-detalles-title">Flores de esta entrada</h2>
               <span className="ci-badge">
                 {detalles.length} {detalles.length === 1 ? "flor" : "flores"}
               </span>
@@ -506,10 +453,10 @@ function CreatePedido() {
             {detalles.length === 0 ? (
               <div className="ci-empty">
                 <i className="bi bi-flower3" aria-hidden="true"></i>
-                <p>Todavía no has agregado flores.</p>
+                <p>Aún no hay flores en la entrada.</p>
                 <span>
-                  Selecciona una flor, indica la cantidad y el precio de
-                  venta.
+                  Agrega la primera con el formulario de arriba; podrás editar
+                  cantidades antes de guardar.
                 </span>
               </div>
             ) : (
@@ -536,13 +483,8 @@ function CreatePedido() {
                           <input
                             type="number"
                             min="1"
-                            max={d.stock}
                             step="1"
-                            className={
-                              d.cantidad > d.stock
-                                ? "ci-input-mini ci-input-invalid"
-                                : "ci-input-mini"
-                            }
+                            className="ci-input-mini"
                             aria-label={`Cantidad de ${d.nombreFlor}`}
                             value={d.cantidad}
                             onKeyDown={bloquearNegativo}
@@ -559,16 +501,20 @@ function CreatePedido() {
                             step="0.01"
                             className="ci-input-mini"
                             aria-label={`Precio de ${d.nombreFlor}`}
-                            value={d.precio}
+                            value={d.precioCompra}
                             onKeyDown={bloquearNegativo}
                             onChange={(e) =>
-                              editarDetalle(d.idFlor, "precio", e.target.value)
+                              editarDetalle(
+                                d.idFlor,
+                                "precioCompra",
+                                e.target.value
+                              )
                             }
                           />
                         </td>
 
                         <td className="ci-col-num ci-td-subtotal">
-                          {quetzales(d.cantidad * d.precio)}
+                          {quetzales(d.cantidad * d.precioCompra)}
                         </td>
 
                         <td className="ci-col-action">
@@ -587,9 +533,9 @@ function CreatePedido() {
 
                   <tfoot>
                     <tr>
-                      <td colSpan={3}>Total del pedido</td>
+                      <td colSpan={3}>Total de la entrada</td>
                       <td className="ci-col-num ci-td-total">
-                        {quetzales(totalPedido)}
+                        {quetzales(totalEntrada)}
                       </td>
                       <td></td>
                     </tr>
@@ -605,8 +551,8 @@ function CreatePedido() {
 
           <dl className="ci-summary-body">
             <div className="ci-summary-row">
-              <dt>Cliente</dt>
-              <dd>{cliente?.etiqueta || "Sin elegir"}</dd>
+              <dt>Proveedor</dt>
+              <dd>{proveedor?.etiqueta || "Sin elegir"}</dd>
             </div>
 
             <div className="ci-summary-row">
@@ -622,7 +568,7 @@ function CreatePedido() {
 
           <div className="ci-summary-total">
             <span>Total</span>
-            <strong>{quetzales(totalPedido)}</strong>
+            <strong>{quetzales(totalEntrada)}</strong>
           </div>
 
           <div className="ci-actions">
@@ -631,13 +577,13 @@ function CreatePedido() {
               className="ci-btn-primary"
               disabled={guardando || cargando || detalles.length === 0}
             >
-              {guardando ? "Guardando…" : "Guardar pedido"}
+              {guardando ? "Guardando…" : "Guardar entrada"}
             </button>
 
             <button
               type="button"
               className="ci-btn-secondary"
-              onClick={() => navigate(-1)}
+              onClick={() => navigate("..")}
               disabled={guardando}
             >
               Cancelar
@@ -649,4 +595,4 @@ function CreatePedido() {
   );
 }
 
-export default CreatePedido;
+export default CreateInventario;

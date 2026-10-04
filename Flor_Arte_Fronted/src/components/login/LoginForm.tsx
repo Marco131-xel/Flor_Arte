@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import styles from "../../styles/login.module.css";
 import { loginRequest } from "../../services/authService";
+import AccionPendiente from "../AccionPendiente";
 
 const LoginForm: React.FC = () => {
   const [email, setEmail] = useState("");
@@ -167,9 +168,12 @@ const LoginForm: React.FC = () => {
               </button>
 
               <div className="text-center mt-3">
-                <a href="/recuperar" className={`${styles.customLink} fw-bold`}>
+                <AccionPendiente
+                  className={`btn btn-link ${styles.customLink} fw-bold`}
+                  mensaje="La recuperación de contraseña aún no está disponible."
+                >
                   ¿Olvidaste tu contraseña?
-                </a>
+                </AccionPendiente>
               </div>
             </form>
           </div>

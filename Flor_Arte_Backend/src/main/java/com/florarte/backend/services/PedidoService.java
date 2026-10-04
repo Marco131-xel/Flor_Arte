@@ -2,6 +2,7 @@ package com.florarte.backend.services;
 
 import com.florarte.backend.dtos.Deta_PediDTO;
 import com.florarte.backend.dtos.PedidoDTO;
+import com.florarte.backend.dtos.UpdatePedidoCompletoDTO;
 import com.florarte.backend.entities.*;
 import com.florarte.backend.repositories.*;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -10,6 +11,10 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Locale;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -68,6 +73,7 @@ public class PedidoService {
         pedido.setIdCliente(dto.getIdCliente());
         pedido.setIdEmpleado(dto.getIdEmpleado());
         pedido.setEstado(estado);
+        pedido.setFecha(dto.getFecha() != null ? dto.getFecha() : LocalDateTime.now());
         pedido.setTotal(BigDecimal.ZERO);
 
         Pedido guardado = pedidoRepository.save(pedido);
@@ -214,12 +220,103 @@ public class PedidoService {
         pedido.setIdCliente(dto.getIdCliente());
         pedido.setIdEmpleado(dto.getIdEmpleado());
         pedido.setEstado(nuevoEstado);
+        if (dto.getFecha() != null) {
+            pedido.setFecha(dto.getFecha());
+        }
         if (dto.getTotal() != null) {
             pedido.setTotal(dto.getTotal());
         }
 
         Pedido actualizado = pedidoRepository.save(pedido);
         return toDtoWithDetalles(actualizado);
+    }
+
+    // Una sola transacción: los detalles, el stock, los movimientos y la cabecera
+    // se confirman juntos. Cualquier fallo revierte todas las escrituras.
+    @Transactional(rollbackFor = Exception.class)
+    public PedidoDTO updateCompleto(Integer id, UpdatePedidoCompletoDTO dto) {
+        Pedido pedido = pedidoRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("Pedido no encontrado"));
+        Persona cliente = personaRepository.findById(dto.idCliente())
+                .orElseThrow(() -> new IllegalArgumentException("Cliente no encontrado"));
+        Persona empleado = dto.idEmpleado() == null ? null : personaRepository.findById(dto.idEmpleado())
+                .orElseThrow(() -> new IllegalArgumentException("Empleado no encontrado"));
+        String estado = dto.estado() == null ? "" : dto.estado().trim().toUpperCase(Locale.ROOT);
+        if (!ESTADOS_VALIDOS.contains(estado)) throw new IllegalArgumentException("Estado inválido");
+        if (dto.detalles() == null || dto.detalles().isEmpty())
+            throw new IllegalArgumentException("El pedido debe tener al menos una flor");
+
+        List<Detalle_Pedido> originales = detaPediRepository.findByIdPedido(id);
+        Map<Integer, Detalle_Pedido> porId = originales.stream().collect(
+                Collectors.toMap(Detalle_Pedido::getIdDetallePedido, d -> d));
+        Map<Integer, Integer> diferencias = new HashMap<>();
+        if (!"CANCELADO".equals(pedido.getEstado())) {
+            for (Detalle_Pedido d : originales)
+                diferencias.merge(d.getIdFlor(), d.getCantidad(), Math::addExact);
+        }
+        Set<Integer> ids = new HashSet<>();
+        Set<Integer> flores = new HashSet<>();
+        BigDecimal total = BigDecimal.ZERO;
+        for (UpdatePedidoCompletoDTO.Item d : dto.detalles()) {
+            if (d == null || d.idFlor() == null || d.cantidad() == null || d.cantidad() <= 0
+                    || d.precio() == null || d.precio().signum() < 0)
+                throw new IllegalArgumentException("Detalle inválido: revisa flor, cantidad y precio");
+            if (!flores.add(d.idFlor())) throw new IllegalArgumentException("No repitas flores en el pedido");
+            if (d.idDetallePedido() != null && (!porId.containsKey(d.idDetallePedido())
+                    || !ids.add(d.idDetallePedido())))
+                throw new IllegalArgumentException("El detalle no pertenece al pedido o está repetido");
+            diferencias.putIfAbsent(d.idFlor(), 0);
+            if (!"CANCELADO".equals(estado))
+                diferencias.merge(d.idFlor(), -d.cantidad(), Math::addExact);
+            total = total.add(d.precio().multiply(BigDecimal.valueOf(d.cantidad())));
+        }
+
+        // Validar todas las existencias antes de empezar a escribir.
+        Map<Integer, Flor> catalogo = new HashMap<>();
+        Map<Integer, Integer> stocks = new HashMap<>();
+        for (Integer idFlor : diferencias.keySet().stream().sorted().toList()) {
+            Flor flor = florRepository.findByIdWithDetails(idFlor)
+                    .orElseThrow(() -> new IllegalArgumentException("Flor no encontrada: " + idFlor));
+            int stock = Math.addExact(flor.getStock(), diferencias.get(idFlor));
+            if (stock < 0) throw new IllegalArgumentException("Stock insuficiente para " + obtenerNombreFlor(flor));
+            catalogo.put(idFlor, flor);
+            stocks.put(idFlor, stock);
+        }
+        for (Integer idFlor : diferencias.keySet().stream().sorted().toList()) {
+            int diferencia = diferencias.get(idFlor);
+            if (diferencia == 0) continue;
+            Flor flor = catalogo.get(idFlor);
+            flor.setStock(stocks.get(idFlor));
+            florRepository.save(flor);
+            Movimiento_Inventario movimiento = new Movimiento_Inventario();
+            movimiento.setIdFlor(idFlor);
+            movimiento.setCantidad(Math.abs(diferencia));
+            movimiento.setTipoMovimiento(diferencia > 0 ? "ENTRADA" : "SALIDA");
+            movimiento.setMotivo("VENTA");
+            movimiento.setFecha(LocalDateTime.now());
+            movInvRepository.save(movimiento);
+        }
+        for (Detalle_Pedido original : originales) {
+            if (!ids.contains(original.getIdDetallePedido())) detaPediRepository.delete(original);
+        }
+        List<Deta_PediDTO> guardados = new ArrayList<>();
+        for (UpdatePedidoCompletoDTO.Item d : dto.detalles()) {
+            Detalle_Pedido detalle = d.idDetallePedido() == null ? new Detalle_Pedido() : porId.get(d.idDetallePedido());
+            detalle.setIdPedido(id);
+            detalle.setIdFlor(d.idFlor());
+            detalle.setCantidad(d.cantidad());
+            detalle.setPrecio(d.precio());
+            detalle.setSubtotal(d.precio().multiply(BigDecimal.valueOf(d.cantidad())));
+            detalle = detaPediRepository.save(detalle);
+            guardados.add(new Deta_PediDTO(detalle.getIdDetallePedido(), id, d.idFlor(),
+                    obtenerNombreFlor(catalogo.get(d.idFlor())), d.cantidad(), d.precio(), detalle.getSubtotal()));
+        }
+        pedido.setIdCliente(dto.idCliente());
+        pedido.setIdEmpleado(dto.idEmpleado());
+        pedido.setEstado(estado);
+        pedido.setTotal(total);
+        pedidoRepository.save(pedido);
+        return toDto(pedido, cliente.getNombre(), empleado == null ? null : empleado.getNombre(), guardados);
     }
 
     // Eliminar pedido por id
@@ -279,6 +376,7 @@ public class PedidoService {
                 p.getIdEmpleado(),
                 empleadoNombre,
                 p.getEstado(),
+                p.getFecha(),
                 p.getTotal(),
                 detalles
         );

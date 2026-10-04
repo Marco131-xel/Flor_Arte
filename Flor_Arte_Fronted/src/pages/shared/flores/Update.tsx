@@ -152,7 +152,7 @@ function UpdateFlores() {
     try {
       setGuardando(true);
       await updateFlor(Number(id), florActualizada);
-      navigate(-1);
+      navigate("..");
     } catch (err) {
       setError("No se pudo actualizar la flor. Intenta de nuevo.");
     } finally {
@@ -163,7 +163,7 @@ function UpdateFlores() {
   return (
     <div className="crear-flor-page">
       <div className="crear-flor-header">
-        <button className="crear-flor-btn-back" onClick={() => navigate(-1)}>
+        <button className="crear-flor-btn-back" onClick={() => navigate("..")}>
           ← Volver a Flores
         </button>
         <h1 className="crear-flor-title">
@@ -358,7 +358,7 @@ function UpdateFlores() {
                 <button
                   type="button"
                   className="crear-flor-btn-secondary"
-                  onClick={() => navigate(-1)}
+                  onClick={() => navigate("..")}
                   disabled={guardando}
                 >
                   Cancelar

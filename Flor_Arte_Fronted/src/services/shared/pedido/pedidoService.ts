@@ -2,6 +2,7 @@ import type {
   Pedido,
   New_Pedido,
   Update_Pedido,
+  Update_Pedido_Completo,
   Detalle_Pedido,
   New_Deta_Pedido,
 } from "../../../types/pedido";
@@ -36,6 +37,14 @@ export const updatePedido = async (id: number, pedidoData: Update_Pedido): Promi
   const response = await api.put<Pedido>(`/pedido/update/${id}`, pedidoData);
 
   return response.data;
+};
+
+// Guardar cabecera y detalles en una única transacción del servidor.
+export const updatePedidoCompleto = async (id: number, pedidoData: Update_Pedido_Completo): Promise<Pedido> => {
+  const response = await api.put<{ message: string; pedido: Pedido }>(
+    `/pedido/update-completo/${id}`, pedidoData
+  );
+  return response.data.pedido;
 };
 
 // eliminar pedido
