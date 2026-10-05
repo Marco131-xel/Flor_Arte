@@ -45,7 +45,7 @@ public class Deta_PediController {
     }
 
     // Crear un detalle de pedido (descuenta stock y registra salida venta)
-    @PreAuthorize("hasAnyRole('ADMINISTRADOR', 'EMPLEADO')")
+    @PreAuthorize("@reglasEdicion.editar('pedidos', #dto.idPedido)")
     @PostMapping("/create")
     public ResponseEntity<?> create(@Valid @RequestBody Deta_PediDTO dto) {
         Deta_PediDTO nuevo = detaPediService.save(dto);
@@ -53,7 +53,7 @@ public class Deta_PediController {
     }
 
     // Actualizar un detalle de pedido
-    @PreAuthorize("hasAnyRole('ADMINISTRADOR', 'EMPLEADO')")
+    @PreAuthorize("@reglasEdicion.detalle('pedidos', #id) and @reglasEdicion.editar('pedidos', #dto.idPedido)")
     @PutMapping({"/update/{id}", "/{id}"})
     public ResponseEntity<?> update(@PathVariable Integer id, @Valid @RequestBody Deta_PediDTO dto) {
         Deta_PediDTO actualizado = detaPediService.update(id, dto);
@@ -61,7 +61,7 @@ public class Deta_PediController {
     }
 
     // Eliminar un detalle de pedido (restituye stock)
-    @PreAuthorize("hasAnyRole('ADMINISTRADOR', 'EMPLEADO')")
+    @PreAuthorize("hasRole('ADMINISTRADOR')")
     @DeleteMapping({"/delete/{id}", "/{id}"})
     public ResponseEntity<?> delete(@PathVariable Integer id) {
         detaPediService.deleteById(id);

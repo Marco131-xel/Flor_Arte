@@ -116,6 +116,20 @@ public class Mov_InvService {
             throw new IllegalArgumentException("La cantidad debe ser mayor a 0");
         }
 
+        // Revertir el efecto anterior antes de aplicar la cantidad corregida.
+        Flor anterior = mov.getIdFlor().equals(dto.getIdFlor()) ? flor : florRepository.findByIdWithDetails(mov.getIdFlor())
+                .orElseThrow(() -> new IllegalArgumentException("Flor original no encontrada"));
+        int efectoAnterior = "ENTRADA".equals(mov.getTipoMovimiento()) ? mov.getCantidad() : -mov.getCantidad();
+        int efectoNuevo = "ENTRADA".equals(tipo) ? dto.getCantidad() : -dto.getCantidad();
+        int stockAnterior = anterior.getStock() - efectoAnterior;
+        int stockNuevo = (anterior == flor ? stockAnterior : flor.getStock()) + efectoNuevo;
+        if (stockNuevo < 0 || (anterior != flor && stockAnterior < 0)) {
+            throw new IllegalArgumentException("Stock insuficiente para corregir el movimiento");
+        }
+        if (anterior != flor) { anterior.setStock(stockAnterior); florRepository.save(anterior); }
+        flor.setStock(stockNuevo);
+        florRepository.save(flor);
+
         mov.setIdFlor(dto.getIdFlor());
         mov.setTipoMovimiento(tipo);
         mov.setCantidad(dto.getCantidad());
@@ -131,9 +145,15 @@ public class Mov_InvService {
     // Eliminar movimiento
     @Transactional
     public void deleteById(Integer id) {
-        if (!movInvRepository.existsById(id)) {
-            throw new RuntimeException("Movimiento de inventario no encontrado con id: " + id);
+        Movimiento_Inventario mov = movInvRepository.findByIdWithFlor(id)
+                .orElseThrow(() -> new IllegalArgumentException("Movimiento no encontrado"));
+        if (!"MERMA".equals(mov.getMotivo()) || !"SALIDA".equals(mov.getTipoMovimiento())) {
+            throw new IllegalArgumentException("Solo se pueden eliminar mermas desde este módulo");
         }
+        Flor flor = florRepository.findByIdWithDetails(mov.getIdFlor())
+                .orElseThrow(() -> new IllegalArgumentException("Flor no encontrada"));
+        flor.setStock(flor.getStock() + mov.getCantidad());
+        florRepository.save(flor);
         movInvRepository.deleteById(id);
     }
 

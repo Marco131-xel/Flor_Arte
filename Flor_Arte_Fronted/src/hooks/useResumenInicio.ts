@@ -1,6 +1,5 @@
 import { useEffect, useState } from "react";
-import { getPersonas, getUsuarios } from "../services/admin/usuarioService";
-import { getPedidos } from "../services/shared/pedido/pedidoService";
+import { api } from "../services/apiService";
 
 interface Resumen {
   personas: number | null;
@@ -23,29 +22,16 @@ export function useResumenInicio(administrador: boolean) {
   useEffect(() => {
     let vigente = true;
     const cargar = async () => {
-      const datos: Resumen = { ...vacio };
-      const fallos: string[] = [];
-      const consultas: Promise<void>[] = [
-        getPedidos().then((pedidos) => {
-          datos.pedidos = pedidos.filter((p) => p.estado === "PENDIENTE").length;
-        }).catch(() => { fallos.push("pedidos"); }),
-      ];
-      if (administrador) {
-        consultas.push(
-          getPersonas().then((personas) => {
-            datos.personas = personas.length;
-          }).catch(() => { fallos.push("personas"); }),
-          getUsuarios().then((usuarios) => {
-            datos.usuarios = usuarios.length;
-            datos.activos = usuarios.filter((u) => u.estado).length;
-            datos.inactivos = usuarios.filter((u) => !u.estado).length;
-          }).catch(() => { fallos.push("usuarios"); }),
-        );
+      try {
+        const { data } = await api.get<Partial<Resumen>>("/gestion/resumen");
+        if (!vigente) return;
+        setResumen({ ...vacio, ...data });
+        setErrores([]);
+      } catch {
+        if (!vigente) return;
+        setResumen(vacio);
+        setErrores(["resumen"]);
       }
-      await Promise.all(consultas);
-      if (!vigente) return;
-      setResumen(datos);
-      setErrores(fallos);
       setCargando(false);
     };
     void cargar();

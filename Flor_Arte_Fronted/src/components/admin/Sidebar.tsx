@@ -14,7 +14,7 @@ function Sidebar({ open }: Props) {
     `sidebar-link ${isActive ? "active" : ""}`;
 
   return (
-    <aside className={`empleado-sidebar ${open ? "open" : ""}`}>
+    <aside id="panel-menu" aria-label="Menú principal" className={`empleado-sidebar ${open ? "open" : ""}`}>
       <ul className="sidebar-menu">
         <li>
           <NavLink to="/admin" end className={linkClass}>

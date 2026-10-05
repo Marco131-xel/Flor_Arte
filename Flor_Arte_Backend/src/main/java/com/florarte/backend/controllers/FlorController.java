@@ -46,7 +46,7 @@ public class FlorController {
     }
 
     // Actualizar una flor
-    @PreAuthorize("hasAnyRole('ADMINISTRADOR', 'EMPLEADO')")
+    @PreAuthorize("@reglasEdicion.editar('flores', #id)")
     @PutMapping({"/update/{id}", "/{id}"})
     public ResponseEntity<?> updateFlor(@PathVariable Integer id, @Valid @RequestBody FlorDTO florDto) {
         FlorDTO actualizada = florService.update(id, florDto);
@@ -54,7 +54,7 @@ public class FlorController {
     }
 
     // Eliminar una flor
-    @PreAuthorize("hasAnyRole('ADMINISTRADOR', 'EMPLEADO')")
+    @PreAuthorize("@reglasEdicion.editar('flores', #id)")
     @DeleteMapping({"/delete/{id}", "/{id}"})
     public ResponseEntity<?> deleteFlor(@PathVariable Integer id) {
         florService.deleteById(id);

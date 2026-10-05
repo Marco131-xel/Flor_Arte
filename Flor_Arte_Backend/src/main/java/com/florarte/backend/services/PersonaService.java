@@ -36,6 +36,7 @@ public class PersonaService {
 
     // funcion para crear persona mediante DTO con validacion de rol
     public PersonaDTO save(PersonaDTO dto) {
+        normalizar(dto);
         if (dto.getCorreo() != null && !dto.getCorreo().isBlank() && personaRepository.existsByCorreo(dto.getCorreo())) {
             throw new IllegalArgumentException("El correo ya está registrado");
         }
@@ -65,6 +66,9 @@ public class PersonaService {
 
     // funcion para crear persona directamente
     public Persona save(Persona persona) {
+        persona.setDpi(opcional(persona.getDpi()));
+        persona.setCorreo(opcional(persona.getCorreo()));
+        persona.setTelefono(opcional(persona.getTelefono()));
         return personaRepository.save(persona);
     }
 
@@ -88,6 +92,7 @@ public class PersonaService {
 
     // funcion para actualizar la persona
     public PersonaDTO update(Long idPersona, PersonaDTO dto) {
+        normalizar(dto);
         Persona persona = personaRepository.findByIdWithRol(idPersona)
                 .orElseThrow(() -> new RuntimeException("Persona no encontrada con id: " + idPersona));
 
@@ -144,6 +149,17 @@ public class PersonaService {
 
     public boolean existsByDpi(String dpi) {
         return personaRepository.existsByDpi(dpi);
+    }
+
+    private String opcional(String valor) {
+        return valor == null || valor.isBlank() ? null : valor.strip();
+    }
+
+    private void normalizar(PersonaDTO dto) {
+        dto.setNombre(dto.getNombre() == null ? null : dto.getNombre().strip());
+        dto.setTelefono(opcional(dto.getTelefono()));
+        dto.setDpi(opcional(dto.getDpi()));
+        dto.setCorreo(opcional(dto.getCorreo()));
     }
 
     private PersonaDTO toDto(Persona p) {

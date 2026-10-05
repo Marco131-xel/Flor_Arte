@@ -54,7 +54,7 @@ public class ColorController {
     }
 
     // Eliminar un color
-    @PreAuthorize("hasAnyRole('ADMINISTRADOR', 'EMPLEADO')")
+    @PreAuthorize("hasRole('ADMINISTRADOR')")
     @DeleteMapping({"/delete/{id}", "/{id}"})
     public ResponseEntity<?> deleteColor(@PathVariable Integer id) {
         colorService.deleteById(id);

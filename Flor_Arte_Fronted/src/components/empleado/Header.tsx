@@ -1,10 +1,11 @@
-import { useCallback, useEffect, useRef, useState } from "react";
+import { api } from "../../services/apiService";
+import Brand from "../shared/Brand";
+import { useEffect, useRef, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { getPedidos } from "../../services/shared/pedido/pedidoService";
-import { getFlores } from "../../services/shared/flor/florService";
 
 interface Props {
   toggleSidebar: () => void;
+  sidebarOpen?: boolean;
 }
 
 interface Notificacion {
@@ -15,7 +16,6 @@ interface Notificacion {
   ruta: string;
 }
 
-const UMBRAL_STOCK = 5; // avisa cuando quedan 5 unidades o menos
 const INTERVALO_MS = 60_000; // revisa cada minuto
 const CLAVE_LEIDAS = "fa_notif_leidas";
 
@@ -35,7 +35,7 @@ const guardarLeidas = (ids: string[]) => {
   }
 };
 
-function Header({ toggleSidebar }: Props) {
+function Header({ toggleSidebar, sidebarOpen }: Props) {
   const navigate = useNavigate();
   const user = JSON.parse(localStorage.getItem("user") || "{}");
   const displayName = user?.nombre || user?.email || "Usuario";
@@ -46,49 +46,22 @@ function Header({ toggleSidebar }: Props) {
   const contenedor = useRef<HTMLDivElement>(null);
 
   /* ---------- Armar notificaciones ---------- */
-  const cargarNotificaciones = useCallback(async () => {
-    try {
-      const [pedidos, flores] = await Promise.all([getPedidos(), getFlores()]);
-
-      const deInventario: Notificacion[] = flores
-        .filter((f) => f.estado && f.stock <= UMBRAL_STOCK)
-        .map((f) => {
-          const nombre = `${f.nombreTipoFlor} ${f.nombreColor}`.trim();
-          return {
-            // incluye el stock: si cambia, vuelve a avisar
-            id: `stock-${f.idFlor}-${f.stock}`,
-            tipo: "stock" as const,
-            titulo: f.stock === 0 ? "Flor agotada" : "Stock bajo",
-            detalle:
-              f.stock === 0
-                ? `${nombre} se quedó sin unidades.`
-                : `${nombre}: quedan ${f.stock} unidades.`,
-            ruta: "/empleado/flores",
-          };
-        });
-
-      const dePedidos: Notificacion[] = pedidos
-        .filter((p) => p.estado === "PENDIENTE")
-        .map((p) => ({
-          id: `pedido-${p.idPedido}`,
-          tipo: "pedido" as const,
-          titulo: "Pedido pendiente",
-          detalle: `Pedido #${p.idPedido} de ${p.nombreCliente} espera atención.`,
-          ruta: "/empleado/pedidos",
-        }));
-
-      setNotificaciones([...dePedidos, ...deInventario]);
-    } catch (err) {
-      // el header no debe romperse si falla la consulta
-      console.error("Error al cargar notificaciones:", err);
-    }
-  }, []);
-
   useEffect(() => {
-    cargarNotificaciones();
-    const timer = setInterval(cargarNotificaciones, INTERVALO_MS);
-    return () => clearInterval(timer);
-  }, [cargarNotificaciones]);
+    const controller = new AbortController();
+    let pendiente = false;
+    const cargar = async () => {
+      if (pendiente || document.hidden) return;
+      pendiente = true;
+      try {
+        const { data } = await api.get<Notificacion[]>("/gestion/avisos", { signal: controller.signal });
+        if (!controller.signal.aborted) setNotificaciones(data);
+      } catch (err) { if (!controller.signal.aborted) console.error("No se pudieron cargar los avisos", err); }
+      finally { pendiente = false; }
+    };
+    void cargar();
+    const timer = setInterval(cargar, INTERVALO_MS);
+    return () => { controller.abort(); clearInterval(timer); };
+  }, []);
 
   /* ---------- Cerrar con clic fuera / Escape ---------- */
   useEffect(() => {
@@ -141,28 +114,13 @@ function Header({ toggleSidebar }: Props) {
           className="btn-menu"
           onClick={toggleSidebar}
           aria-label="Mostrar/ocultar menú"
+          aria-expanded={sidebarOpen}
+          aria-controls="panel-menu"
         >
           <i className="bi bi-list"></i>
         </button>
 
-        <Link
-          to="/empleado"
-          className="navbar-brand text-white fw-bold d-flex align-items-center"
-          style={{ textDecoration: "none" }}
-        >
-          <img
-            src="/images/florarte.svg"
-            alt="FlorArte"
-            style={{
-              width: "45px",
-              height: "45px",
-              objectFit: "contain",
-              display: "block",
-            }}
-          />
-
-          <span style={{ marginLeft: "10px" }}>Sistema FlorArte</span>
-        </Link>
+        <Brand inicio="/empleado" />
       </div>
 
       <div className="d-flex align-items-center gap-3">
@@ -192,7 +150,7 @@ function Header({ toggleSidebar }: Props) {
           {abierto && (
             <div className="notif-panel" role="dialog" aria-label="Notificaciones">
               <div className="notif-panel-head">
-                <h2 className="notif-panel-title">Notificaciones</h2>
+                <h2 className="notif-panel-title">Avisos recientes</h2>
                 {cantidad > 0 && (
                   <button
                     type="button"
@@ -207,7 +165,7 @@ function Header({ toggleSidebar }: Props) {
               {notificaciones.length === 0 ? (
                 <div className="notif-empty">
                   <i className="bi bi-bell-slash" aria-hidden="true"></i>
-                  <p>No tienes notificaciones</p>
+                  <p>No hay avisos recientes</p>
                   <span>Aquí aparecerán los pedidos pendientes y los avisos de stock.</span>
                 </div>
               ) : (

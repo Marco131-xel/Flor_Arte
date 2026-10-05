@@ -51,7 +51,7 @@ function UpdateUser() {
     setError("");
     setSuccess("");
 
-    if (!email) {
+    if (!email.trim()) {
       setError("El correo es obligatorio");
       return;
     }
@@ -71,7 +71,7 @@ function UpdateUser() {
       setGuardando(true);
 
       await updateUsuario(Number(id), {
-        email,
+        email: email.trim(),
         estado,
         idPersona,
       });
@@ -82,7 +82,7 @@ function UpdateUser() {
       console.error("Error al actualizar usuario:", error);
 
       if (error.response?.data?.error) {
-        setError(error.response.data.error);
+        setError(error.response.data.message || error.response.data.error);
       } else {
         setError("Ocurrió un error al actualizar el usuario");
       }
@@ -112,7 +112,7 @@ function UpdateUser() {
         {error && <div className="cp-alert cp-alert-error">{error}</div>}
         {success && <div className="cp-alert cp-alert-success">{success}</div>}
 
-        <form className="cp-form" onSubmit={handleSubmit} noValidate>
+        <form className="cp-form" onSubmit={handleSubmit}>
           {/* Persona asociada: solo lectura */}
           <div className="cp-field cp-field-readonly">
             <label className="cp-label">
@@ -127,7 +127,7 @@ function UpdateUser() {
               <i className="bi bi-envelope-fill"></i> Correo electrónico
             </label>
             <input
-              id="email"
+              id="email" required maxLength={150}
               type="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}

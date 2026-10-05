@@ -45,7 +45,7 @@ public class Deta_EntraController {
     }
 
     // Crear un detalle de entrada
-    @PreAuthorize("hasAnyRole('ADMINISTRADOR', 'EMPLEADO')")
+    @PreAuthorize("@reglasEdicion.editar('inventario', #dto.idEntrada)")
     @PostMapping("/create")
     public ResponseEntity<?> create(@Valid @RequestBody Detalle_EntradaDTO dto) {
         Detalle_EntradaDTO nuevo = detaEntraService.save(dto);
@@ -53,7 +53,7 @@ public class Deta_EntraController {
     }
 
     // Actualizar un detalle de entrada
-    @PreAuthorize("hasAnyRole('ADMINISTRADOR', 'EMPLEADO')")
+    @PreAuthorize("@reglasEdicion.detalle('inventario', #id) and @reglasEdicion.editar('inventario', #dto.idEntrada)")
     @PutMapping({"/update/{id}", "/{id}"})
     public ResponseEntity<?> update(@PathVariable Integer id, @Valid @RequestBody Detalle_EntradaDTO dto) {
         Detalle_EntradaDTO actualizado = detaEntraService.update(id, dto);
@@ -61,7 +61,7 @@ public class Deta_EntraController {
     }
 
     // Eliminar un detalle de entrada
-    @PreAuthorize("hasAnyRole('ADMINISTRADOR', 'EMPLEADO')")
+    @PreAuthorize("hasRole('ADMINISTRADOR')")
     @DeleteMapping({"/delete/{id}", "/{id}"})
     public ResponseEntity<?> delete(@PathVariable Integer id) {
         detaEntraService.deleteById(id);

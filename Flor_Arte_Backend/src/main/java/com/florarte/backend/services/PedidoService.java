@@ -156,6 +156,18 @@ public class PedidoService {
                 .map(this::toDtoWithDetalles);
     }
 
+    @Transactional
+    public PedidoDTO updateEstado(Integer id, String estado) {
+        Pedido pedido = pedidoRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("Pedido no encontrado"));
+        PedidoDTO cambio = new PedidoDTO();
+        cambio.setIdCliente(pedido.getIdCliente());
+        cambio.setIdEmpleado(pedido.getIdEmpleado());
+        cambio.setEstado(estado);
+        // Reutiliza la cancelación/reactivación y sus ajustes de stock.
+        return update(id, cambio);
+    }
+
     // Actualizar pedido (incluyendo cambio de estado y reajuste de stock si se cancela)
     @Transactional
     public PedidoDTO update(Integer id, PedidoDTO dto) {

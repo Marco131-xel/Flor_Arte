@@ -61,14 +61,14 @@ public class Entra_InvController {
     }
 
     // Actualizar entrada de inventario
-    @PreAuthorize("hasAnyRole('ADMINISTRADOR', 'EMPLEADO')")
+    @PreAuthorize("@reglasEdicion.editar('inventario', #id)")
     @PutMapping({"/update/{id}", "/{id}"})
     public ResponseEntity<?> update(@PathVariable Integer id, @RequestBody Entrada_InventarioDTO dto) {
         return ResponseEntity.ok(entraInvService.update(id, dto));
     }
 
     // Eliminar entrada de inventario
-    @PreAuthorize("hasAnyRole('ADMINISTRADOR', 'EMPLEADO')")
+    @PreAuthorize("@reglasEdicion.editar('inventario', #id)")
     @DeleteMapping({"/delete/{id}", "/{id}"})
     public ResponseEntity<?> delete(@PathVariable Integer id) {
         entraInvService.deleteById(id);

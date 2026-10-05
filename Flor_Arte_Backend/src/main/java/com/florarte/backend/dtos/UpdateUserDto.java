@@ -1,6 +1,7 @@
 package com.florarte.backend.dtos;
 
 import jakarta.validation.constraints.Email;
+import jakarta.validation.constraints.Size;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
@@ -16,6 +17,7 @@ public class UpdateUserDto {
 
     @NotBlank(message = "El correo electrónico es obligatorio")
     @Email(message = "El formato de correo no es válido")
+    @Size(max = 150, message = "El correo no puede superar los 150 caracteres")
     private String email;
 
     private String password;

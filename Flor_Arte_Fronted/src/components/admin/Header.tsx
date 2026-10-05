@@ -1,11 +1,11 @@
-import { useCallback, useEffect, useRef, useState } from "react";
+import { api } from "../../services/apiService";
+import Brand from "../shared/Brand";
+import { useEffect, useRef, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { getPedidos } from "../../services/shared/pedido/pedidoService";
-import { getFlores } from "../../services/shared/flor/florService";
-import { getUsuarios } from "../../services/admin/usuarioService";
 
 interface Props {
   toggleSidebar: () => void;
+  sidebarOpen?: boolean;
 }
 
 interface Notificacion {
@@ -16,18 +16,13 @@ interface Notificacion {
   ruta: string;
 }
 
-const UMBRAL_STOCK = 5;
 const INTERVALO_MS = 60_000;
 // clave propia del admin: ve más tipos de avisos que el empleado
 const CLAVE_LEIDAS = "fa_notif_leidas_admin";
 
 // Rutas de admin a las que lleva cada aviso (ajústalas a tu router)
-const RUTA_PEDIDOS = "/admin/pedidos";
-const RUTA_FLORES = "/admin/flores";
-const RUTA_USUARIOS = "/admin/usuarios";
 
 // pedidos que ya están en marcha y deberían tener un empleado a cargo
-const ESTADOS_EN_CURSO = ["CONFIRMADO", "PREPARANDO", "LISTO"];
 
 const leerLeidas = (): string[] => {
   try {
@@ -58,7 +53,7 @@ const iconoDe = (tipo: Notificacion["tipo"]) => {
   }
 };
 
-function Header({ toggleSidebar }: Props) {
+function Header({ toggleSidebar, sidebarOpen }: Props) {
   const navigate = useNavigate();
   const user = JSON.parse(localStorage.getItem("user") || "{}");
   const displayName = user?.nombre || user?.email || "Usuario";
@@ -69,94 +64,22 @@ function Header({ toggleSidebar }: Props) {
   const contenedor = useRef<HTMLDivElement>(null);
 
   /* ---------- Armar notificaciones ---------- */
-  const cargarNotificaciones = useCallback(async () => {
-    // allSettled: si una consulta falla, las demás siguen mostrándose
-    const [pedidosR, floresR, usuariosR] = await Promise.allSettled([
-      getPedidos(),
-      getFlores(),
-      getUsuarios(),
-    ]);
-
-    const lista: Notificacion[] = [];
-
-    if (pedidosR.status === "fulfilled") {
-      const pedidos = pedidosR.value;
-
-      pedidos
-        .filter((p) => p.estado === "PENDIENTE")
-        .forEach((p) =>
-          lista.push({
-            id: `pedido-${p.idPedido}`,
-            tipo: "pedido",
-            titulo: "Pedido pendiente",
-            detalle:
-              `Pedido #${p.idPedido} de ${p.nombreCliente} espera atención.` +
-              (p.idEmpleado == null ? " Sin empleado asignado." : ""),
-            ruta: RUTA_PEDIDOS,
-          })
-        );
-
-      pedidos
-        .filter((p) => ESTADOS_EN_CURSO.includes(p.estado) && p.idEmpleado == null)
-        .forEach((p) =>
-          lista.push({
-            id: `pedido-sin-empleado-${p.idPedido}-${p.estado}`,
-            tipo: "empleado",
-            titulo: "Pedido sin empleado",
-            detalle: `Pedido #${p.idPedido} de ${p.nombreCliente} está ${p.estado.toLowerCase()} y no tiene empleado asignado.`,
-            ruta: RUTA_PEDIDOS,
-          })
-        );
-    } else {
-      console.error("Notificaciones (pedidos):", pedidosR.reason);
-    }
-
-    if (floresR.status === "fulfilled") {
-      floresR.value
-        .filter((f) => f.estado && f.stock <= UMBRAL_STOCK)
-        .forEach((f) => {
-          const nombre = `${f.nombreTipoFlor} ${f.nombreColor}`.trim();
-          lista.push({
-            // incluye el stock: si cambia, vuelve a avisar
-            id: `stock-${f.idFlor}-${f.stock}`,
-            tipo: "stock",
-            titulo: f.stock === 0 ? "Flor agotada" : "Stock bajo",
-            detalle:
-              f.stock === 0
-                ? `${nombre} se quedó sin unidades.`
-                : `${nombre}: quedan ${f.stock} unidades.`,
-            ruta: RUTA_FLORES,
-          });
-        });
-    } else {
-      console.error("Notificaciones (flores):", floresR.reason);
-    }
-
-    if (usuariosR.status === "fulfilled") {
-      usuariosR.value
-        .filter((u) => !u.estado)
-        .forEach((u) => {
-          const esEmpleado = u.rol?.toUpperCase() === "EMPLEADO";
-          lista.push({
-            id: `usuario-inactivo-${u.idUsuario}`,
-            tipo: "usuario",
-            titulo: esEmpleado ? "Empleado inactivo" : "Usuario inactivo",
-            detalle: `${u.nombre} (${u.email}) no puede ingresar al sistema.`,
-            ruta: RUTA_USUARIOS,
-          });
-        });
-    } else {
-      console.error("Notificaciones (usuarios):", usuariosR.reason);
-    }
-
-    setNotificaciones(lista);
-  }, []);
-
   useEffect(() => {
-    cargarNotificaciones();
-    const timer = setInterval(cargarNotificaciones, INTERVALO_MS);
-    return () => clearInterval(timer);
-  }, [cargarNotificaciones]);
+    const controller = new AbortController();
+    let pendiente = false;
+    const cargar = async () => {
+      if (pendiente || document.hidden) return;
+      pendiente = true;
+      try {
+        const { data } = await api.get<Notificacion[]>("/gestion/avisos", { signal: controller.signal });
+        if (!controller.signal.aborted) setNotificaciones(data);
+      } catch (err) { if (!controller.signal.aborted) console.error("No se pudieron cargar los avisos", err); }
+      finally { pendiente = false; }
+    };
+    void cargar();
+    const timer = setInterval(cargar, INTERVALO_MS);
+    return () => { controller.abort(); clearInterval(timer); };
+  }, []);
 
   /* ---------- Cerrar con clic fuera / Escape ---------- */
   useEffect(() => {
@@ -208,28 +131,13 @@ function Header({ toggleSidebar }: Props) {
           className="btn-menu"
           onClick={toggleSidebar}
           aria-label="Mostrar/ocultar menú"
+          aria-expanded={sidebarOpen}
+          aria-controls="panel-menu"
         >
           <i className="bi bi-list"></i>
         </button>
 
-        <Link
-          to="/admin"
-          className="navbar-brand text-white fw-bold d-flex align-items-center"
-          style={{ textDecoration: "none" }}
-        >
-          <img
-            src="/images/florarte.svg"
-            alt="FlorArte"
-            style={{
-              width: "45px",
-              height: "45px",
-              objectFit: "contain",
-              display: "block",
-            }}
-          />
-
-          <span style={{ marginLeft: "10px" }}>Sistema FlorArte</span>
-        </Link>
+        <Brand inicio="/admin" />
       </div>
 
       <div className="d-flex align-items-center gap-3">
@@ -259,7 +167,7 @@ function Header({ toggleSidebar }: Props) {
           {abierto && (
             <div className="notif-panel" role="dialog" aria-label="Notificaciones">
               <div className="notif-panel-head">
-                <h2 className="notif-panel-title">Notificaciones</h2>
+                <h2 className="notif-panel-title">Avisos recientes</h2>
                 {cantidad > 0 && (
                   <button
                     type="button"
@@ -274,7 +182,7 @@ function Header({ toggleSidebar }: Props) {
               {notificaciones.length === 0 ? (
                 <div className="notif-empty">
                   <i className="bi bi-bell-slash" aria-hidden="true"></i>
-                  <p>No tienes notificaciones</p>
+                  <p>No hay avisos recientes</p>
                   <span>
                     Aquí aparecerán los pedidos pendientes, el stock bajo y los
                     usuarios inactivos.

@@ -56,9 +56,9 @@ export interface Rol {
 export interface Persona {
   idPersona: number;
   nombre: string;
-  telefono: string;
-  dpi: string;
-  correo: string;
+  telefono: string | null;
+  dpi: string | null;
+  correo: string | null;
   idRol: number;
   tipoRol: string;
   rol: Rol
@@ -66,8 +66,8 @@ export interface Persona {
 
 export interface NewPersona {
   nombre: string;
-  telefono: string;
-  dpi: string;
-  correo: string;
+  telefono: string | null;
+  dpi: string | null;
+  correo: string | null;
   idRol: string;
 }

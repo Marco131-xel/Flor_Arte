@@ -1,3 +1,5 @@
+import PermisoEdicion from "../components/shared/PermisoEdicion";
+import EditarMerma from "../pages/shared/inventario/EditarMerma";
 import { Route } from "react-router-dom";
 import IndexFlores from "../pages/shared/flores/Index";
 import CreateFlor from "../pages/shared/flores/Create";
@@ -18,20 +20,21 @@ export const GestionRoutes = () => (
     <Route path="flores">
       <Route index element={<IndexFlores />} />
       <Route path="create" element={<CreateFlor />} />
-      <Route path="update/:id" element={<UpdateFlores />} />
+      <Route path="update/:id" element={<PermisoEdicion modulo="flores"><UpdateFlores /></PermisoEdicion>} />
       <Route path="color" element={<Color />} />
       <Route path="tipoflor" element={<TipoFlor />} />
     </Route>
     <Route path="inventario">
       <Route index element={<IndexInventario />} />
       <Route path="create" element={<CreateInventario />} />
-      <Route path="update/:id" element={<UpdateInventario />} />
+      <Route path="update/:id" element={<PermisoEdicion modulo="inventario"><UpdateInventario /></PermisoEdicion>} />
       <Route path="merma" element={<Merma />} />
+      <Route path="merma/editar/:id" element={<PermisoEdicion modulo="mermas"><EditarMerma /></PermisoEdicion>} />
     </Route>
     <Route path="pedidos">
       <Route index element={<IndexPedidos />} />
       <Route path="create" element={<CreatePedidos />} />
-      <Route path="update/:id" element={<UpdatePedidos />} />
+      <Route path="update/:id" element={<PermisoEdicion modulo="pedidos"><UpdatePedidos /></PermisoEdicion>} />
     </Route>
   </>
 );

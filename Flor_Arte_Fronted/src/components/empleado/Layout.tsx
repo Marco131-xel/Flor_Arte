@@ -1,28 +1,5 @@
-import { useState } from "react";
-import { Outlet } from "react-router-dom";
+import PanelLayout from "../shared/PanelLayout";
 import Header from "./Header";
 import Footer from "./Footer";
 import Sidebar from "./Sidebar";
-import "../../styles/empleado/style.css";
-
-function EmpleadoLayout() {
-  const [sidebarOpen, setSidebarOpen] = useState(true);
-
-  return (
-    <div className="empleado-layout">
-      <Header toggleSidebar={() => setSidebarOpen(!sidebarOpen)} />
-
-      <div className="empleado-body">
-        <Sidebar open={sidebarOpen} />
-
-        <main className="empleado-content">
-          <Outlet />
-        </main>
-      </div>
-
-      <Footer />
-    </div>
-  );
-}
-
-export default EmpleadoLayout;
+export default function Layout() { return <PanelLayout Header={Header} Sidebar={Sidebar} Footer={Footer} />; }

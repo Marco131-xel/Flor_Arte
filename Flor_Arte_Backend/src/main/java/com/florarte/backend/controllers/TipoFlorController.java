@@ -54,7 +54,7 @@ public class TipoFlorController {
     }
 
     // Eliminar un tipo de flor
-    @PreAuthorize("hasAnyRole('ADMINISTRADOR', 'EMPLEADO')")
+    @PreAuthorize("hasRole('ADMINISTRADOR')")
     @DeleteMapping({"/delete/{id}", "/{id}"})
     public ResponseEntity<?> deleteTipoFlor(@PathVariable Integer id) {
         tipoFlorService.deleteById(id);

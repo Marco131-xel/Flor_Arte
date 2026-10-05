@@ -19,6 +19,7 @@ public class NewUserDto {
 
     @NotBlank(message = "El correo electrónico es obligatorio")
     @Email(message = "El formato de correo no es válido")
+    @Size(max = 150, message = "El correo no puede superar los 150 caracteres")
     private String email;
 
     @NotBlank(message = "La contraseña es obligatoria")

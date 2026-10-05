@@ -1,3 +1,4 @@
+import {datosPersona,validarPersona} from "../../utils/persona";
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { getMyData, updatePersona } from "../../services/userService";
@@ -30,9 +31,9 @@ function EditPerfil() {
     getMyData(usuarioActual.id)
       .then((data: UserFull) => {
         setNombre(data.persona.nombre);
-        setTelefono(data.persona.telefono);
-        setDpi(data.persona.dpi);
-        setCorreo(data.persona.correo);
+        setTelefono(data.persona.telefono || "");
+        setDpi(data.persona.dpi || "");
+        setCorreo(data.persona.correo || "");
         setIdRol(String(data.persona.rol.idRol));
         setIdPersona(data.persona.idPersona);
       })
@@ -45,14 +46,16 @@ function EditPerfil() {
     setError("");
     setSuccess("");
 
-    if (!nombre || !idPersona) {
-      setError("El nombre es obligatorio");
+    const errores = validarPersona({nombre,telefono,dpi,correo,idRol});
+    setFieldErrors(errores);
+    if (Object.keys(errores).length || !idPersona) {
+      setError("Revisa los campos marcados");
       return;
     }
 
     try {
       setGuardando(true);
-      await updatePersona(idPersona, { nombre, telefono, dpi, correo, idRol });
+      await updatePersona(idPersona, datosPersona({ nombre, telefono, dpi, correo, idRol }));
       setSuccess("Perfil actualizado exitosamente");
       setFieldErrors({});
     } catch (error: any) {
@@ -103,7 +106,7 @@ function EditPerfil() {
               <i className="bi bi-person-fill"></i> Nombre
             </label>
             <input
-              id="nombre"
+              id="nombre" required maxLength={100}
               type="text"
               value={nombre}
               onChange={(e) => setNombre(e.target.value)}
@@ -124,7 +127,7 @@ function EditPerfil() {
               value={telefono}
               onChange={(e) => setTelefono(e.target.value.replace(/\D/g, ""))}
               placeholder="Ingrese el número de teléfono"
-              maxLength={8}
+              maxLength={20}
               className="cp-input"
             />
           </div>
@@ -149,7 +152,7 @@ function EditPerfil() {
                 }
               }}
               placeholder="Ingrese el DPI"
-              maxLength={13}
+              maxLength={20}
               className={`cp-input ${fieldErrors.dpi ? "cp-input-error" : ""}`}
             />
             {fieldErrors.dpi && <span className="cp-field-error">{fieldErrors.dpi}</span>}
@@ -161,7 +164,7 @@ function EditPerfil() {
               <i className="bi bi-envelope-fill"></i> Correo de contacto
             </label>
             <input
-              id="correo"
+              id="correo" maxLength={150}
               type="email"
               value={correo}
               onChange={(e) => setCorreo(e.target.value)}

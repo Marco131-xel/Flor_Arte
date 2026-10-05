@@ -62,7 +62,7 @@ function CreateUser() {
     setError("");
     setSuccess("");
 
-    if (!name || !email || !password || !idPersona) {
+    if (!name.trim() || !email.trim() || !password.trim() || !idPersona) {
       setError("Todos los campos son obligatorios");
       return;
     }
@@ -71,8 +71,8 @@ function CreateUser() {
       setLoading(true);
 
       await createUser({
-        name,
-        email,
+        name: name.trim(),
+        email: email.trim(),
         password,
         idPersona,
       });
@@ -90,7 +90,7 @@ function CreateUser() {
       console.error("Error al crear usuario:", error);
 
       if (error.response?.data?.error) {
-        setError(error.response.data.error);
+        setError(error.response.data.message || error.response.data.error);
       } else {
         setError("Ocurrió un error al registrar el usuario");
       }
@@ -110,7 +110,7 @@ function CreateUser() {
         {error && <div className="cp-alert cp-alert-error">{error}</div>}
         {success && <div className="cp-alert cp-alert-success">{success}</div>}
 
-        <form className="cp-form" onSubmit={handleSubmit} noValidate>
+        <form className="cp-form" onSubmit={handleSubmit}>
           {/* Persona (rol EMPLEADO, sin usuario todavía) */}
           <div className="cp-field">
             <label htmlFor="idPersona" className="cp-label">
@@ -118,7 +118,7 @@ function CreateUser() {
             </label>
 
             <select
-              id="idPersona"
+              id="idPersona" required
               value={idPersona}
               onChange={handlePersonaChange}
               disabled={loading || cargandoDatos || empleadosDisponibles.length === 0}
@@ -130,7 +130,7 @@ function CreateUser() {
 
               {empleadosDisponibles.map((persona) => (
                 <option key={persona.idPersona} value={persona.idPersona}>
-                  {persona.nombre} — {persona.dpi}
+                  {persona.nombre}{persona.dpi ? ` — ${persona.dpi}` : ""}
                 </option>
               ))}
             </select>
@@ -148,7 +148,7 @@ function CreateUser() {
               <i className="bi bi-person-fill"></i> Nombre de usuario
             </label>
             <input
-              id="name"
+              id="name" required minLength={3} maxLength={100}
               type="text"
               value={name}
               onChange={(e) => setName(e.target.value)}
@@ -163,7 +163,7 @@ function CreateUser() {
               <i className="bi bi-envelope-fill"></i> Correo electrónico
             </label>
             <input
-              id="email"
+              id="email" required maxLength={150}
               type="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
@@ -183,7 +183,7 @@ function CreateUser() {
               <i className="bi bi-key-fill"></i> Contraseña
             </label>
             <input
-              id="password"
+              id="password" required minLength={6}
               type="password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}

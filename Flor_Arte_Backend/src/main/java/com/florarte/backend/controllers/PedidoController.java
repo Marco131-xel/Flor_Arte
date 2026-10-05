@@ -1,6 +1,7 @@
 package com.florarte.backend.controllers;
 
 import com.florarte.backend.dtos.PedidoDTO;
+import com.florarte.backend.dtos.EstadoPedidoDTO;
 import com.florarte.backend.dtos.UpdatePedidoCompletoDTO;
 import com.florarte.backend.services.PedidoService;
 import jakarta.validation.Valid;
@@ -46,15 +47,23 @@ public class PedidoController {
         return ResponseEntity.ok(Map.of("message", "Pedido creado exitosamente", "pedido", nuevo));
     }
 
-    // Actualizar un pedido
+    // Seguimiento operativo sin límite de tiempo; solo acepta el nuevo estado.
     @PreAuthorize("hasAnyRole('ADMINISTRADOR', 'EMPLEADO')")
+    @PutMapping("/{id}/estado")
+    public ResponseEntity<?> updateEstado(@PathVariable Integer id, @Valid @RequestBody EstadoPedidoDTO dto) {
+        PedidoDTO actualizado = pedidoService.updateEstado(id, dto.estado());
+        return ResponseEntity.ok(Map.of("message", "Estado actualizado exitosamente", "pedido", actualizado));
+    }
+
+    // Actualizar un pedido
+    @PreAuthorize("@reglasEdicion.editar('pedidos', #id)")
     @PutMapping({"/update/{id}", "/{id}"})
     public ResponseEntity<?> update(@PathVariable Integer id, @Valid @RequestBody PedidoDTO dto) {
         PedidoDTO actualizado = pedidoService.update(id, dto);
         return ResponseEntity.ok(Map.of("message", "Pedido actualizado exitosamente", "pedido", actualizado));
     }
 
-    @PreAuthorize("hasAnyRole('ADMINISTRADOR', 'EMPLEADO')")
+    @PreAuthorize("@reglasEdicion.editar('pedidos', #id)")
     @PutMapping("/update-completo/{id}")
     public ResponseEntity<?> updateCompleto(@PathVariable Integer id,
                                            @Valid @RequestBody UpdatePedidoCompletoDTO dto) {
@@ -63,7 +72,7 @@ public class PedidoController {
     }
 
     // Eliminar un pedido
-    @PreAuthorize("hasAnyRole('ADMINISTRADOR', 'EMPLEADO')")
+    @PreAuthorize("@reglasEdicion.editar('pedidos', #id)")
     @DeleteMapping({"/delete/{id}", "/{id}"})
     public ResponseEntity<?> delete(@PathVariable Integer id) {
         pedidoService.deleteById(id);

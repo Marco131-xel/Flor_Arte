@@ -1,8 +1,8 @@
-import { useEffect, useMemo, useState } from "react";
+import {usePagina} from "../../../hooks/usePagina";
+import { useState } from "react";
 import type { FormEvent } from "react";
 import { useNavigate } from "react-router-dom";
 import {
-  getTiposFlor,
   createTipoFlor,
   updateTipoFlor,
   deleteTipoFlor,
@@ -12,12 +12,11 @@ import type { TipoFlor as TipoFlorType, NewTipoFlor } from "../../../types/flor"
 function TipoFlor() {
   const navigate = useNavigate();
 
-  const [tiposFlor, setTiposFlor] = useState<TipoFlorType[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-
-  // buscador
-  const [busqueda, setBusqueda] = useState("");
+  const {filtros,cambiar,data,cargando:loading,error:errorPagina,recargar} = usePagina("tipoflor");
+  const tiposFlor:TipoFlorType[] = (data?.contenido || []).map(tipo=>({idTipoFlor:tipo.id,nombre:tipo.nombre,descripcion:tipo.descripcion||"",imagenUrl:tipo.imagen||""}));
+  const [error,setError]=useState<string|null>(null);
+  const busqueda=filtros.q;
+  const setBusqueda=(q:string)=>cambiar({q});
 
   // modal ver
   const [tipoFlorVer, setTipoFlorVer] = useState<TipoFlorType | null>(null);
@@ -35,39 +34,14 @@ function TipoFlor() {
   const [errorForm, setErrorForm] = useState<string | null>(null);
   const [guardandoForm, setGuardandoForm] = useState(false);
 
-  useEffect(() => {
-    cargarTiposFlor();
-  }, []);
-
-  const cargarTiposFlor = async () => {
-    try {
-      setLoading(true);
-      setError(null);
-      const data = await getTiposFlor();
-      setTiposFlor(data);
-    } catch (err) {
-      setError("No se pudieron cargar los tipos de flor.");
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const tiposFlorFiltrados = useMemo(() => {
-    const termino = busqueda.trim().toLowerCase();
-    if (!termino) return tiposFlor;
-    return tiposFlor.filter((t) => t.nombre.toLowerCase().includes(termino));
-  }, [tiposFlor, busqueda]);
-
   const handleEliminar = async () => {
     if (!tipoFlorEliminar) return;
     try {
       setEliminando(true);
       await deleteTipoFlor(tipoFlorEliminar.idTipoFlor);
-      setTiposFlor((prev) =>
-        prev.filter((t) => t.idTipoFlor !== tipoFlorEliminar.idTipoFlor)
-      );
+      recargar();
       setTipoFlorEliminar(null);
-    } catch (err) {
+    } catch {
       setError("No se pudo eliminar el tipo de flor.");
     } finally {
       setEliminando(false);
@@ -120,12 +94,9 @@ function TipoFlor() {
       } else {
         await createTipoFlor(datos);
       }
-      // Se vuelve a pedir la lista completa al backend en vez de confiar en
-      // la forma del objeto que devuelve el endpoint de guardado, para
-      // evitar romper el render si la respuesta viene incompleta.
-      await cargarTiposFlor();
+      recargar();
       setFormAbierto(false);
-    } catch (err) {
+    } catch {
       setErrorForm(
         tipoEditando
           ? "No se pudo actualizar el tipo de flor."
@@ -178,20 +149,18 @@ function TipoFlor() {
       </div>
 
       {/* ERROR */}
-      {error && <div className="tipoflor-error-box">{error}</div>}
+      {(error || errorPagina) && <div className="tipoflor-error-box" role="alert">{error || errorPagina}</div>}
 
       {/* CONTENIDO */}
       {loading ? (
         <div className="tipoflor-state-box">Cargando tipos de flor...</div>
       ) : tiposFlor.length === 0 ? (
-        <div className="tipoflor-state-box">No hay tipos de flor registrados.</div>
-      ) : tiposFlorFiltrados.length === 0 ? (
         <div className="tipoflor-state-box">
           No se encontraron tipos de flor con "{busqueda}".
         </div>
       ) : (
         <div className="tipoflor-grid">
-          {tiposFlorFiltrados.map((tipo) => (
+          {tiposFlor.map((tipo) => (
             <div key={tipo.idTipoFlor} className="tipoflor-card">
               <div className="tipoflor-card-img-box">
                 {tipo.imagenUrl ? (
@@ -227,18 +196,20 @@ function TipoFlor() {
                 >
                   <i className="bi bi-pencil-square"></i>
                 </button>
-                <button
+                {localStorage.getItem("role") === "ADMINISTRADOR" && (<button
                   className="tipoflor-icon-btn tipoflor-icon-btn-delete"
                   title="Eliminar"
                   onClick={() => setTipoFlorEliminar(tipo)}
                 >
                   <i className="bi bi-trash3"></i>
-                </button>
+                </button>)}
               </div>
             </div>
           ))}
         </div>
       )}
+
+      <footer className="fa-pagination"><label>Mostrar <select aria-label="Tipos por página" value={filtros.tamano} onChange={e=>cambiar({tamano:Number(e.target.value)})}>{[10,20,50].map(n=><option key={n}>{n}</option>)}</select> por página</label><p aria-live="polite">{data ? `${data.totalElementos ? data.pagina*data.tamano+1 : 0}–${Math.min((data.pagina+1)*data.tamano,data.totalElementos)} de ${data.totalElementos}` : "…"}</p><nav aria-label="Paginación del catálogo"><button className="fa-icon-button" aria-label="Página anterior" disabled={loading||!data||data.pagina===0} onClick={()=>cambiar({pagina:(data?.pagina||0)-1})}><i className="bi bi-chevron-left" aria-hidden="true"/></button><span>{data ? `${data.pagina+1} / ${Math.max(1,data.totalPaginas)}` : "…"}</span><button className="fa-icon-button" aria-label="Página siguiente" disabled={loading||!data||data.pagina+1>=data.totalPaginas} onClick={()=>cambiar({pagina:(data?.pagina||0)+1})}><i className="bi bi-chevron-right" aria-hidden="true"/></button></nav></footer>
 
       {/* MODAL VER */}
       {tipoFlorVer && (
@@ -278,11 +249,7 @@ function TipoFlor() {
                 </span>
               </div>
             </div>
-            <div className="tipoflor-modal-footer">
-              <button className="tipoflor-btn-secondary" onClick={() => setTipoFlorVer(null)}>
-                Cerrar
-              </button>
-            </div>
+
           </div>
         </div>
       )}
@@ -312,6 +279,8 @@ function TipoFlor() {
                     type="text"
                     className="tipoflor-form-input"
                     placeholder="Ej. Tulipán"
+                    maxLength={100}
+                    required
                     value={nombreForm}
                     onChange={(e) => setNombreForm(e.target.value)}
                     autoFocus

@@ -54,7 +54,7 @@ public class PersonaController {
     }
 
     // eliminar una persona
-    @PreAuthorize("hasAnyRole('ADMINISTRADOR', 'EMPLEADO')")
+    @PreAuthorize("hasRole('ADMINISTRADOR')")
     @DeleteMapping("/delete/{id}")
     public ResponseEntity<?> deletePersona(@PathVariable Long id) {
         personaService.deleteById(id);

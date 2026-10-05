@@ -176,13 +176,13 @@ const handleGuardarColor = async (e: FormEvent) => {
                 >
                   <i className="bi bi-pencil-square"></i>
                 </button>
-                <button
+                {localStorage.getItem("role") === "ADMINISTRADOR" && (<button
                   className="color-icon-btn color-icon-btn-delete"
                   title="Eliminar"
                   onClick={() => setColorEliminar(color)}
                 >
                   <i className="bi bi-trash3"></i>
-                </button>
+                </button>)}
               </div>
             </div>
           ))}
@@ -209,11 +209,7 @@ const handleGuardarColor = async (e: FormEvent) => {
                 <span className="color-info-value">{colorVer.nombre}</span>
               </div>
             </div>
-            <div className="color-modal-footer">
-              <button className="color-btn-secondary" onClick={() => setColorVer(null)}>
-                Cerrar
-              </button>
-            </div>
+
           </div>
         </div>
       )}
@@ -242,6 +238,7 @@ const handleGuardarColor = async (e: FormEvent) => {
                     type="text"
                     className="color-form-input"
                     placeholder="Ej. Rosa fucsia"
+                    required maxLength={50}
                     value={nombreForm}
                     onChange={(e) => setNombreForm(e.target.value)}
                     autoFocus

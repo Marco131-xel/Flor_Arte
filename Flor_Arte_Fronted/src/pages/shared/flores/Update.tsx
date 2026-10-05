@@ -1,3 +1,4 @@
+import CampoNumero from "../../../components/shared/CampoNumero";
 import { useEffect, useRef, useState } from "react";
 import type { FormEvent, KeyboardEvent } from "react";
 import { useNavigate, useParams } from "react-router-dom";
@@ -137,8 +138,8 @@ function UpdateFlores() {
       return;
     }
 
-    if (Number(form.precio) < 0 || Number(form.stock) < 0) {
-      setError("El precio y el stock no pueden ser negativos.");
+    if (!Number.isFinite(Number(form.precio)) || Number(form.precio) < 0 || !Number.isInteger(Number(form.stock)) || Number(form.stock) < 0) {
+      setError("Ingresa un precio válido y un stock entero no negativo.");
       return;
     }
 
@@ -320,11 +321,11 @@ function UpdateFlores() {
                 {/* PRECIO */}
                 <div className="crear-flor-field">
                   <label className="crear-flor-label" htmlFor="precio">
-                    <i className="bi bi-coin"></i> Precio (Q)
+                    <i className="bi bi-coin"></i> Precio (Q) *
                   </label>
-                  <input
-                    id="precio"
-                    type="number"
+                  <CampoNumero
+                    id="precio" required max="99999999.99"
+
                     min="0"
                     step="0.01"
                     placeholder="0.00"
@@ -338,11 +339,11 @@ function UpdateFlores() {
                 {/* STOCK */}
                 <div className="crear-flor-field">
                   <label className="crear-flor-label" htmlFor="stock">
-                    <i className="bi bi-boxes"></i> Stock
+                    <i className="bi bi-boxes"></i> Stock *
                   </label>
-                  <input
-                    id="stock"
-                    type="number"
+                  <CampoNumero
+                    id="stock" required max="2147483647"
+
                     min="0"
                     step="1"
                     placeholder="0"

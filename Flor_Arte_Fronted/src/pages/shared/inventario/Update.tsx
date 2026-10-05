@@ -1,3 +1,4 @@
+import CampoNumero from "../../../components/shared/CampoNumero";
 import { useEffect, useMemo, useRef, useState } from "react";
 import type { FormEvent, KeyboardEvent, ReactNode } from "react";
 import { useNavigate, useParams } from "react-router-dom";
@@ -321,8 +322,10 @@ function UpdateInventario() {
     if (!idPersona) return setError("Selecciona un proveedor.");
     if (detalles.length === 0)
       return setError("Agrega al menos una flor a la entrada.");
-    if (detalles.some((d) => d.cantidad <= 0))
-      return setError("Todas las cantidades deben ser mayores que 0.");
+    if (detalles.some((d) => !Number.isInteger(d.cantidad) || d.cantidad <= 0))
+      return setError("Todas las cantidades deben ser enteros mayores que 0.");
+    if (detalles.some((d) => !Number.isFinite(d.precioCompra) || d.precioCompra < 0))
+      return setError("Todos los precios deben ser válidos y no negativos.");
 
     try {
       setGuardando(true);
@@ -425,9 +428,9 @@ function UpdateInventario() {
               <label className="ci-label" htmlFor="cantidad">
                 <i className="bi bi-boxes" aria-hidden="true"></i> Cantidad
               </label>
-              <input
+              <CampoNumero
                 id="cantidad"
-                type="number"
+
                 min="1"
                 step="1"
                 inputMode="numeric"
@@ -444,9 +447,9 @@ function UpdateInventario() {
                 <i className="bi bi-coin" aria-hidden="true"></i> Precio de
                 compra
               </label>
-              <input
+              <CampoNumero
                 id="precioCompra"
-                type="number"
+
                 min="0"
                 step="0.01"
                 inputMode="decimal"
@@ -511,8 +514,8 @@ function UpdateInventario() {
                         <td className="ci-td-flor">{d.nombreFlor}</td>
 
                         <td className="ci-col-num">
-                          <input
-                            type="number"
+                          <CampoNumero required
+
                             min="1"
                             step="1"
                             className="ci-input-mini"
@@ -526,8 +529,8 @@ function UpdateInventario() {
                         </td>
 
                         <td className="ci-col-num">
-                          <input
-                            type="number"
+                          <CampoNumero required
+
                             min="0"
                             step="0.01"
                             className="ci-input-mini"

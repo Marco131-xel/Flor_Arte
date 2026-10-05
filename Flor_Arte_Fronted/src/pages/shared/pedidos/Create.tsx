@@ -1,3 +1,4 @@
+import CampoNumero from "../../../components/shared/CampoNumero";
 import { useEffect, useMemo, useRef, useState } from "react";
 import type { FormEvent, KeyboardEvent, ReactNode } from "react";
 import { useNavigate } from "react-router-dom";
@@ -349,8 +350,10 @@ function CreatePedido() {
       );
     if (detalles.length === 0)
       return setError("Agrega al menos una flor al pedido.");
-    if (detalles.some((d) => d.cantidad <= 0))
-      return setError("Todas las cantidades deben ser mayores que 0.");
+    if (detalles.some((d) => !Number.isInteger(d.cantidad) || d.cantidad <= 0))
+      return setError("Todas las cantidades deben ser enteros mayores que 0.");
+    if (detalles.some((d) => !Number.isFinite(d.precio) || d.precio < 0))
+      return setError("Todos los precios deben ser válidos y no negativos.");
     if (detalles.some((d) => d.cantidad > d.stock))
       return setError(
         "Alguna flor supera el stock disponible. Ajusta la cantidad."
@@ -436,9 +439,9 @@ function CreatePedido() {
               <label className="ci-label" htmlFor="cantidad">
                 <i className="bi bi-boxes" aria-hidden="true"></i> Cantidad
               </label>
-              <input
+              <CampoNumero
                 id="cantidad"
-                type="number"
+
                 min="1"
                 step="1"
                 inputMode="numeric"
@@ -462,9 +465,9 @@ function CreatePedido() {
                 <i className="bi bi-coin" aria-hidden="true"></i> Precio de
                 venta
               </label>
-              <input
+              <CampoNumero
                 id="precio"
-                type="number"
+
                 min="0"
                 step="0.01"
                 inputMode="decimal"
@@ -532,8 +535,8 @@ function CreatePedido() {
                         <td className="ci-td-flor">{d.nombreFlor}</td>
 
                         <td className="ci-col-num">
-                          <input
-                            type="number"
+                          <CampoNumero required
+
                             min="1"
                             max={d.stock}
                             step="1"
@@ -552,8 +555,8 @@ function CreatePedido() {
                         </td>
 
                         <td className="ci-col-num">
-                          <input
-                            type="number"
+                          <CampoNumero required
+
                             min="0"
                             step="0.01"
                             className="ci-input-mini"

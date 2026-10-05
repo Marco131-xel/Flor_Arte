@@ -1,3 +1,4 @@
+import CampoNumero from "../../../components/shared/CampoNumero";
 import { useEffect, useMemo, useRef, useState } from "react";
 import type { FormEvent, KeyboardEvent, ReactNode } from "react";
 import { useNavigate, useParams } from "react-router-dom";
@@ -523,9 +524,9 @@ function UpdatePedidos() {
               <label className="ci-label" htmlFor="cantidad">
                 <i className="bi bi-boxes" aria-hidden="true"></i> Cantidad
               </label>
-              <input
+              <CampoNumero
                 id="cantidad"
-                type="number"
+
                 min="1"
                 step="1"
                 inputMode="numeric"
@@ -549,9 +550,9 @@ function UpdatePedidos() {
                 <i className="bi bi-coin" aria-hidden="true"></i> Precio de
                 venta
               </label>
-              <input
+              <CampoNumero
                 id="precio"
-                type="number"
+
                 min="0"
                 step="0.01"
                 inputMode="decimal"
@@ -616,8 +617,8 @@ function UpdatePedidos() {
                         <td className="ci-td-flor">{d.nombreFlor}</td>
 
                         <td className="ci-col-num">
-                          <input
-                            type="number"
+                          <CampoNumero required
+
                             min="1"
                             max={estado === "CANCELADO" ? undefined : d.stock}
                             step="1"
@@ -636,8 +637,8 @@ function UpdatePedidos() {
                         </td>
 
                         <td className="ci-col-num">
-                          <input
-                            type="number"
+                          <CampoNumero required
+
                             min="0"
                             step="0.01"
                             className="ci-input-mini"

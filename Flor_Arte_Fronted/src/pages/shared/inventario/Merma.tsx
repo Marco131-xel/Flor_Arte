@@ -1,3 +1,4 @@
+import CampoNumero from "../../../components/shared/CampoNumero";
 import { useEffect, useMemo, useRef, useState } from "react";
 import type { FormEvent, KeyboardEvent } from "react";
 import { useNavigate } from "react-router-dom";
@@ -282,9 +283,9 @@ function Merma() {
                 <i className="bi bi-boxes" aria-hidden="true"></i> Cantidad a
                 dar de baja
               </label>
-              <input
+              <CampoNumero
                 id="cantidad"
-                type="number"
+
                 min="1"
                 step="1"
                 inputMode="numeric"

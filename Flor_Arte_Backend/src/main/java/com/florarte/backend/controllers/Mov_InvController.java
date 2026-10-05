@@ -45,7 +45,7 @@ public class Mov_InvController {
     }
 
     // Crear un movimiento de inventario
-    @PreAuthorize("hasAnyRole('ADMINISTRADOR', 'EMPLEADO')")
+    @PreAuthorize("hasRole('ADMINISTRADOR') or (hasRole('EMPLEADO') and #dto.motivo == 'MERMA' and #dto.tipoMovimiento == 'SALIDA')")
     @PostMapping("/create")
     public ResponseEntity<?> create(@Valid @RequestBody Movimiento_InventarioDTO dto) {
         Movimiento_InventarioDTO nuevo = movInvService.save(dto);
@@ -53,7 +53,7 @@ public class Mov_InvController {
     }
 
     // Actualizar un movimiento de inventario
-    @PreAuthorize("hasAnyRole('ADMINISTRADOR', 'EMPLEADO')")
+    @PreAuthorize("@reglasEdicion.merma(#id, #dto.motivo, #dto.tipoMovimiento)")
     @PutMapping({"/update/{id}", "/{id}"})
     public ResponseEntity<?> update(@PathVariable Integer id, @Valid @RequestBody Movimiento_InventarioDTO dto) {
         Movimiento_InventarioDTO actualizado = movInvService.update(id, dto);
@@ -61,7 +61,7 @@ public class Mov_InvController {
     }
 
     // Eliminar un movimiento de inventario
-    @PreAuthorize("hasAnyRole('ADMINISTRADOR', 'EMPLEADO')")
+    @PreAuthorize("@reglasEdicion.merma(#id, 'MERMA', 'SALIDA')")
     @DeleteMapping({"/delete/{id}", "/{id}"})
     public ResponseEntity<?> delete(@PathVariable Integer id) {
         movInvService.deleteById(id);
