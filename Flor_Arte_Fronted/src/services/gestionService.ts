@@ -1,10 +1,10 @@
 import { api } from "./apiService";
 
-export type Modulo = "tipoflor" | "flores" | "pedidos" | "inventario" | "mermas" | "personas" | "usuarios";
+export type Modulo = "arreglos" | "pedidosArreglos" | "tipoflor" | "flores" | "pedidos" | "inventario" | "mermas" | "personas" | "usuarios";
 export interface Registro {
-  id: number; nombre: string; descripcion?: string; secundario?: string | null; estado?: string | boolean;
+  id: number; nombre: string; descripcion?: string; secundario?: string | null; responsable?: string | null; estado?: string | boolean;
   fecha?: string; total?: number; precio?: number; stock?: number; cantidad?: number;
-  correo?: string; telefono?: string; dpi?: string; rol?: string; imagen?: string;
+  correo?: string; telefono?: string; dpi?: string; rol?: string; imagen?: string; imagenUrl?: string | null;
   idPersona?: number; idFlor?: number; creadoEn?: string; editableHasta?: string; puedeEditar?: boolean;
 }
 export interface Pagina {
@@ -12,8 +12,12 @@ export interface Pagina {
   resumen: { registros: number; importe: number; unidades: number }; horaServidor: string;
 }
 export interface Filtros { pagina: number; tamano: number; q: string; mes: string; estado: string; rol: string; orden: string }
-export const cargarPagina = async (modulo: Modulo, filtros: Filtros, signal?: AbortSignal) =>
-  (await api.get<Pagina>(`/gestion/${modulo}/pagina`, { params: filtros, signal })).data;
+export const cargarPagina = async (modulo: Modulo, filtros: Filtros, signal?: AbortSignal) => {
+  const { data } = await api.get<Pagina>(`/gestion/${modulo}/pagina`, { params: filtros, signal });
+  return { ...data, contenido: data.contenido.map(registro => ({
+    ...registro, imagen: registro.imagen?.trim() || registro.imagenUrl?.trim() || undefined,
+  })) };
+};
 export const mensajeError = (error: unknown) => {
   const mensaje = (error as { response?: { data?: { message?: unknown } } })?.response?.data?.message;
   return typeof mensaje === "string" ? mensaje : "No se pudo completar la operación. Revisa la conexión e intenta de nuevo.";

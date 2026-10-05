@@ -1,0 +1,1 @@
+ALTER TABLE arreglo ADD COLUMN imagen_url VARCHAR(2048);

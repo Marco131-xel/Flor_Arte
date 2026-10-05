@@ -36,7 +36,7 @@ sus servicios de catálogo existentes.
 
 Este frontend requiere los cambios correspondientes de `Flor_Arte_Backend`.
 Reinicia el backend para que Flyway aplique
-las migraciones pendientes, incluidas V9 y V10, y reinicia el frontend.
+las migraciones pendientes, incluidas V9, V10, V11 y V12, y reinicia el frontend.
 
 Los campos opcionales de persona (DPI, correo y teléfono) se normalizan a `null`
 cuando están vacíos. La migración V10 corrige los valores vacíos anteriores.
@@ -70,6 +70,45 @@ En el backend, las pruebas `PersonaOpcionalesTest`, `ReglasEdicionTest`, `MermaS
 `-Dflorarte.test.db=jdbc:postgresql://127.0.0.1:PUERTO/florarte_test` y el usuario
 `florarte_test`. Úsalo con una instancia temporal: reinicia el esquema `public`
 de esa base antes de cada prueba. Sin esa propiedad se omite esa prueba.
+
+## Arreglos
+
+Administrador y empleado comparten el módulo **Arreglos**, con pestañas para
+el catálogo y sus pedidos. Incluye creación, edición, detalle y eliminación,
+paginación en el servidor y filtros de mes y estado en los pedidos.
+Los selectores de flores, clientes y arreglos también consultan páginas, con búsqueda.
+
+La migración V11 adapta la propuesta de base de datos: las referencias a persona
+usan `BIGINT`; los registros tienen `creado_en` para controlar los permisos;
+cada pedido guarda cantidad, nombre, precio unitario y total.
+La migración V12 agrega `imagen_url` opcional a `arreglo`; la API lo expone como
+`imagenUrl`. Crear y editar permiten guardar una URL HTTP o HTTPS de hasta 2048
+caracteres y ver una vista previa. El catálogo y los pedidos muestran la imagen
+actual del arreglo; cambiarla también actualiza su visualización en pedidos existentes.
+`detalle_pedido_arreglo` conserva las flores y cantidades por unidad del momento
+de la venta. Así, editar la composición o el precio del catálogo no cambia pedidos anteriores.
+
+Crear un arreglo define un producto y **no consume stock**. Registrar su pedido
+reserva las flores inmediatamente, igual que los pedidos de flores. Cancelar o
+eliminar devuelve las flores; reactivar vuelve a descontarlas si hay existencias.
+Modificar la cantidad ajusta únicamente la diferencia. El backend calcula los
+importes y realiza stock, movimientos y pedido en una misma transacción.
+No se puede eliminar un arreglo con pedidos registrados.
+
+La capacidad mostrada es la cantidad posible de **cada arreglo** según las flores
+disponibles. Las capacidades de distintos arreglos no se suman: pueden compartir flores.
+El empleado edita o elimina durante 30 minutos desde la creación y puede cambiar
+el estado del pedido en cualquier momento. El administrador no tiene ese límite temporal.
+
+API: `GET /arreglo/{id}`, `POST /arreglo/create`, `PUT /arreglo/update/{id}`,
+`DELETE /arreglo/delete/{id}`; las mismas operaciones para `/pedido_arreglo`, más
+`PUT /pedido_arreglo/{id}/estado` con `{ "estado": "CONFIRMADO" }`.
+Los listados usan `/gestion/arreglos/pagina` y `/gestion/pedidosArreglos/pagina`.
+
+`ArregloTest` comprueba reservas, cancelaciones, historial, permisos, paginación,
+reversión de transacciones y ventas simultáneas en PostgreSQL temporal.
+La prueba de arranque también exige `florarte.test.db` y utiliza esa conexión,
+sin cargar la base configurada para el uso normal del sistema.
 
 ## Notas de la plantilla React + TypeScript + Vite
 

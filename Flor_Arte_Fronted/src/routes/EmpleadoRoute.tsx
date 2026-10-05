@@ -20,7 +20,6 @@ export const EmpleadoRoutes = () => (
     }>
         {/* PAGINA DE INICIO */}
         <Route index element={<InicioEmpleado />}/>
-        <Route path="arreglos" element={<ModuloPendiente nombre="Arreglos" inicio="/empleado" />} />
         <Route path="eventos" element={<ModuloPendiente nombre="Eventos" inicio="/empleado" />} />
         <Route path="reportes" element={<ModuloPendiente nombre="Reportes" inicio="/empleado" />} />
         <Route path="recibos" element={<ModuloPendiente nombre="Recibos" inicio="/empleado" />} />

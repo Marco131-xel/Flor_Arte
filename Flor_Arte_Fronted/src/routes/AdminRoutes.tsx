@@ -22,7 +22,6 @@ export const AdminRoutes = () => (
     }>
         <Route index element={<InicioAdmin />}/>
         {GestionRoutes()}
-        <Route path="arreglos" element={<ModuloPendiente nombre="Arreglos" inicio="/admin" />} />
         <Route path="eventos" element={<ModuloPendiente nombre="Eventos" inicio="/admin" />} />
         <Route path="reportes" element={<ModuloPendiente nombre="Reportes" inicio="/admin" />} />
         <Route path="recibos" element={<ModuloPendiente nombre="Recibos" inicio="/admin" />} />

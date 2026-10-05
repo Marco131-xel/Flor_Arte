@@ -1,3 +1,6 @@
+import IndexArreglos from "../pages/shared/arreglos/Index";
+import FormularioArreglo from "../pages/shared/arreglos/Formulario";
+import FormularioPedidoArreglo from "../pages/shared/arreglos/PedidoFormulario";
 import PermisoEdicion from "../components/shared/PermisoEdicion";
 import EditarMerma from "../pages/shared/inventario/EditarMerma";
 import { Route } from "react-router-dom";
@@ -17,6 +20,16 @@ import UpdatePedidos from "../pages/shared/pedidos/Update";
 // Cada panel monta estas rutas dentro de su propio layout y protección de rol.
 export const GestionRoutes = () => (
   <>
+    <Route path="arreglos">
+      <Route index element={<IndexArreglos />} />
+      <Route path="create" element={<FormularioArreglo />} />
+      <Route path="update/:id" element={<PermisoEdicion modulo="arreglos"><FormularioArreglo editar /></PermisoEdicion>} />
+      <Route path="pedidos">
+        <Route index element={<IndexArreglos pedidos />} />
+        <Route path="create" element={<FormularioPedidoArreglo />} />
+        <Route path="update/:id" element={<PermisoEdicion modulo="pedidosArreglos"><FormularioPedidoArreglo editar /></PermisoEdicion>} />
+      </Route>
+    </Route>
     <Route path="flores">
       <Route index element={<IndexFlores />} />
       <Route path="create" element={<CreateFlor />} />

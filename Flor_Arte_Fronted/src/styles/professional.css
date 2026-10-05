@@ -239,3 +239,22 @@ button:disabled { cursor: not-allowed; opacity: .5; }
 .fa-month-grid button:hover, .fa-month-grid button[aria-pressed="true"] { background: var(--fa-primary); color: white; }
 .fa-state-button { min-height: 34px; padding: 7px 9px; font-size: .72rem; }
 @media(max-width:640px) { .fa-month-trigger,.fa-year-picker select { font-size: 16px; } .fa-state-button { min-height: 42px; } }
+
+.fa-tabs a { padding: 10px 18px; border-radius: 9px; color: var(--fa-ink-dim); text-decoration: none; font-size: .85rem; }
+.fa-tabs a.active { background: white; color: var(--fa-primary); font-weight: 700; box-shadow: 0 2px 8px #2222220b; }
+.fa-arr-editor .fa-field { max-width: none; }
+.fa-arr-fields { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 22px; margin-bottom: 28px; }
+.fa-arr-fields .fa-full { grid-column: 1/-1; }
+.fa-fieldset { border: 0; padding: 0; margin: 0; min-width: 0; }
+.fa-arr-add { display: grid; grid-template-columns: minmax(0,2fr) minmax(0,1fr) auto; gap: 14px; align-items: end; margin-bottom: 22px; }
+.fa-record-select { position: relative; min-width: 0; }
+.fa-select-trigger { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 10px 12px; min-height: 42px; background: white; border: 1px solid #dcded1; border-radius: 9px; color: var(--fa-ink); text-align: left; font-size: .83rem; }
+.fa-select-panel { position: absolute; top: 100%; left: 0; width: 100%; min-width: min(280px,100%); background: white; border: 1px solid var(--fa-border); border-radius: 12px; box-shadow: 0 12px 35px #18221425; z-index: 20; padding: 12px; margin-top: 5px; }
+.fa-select-results { max-height: 240px; overflow: auto; margin-block: 8px; }
+.fa-select-results > button { width: 100%; border: 0; background: white; padding: 12px 7px; text-align: left; border-radius: 8px; display: grid; gap: 4px; font-size: .8rem; }
+.fa-select-results > button:hover { background: #eef2e5; }
+.fa-select-results small { color: var(--fa-ink-dim); }
+.fa-select-panel nav { display: flex; justify-content: space-between; align-items: center; }
+.fa-select-panel nav button { background: #f2f5e9; border: 0; border-radius: 6px; width: 36px; height: 36px; }
+.fa-quantity { max-width: 120px; }
+@media(max-width:640px) { .fa-arr-fields,.fa-arr-add { grid-template-columns: minmax(0,1fr); } .fa-select-trigger,.fa-select-panel input { font-size: 16px; } .fa-tabs a { flex: 1; text-align: center; } }

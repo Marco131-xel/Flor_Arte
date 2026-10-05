@@ -1,6 +1,7 @@
 package com.florarte.backend.controllers;
 
 import com.florarte.backend.services.ReglasEdicion;
+import com.florarte.backend.services.ArregloService;
 import java.sql.Timestamp;
 import java.time.Instant;
 import java.time.YearMonth;
@@ -24,6 +25,10 @@ public class GestionController {
                             String fecha, String importe, String unidades, String creado, String inicial) {}
     private Consulta consulta(String tipo) {
         return switch(tipo) {
+            case "arreglos" -> new Consulta("a.id_arreglo AS id,a.nombre,a.descripcion,a.imagen_url AS imagen,a.precio,"+ArregloService.CAPACIDAD_SQL+" AS stock",
+                "arreglo a", "a.id_arreglo", "a.nombre", "concat(a.nombre,' ',a.descripcion,' ',a.id_arreglo)", null, null, null, "a.creado_en", "1=1");
+            case "pedidosArreglos" -> new Consulta("p.id_pedido_arreglo AS id,c.nombre,p.nombre_arreglo AS secundario,e.nombre AS responsable,p.cantidad,p.precio_unitario AS precio,p.total,p.fecha,p.estado,a.imagen_url AS imagen",
+                "pedido_arreglo p JOIN arreglo a ON a.id_arreglo=p.id_arreglo JOIN persona c ON c.id_persona=p.id_cliente LEFT JOIN persona e ON e.id_persona=p.id_empleado", "p.id_pedido_arreglo", "c.nombre", "concat(c.nombre,' ',p.nombre_arreglo,' ',p.id_pedido_arreglo)", "p.fecha", "p.total", "p.cantidad", "p.creado_en", "1=1");
             case "tipoflor" -> new Consulta("t.id_tipo_flor AS id, t.nombre, t.descripcion, t.imagen_url AS imagen",
                 "tipo_flor t", "t.id_tipo_flor", "t.nombre", "concat(t.nombre, ' ', t.descripcion)", null, null, null, null, "1=1");
             case "flores" -> new Consulta("f.id_flor AS id, t.nombre AS nombre, c.nombre AS secundario, f.precio, f.stock, f.estado, t.imagen_url AS imagen",
@@ -75,7 +80,7 @@ public class GestionController {
             where += " AND " + c.fecha() + " >= :desde AND " + c.fecha() + " < :hasta";
         }
         if (!estado.isBlank()) {
-            if (tipo.equals("pedidos")) { where += " AND p.estado=:estado"; parametros.put("estado", estado); }
+            if (Set.of("pedidos","pedidosArreglos").contains(tipo)) { where += " AND p.estado=:estado"; parametros.put("estado", estado); }
             else if (tipo.equals("flores")) {
                 where += switch(estado) { case "activa" -> " AND f.estado=true"; case "inactiva" -> " AND f.estado=false"; case "bajo" -> " AND f.estado=true AND f.stock BETWEEN 1 AND 5"; case "agotada" -> " AND f.estado=true AND f.stock=0"; default -> throw new IllegalArgumentException("Filtro inválido"); };
             } else if (tipo.equals("usuarios")) {
@@ -119,6 +124,8 @@ public class GestionController {
         List<Map<String,Object>> resultado = new ArrayList<>();
         for (var p : jdbc.queryForList("SELECT p.id_pedido, c.nombre FROM pedido p JOIN persona c ON c.id_persona=p.id_cliente WHERE p.estado='PENDIENTE' ORDER BY p.fecha DESC,p.id_pedido DESC LIMIT 5", Map.of()))
             resultado.add(Map.of("id","pedido-"+p.get("id_pedido"),"tipo","pedido","titulo","Pedido pendiente","detalle","Pedido #"+p.get("id_pedido")+" · "+p.get("nombre"),"ruta",base+"/pedidos"));
+        for(var p:jdbc.queryForList("SELECT p.id_pedido_arreglo,c.nombre FROM pedido_arreglo p JOIN persona c ON c.id_persona=p.id_cliente WHERE p.estado='PENDIENTE' ORDER BY p.fecha DESC,p.id_pedido_arreglo DESC LIMIT 5",Map.of()))
+            resultado.add(Map.of("id","pedido-arreglo-"+p.get("id_pedido_arreglo"),"tipo","pedido","titulo","Pedido de arreglo pendiente","detalle","Pedido #"+p.get("id_pedido_arreglo")+" · "+p.get("nombre"),"ruta",base+"/arreglos/pedidos"));
         for (var f : jdbc.queryForList("SELECT f.id_flor,f.stock,concat(t.nombre,' ',c.nombre) AS nombre FROM flor f JOIN tipo_flor t ON t.id_tipo_flor=f.id_tipo_flor JOIN color c ON c.id_color=f.id_color WHERE f.estado=true AND f.stock<=5 ORDER BY f.stock,f.id_flor LIMIT 5",Map.of()))
             resultado.add(Map.of("id","stock-"+f.get("id_flor")+"-"+f.get("stock"),"tipo","stock","titulo","Stock bajo","detalle",f.get("nombre")+": "+f.get("stock")+" unidades","ruta",base+"/flores"));
         if (reglas.administrador()) {
@@ -132,7 +139,7 @@ public class GestionController {
     @GetMapping("/resumen")
     public Map<String,Object> resumen() {
         Map<String,Object> resultado=new HashMap<>();
-        resultado.put("pedidos",jdbc.queryForObject("SELECT count(*) FROM pedido WHERE estado='PENDIENTE'",Map.of(),Long.class));
+        resultado.put("pedidos",jdbc.queryForObject("SELECT (SELECT count(*) FROM pedido WHERE estado='PENDIENTE') + (SELECT count(*) FROM pedido_arreglo WHERE estado='PENDIENTE')",Map.of(),Long.class));
         if (reglas.administrador()) {
             resultado.put("personas",jdbc.queryForObject("SELECT count(*) FROM persona",Map.of(),Long.class));
             resultado.putAll(jdbc.queryForMap("SELECT count(*) AS usuarios, count(*) FILTER (WHERE estado) AS activos, count(*) FILTER (WHERE NOT estado) AS inactivos FROM usuario",Map.of()));
