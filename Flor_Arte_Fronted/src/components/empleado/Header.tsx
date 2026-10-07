@@ -10,7 +10,7 @@ interface Props {
 
 interface Notificacion {
   id: string; // estable: sirve para saber si ya se leyó
-  tipo: "pedido" | "stock";
+  tipo: "pedido" | "stock" | "evento";
   titulo: string;
   detalle: string;
   ruta: string;
@@ -166,7 +166,7 @@ function Header({ toggleSidebar, sidebarOpen }: Props) {
                 <div className="notif-empty">
                   <i className="bi bi-bell-slash" aria-hidden="true"></i>
                   <p>No hay avisos recientes</p>
-                  <span>Aquí aparecerán los pedidos pendientes y los avisos de stock.</span>
+                  <span>Aquí aparecerán los pedidos pendientes, eventos próximos y avisos de stock.</span>
                 </div>
               ) : (
                 <ul className="notif-list">
@@ -189,7 +189,7 @@ function Header({ toggleSidebar, sidebarOpen }: Props) {
                               className={
                                 n.tipo === "pedido"
                                   ? "bi bi-bag-plus"
-                                  : "bi bi-exclamation-triangle"
+                                  : n.tipo === "evento" ? "bi bi-calendar-event" : "bi bi-exclamation-triangle"
                               }
                             ></i>
                           </span>

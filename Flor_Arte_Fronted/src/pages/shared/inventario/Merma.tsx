@@ -1,3 +1,5 @@
+import {api} from "../../../services/apiService";
+import {dinero} from "../../../services/gestionService";
 import CampoNumero from "../../../components/shared/CampoNumero";
 import { useEffect, useMemo, useRef, useState } from "react";
 import type { FormEvent, KeyboardEvent } from "react";
@@ -30,6 +32,15 @@ function Merma() {
 
   const [idFlor, setIdFlor] = useState<number | null>(null);
   const [cantidad, setCantidad] = useState("");
+  const [costo,setCosto]=useState("");
+  const [cargandoCosto,setCargandoCosto]=useState(false);
+  const [avisoCosto,setAvisoCosto]=useState("");
+  useEffect(()=>{
+    if(idFlor==null)return;
+    const controller=new AbortController();
+    api.get<{costoUnitario:number|null}>(`/movimiento_inventario/costo/${idFlor}`,{signal:controller.signal}).then(({data})=>{if(controller.signal.aborted)return;setCosto(data.costoUnitario==null?"":String(data.costoUnitario));setAvisoCosto(data.costoUnitario==null?"No hay compras previas. Ingresa el costo unitario de compra.":"Costo sugerido: promedio de compras anteriores. Verifícalo antes de guardar.");}).catch(()=>{if(!controller.signal.aborted)setAvisoCosto("No se pudo consultar el costo. Puedes ingresarlo manualmente.");}).finally(()=>{if(!controller.signal.aborted)setCargandoCosto(false);});
+    return()=>controller.abort();
+  },[idFlor]);
 
   const [abierto, setAbierto] = useState(false);
   const [busqueda, setBusqueda] = useState("");
@@ -99,6 +110,7 @@ function Merma() {
   };
 
   const elegirFlor = (id: number) => {
+    if(id!==idFlor){setCosto("");setAvisoCosto("");setCargandoCosto(true);}
     setIdFlor(id);
     setAbierto(false);
     setBusqueda("");
@@ -112,6 +124,8 @@ function Merma() {
     if (!seleccionada) return setError("Selecciona una flor.");
     if (!cantidadValida)
       return setError("Ingresa una cantidad entera mayor que 0.");
+    if(cargandoCosto)return;
+    if(costo.trim()===""||!Number.isFinite(Number(costo))||Number(costo)<0)return setError("Ingresa un costo unitario válido.");
     if (excedeStock)
       return setError(
         `No puedes dar de baja ${cant} unidades: solo hay ${seleccionada.stock} en stock.`
@@ -124,6 +138,7 @@ function Merma() {
         idFlor: seleccionada.id,
         tipoMovimiento: "SALIDA",
         cantidad: cant,
+        costoUnitario:Number(costo),
         motivo: "MERMA",
       });
 
@@ -133,6 +148,7 @@ function Merma() {
           f.idFlor === seleccionada.id ? { ...f, stock: f.stock - cant } : f
         )
       );
+      setCosto("");setAvisoCosto("");setCargandoCosto(false);
       setIdFlor(null);
       setCantidad("");
     } catch (err) {
@@ -286,6 +302,7 @@ function Merma() {
               <CampoNumero
                 id="cantidad"
 
+                required
                 min="1"
                 step="1"
                 inputMode="numeric"
@@ -302,6 +319,8 @@ function Merma() {
               )}
             </div>
           </div>
+
+          <div className="ci-field"><label className="ci-label" htmlFor="merma-costo">Costo unitario de compra (Q) *</label><CampoNumero id="merma-costo" className="ci-input" required min="0" max="9999999999.999999" step="0.000001" value={costo} disabled={cargandoCosto||guardando||!seleccionada} onChange={e=>setCosto(e.target.value)} /><p className="text-secondary small" role="status">{cargandoCosto?"Consultando costo…":avisoCosto}</p>{cantidadValida&&costo!==""&&<p>Pérdida por esta merma: <strong>{dinero(cant*Number(costo))}</strong></p>}<p className="text-secondary small">Se guardará este costo con la merma para conservar su valor histórico.</p></div>
 
           {seleccionada && (
             <div className="ci-warn">

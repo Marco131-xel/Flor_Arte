@@ -32,4 +32,13 @@ public class Movimiento_InventarioDTO {
     private String motivo;
 
     private LocalDateTime fecha;
+
+    @jakarta.validation.constraints.DecimalMin(value="0", message="El costo no puede ser negativo")
+    @jakarta.validation.constraints.Digits(integer=10, fraction=6, message="El costo admite 10 enteros y 6 decimales")
+    private java.math.BigDecimal costoUnitario;
+    private java.math.BigDecimal perdida;
+
+    public Movimiento_InventarioDTO(Integer id,Integer flor,String nombre,String tipo,Integer cantidad,String motivo,LocalDateTime fecha) {
+        this(id,flor,nombre,tipo,cantidad,motivo,fecha,null,null);
+    }
 }

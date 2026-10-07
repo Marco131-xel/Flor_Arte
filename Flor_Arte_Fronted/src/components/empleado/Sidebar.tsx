@@ -58,11 +58,6 @@ function Sidebar({ open }: Props) {
           </NavLink>
         </li>
 
-        <li>
-          <NavLink to="/empleado/reportes" className={linkClass}>
-            <i className="bi bi-bar-chart-line"></i> Consultar Reportes
-          </NavLink>
-        </li>
 
         <li>
           <NavLink to="/empleado/recibos" className={linkClass}>

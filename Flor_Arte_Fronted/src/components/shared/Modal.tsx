@@ -14,11 +14,21 @@ export default function Modal({ titulo, children, cerrar, ocupado = false }: { t
     panel.current?.focus();
     return () => { document.body.style.overflow = overflow; previo?.focus(); };
   }, []);
+  useEffect(() => {
+    const escapar = (event: KeyboardEvent) => {
+      if (event.key !== "Escape" || ocupado) return;
+      const ventanas = document.querySelectorAll(".fa-dialog");
+      if (ventanas[ventanas.length - 1] !== panel.current) return;
+      event.preventDefault();
+      callback.current();
+    };
+    document.addEventListener("keydown", escapar);
+    return () => document.removeEventListener("keydown", escapar);
+  }, [ocupado]);
   return createPortal(
     <div className="fa-overlay" onMouseDown={e => { if (e.target === e.currentTarget && !ocupado) cerrar(); }}>
       <div className="fa-dialog" ref={panel} tabIndex={-1} role="dialog" aria-modal="true" aria-labelledby={id}
         onKeyDown={e => {
-          if (e.key === "Escape" && !ocupado) { e.stopPropagation(); callback.current(); }
           if (e.key === "Tab") {
             const nodos = Array.from(panel.current?.querySelectorAll<HTMLElement>('button:not(:disabled), a[href], input:not(:disabled), select:not(:disabled), textarea:not(:disabled), [tabindex="0"]') ?? []);
             const first = nodos[0], last = nodos[nodos.length - 1];

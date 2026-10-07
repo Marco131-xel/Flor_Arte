@@ -128,7 +128,7 @@ class ArregloTest {
         var resumen=(Map<?,?>)pagina.get("resumen");assertEquals(12,((Number)resumen.get("unidades")).intValue());assertEquals(new BigDecimal("246.00"),resumen.get("importe"));
         assertEquals(0L,c.pagina("pedidosArreglos",0,10,"","2026-09","","","recientes").get("totalElementos"));
         assertEquals(1L,c.pagina("arreglos",0,10,"rosas","","","","nombre").get("totalElementos"));
-        assertEquals(12L,c.resumen().get("pedidos"));assertTrue(c.avisos().stream().anyMatch(n->n.get("ruta").toString().endsWith("/arreglos/pedidos")));
+        assertEquals(0L,c.resumen().get("pedidos"));assertEquals(12L,c.resumen().get("arreglosPendientes"));assertTrue(c.avisos().stream().anyMatch(n->n.get("ruta").toString().endsWith("/arreglos/pedidos")));
     }
     @Test void dtoRechazaObligatoriosVaciosYDecimalesFueraDeRango(){
         try(var factory=Validation.buildDefaultValidatorFactory()){

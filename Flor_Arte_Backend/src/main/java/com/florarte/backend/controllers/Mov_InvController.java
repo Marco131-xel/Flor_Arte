@@ -44,6 +44,14 @@ public class Mov_InvController {
         return ResponseEntity.ok(movInvService.findByFlor(idFlor));
     }
 
+    @PreAuthorize("hasAnyRole('ADMINISTRADOR', 'EMPLEADO')")
+    @GetMapping("/costo/{idFlor}")
+    public Map<String,Object> costo(@PathVariable Integer idFlor) {
+        var resultado=new java.util.HashMap<String,Object>();
+        resultado.put("costoUnitario",movInvService.costoReferencia(idFlor,java.time.LocalDateTime.now(java.time.ZoneId.of("America/Guatemala"))));
+        return resultado;
+    }
+
     // Crear un movimiento de inventario
     @PreAuthorize("hasRole('ADMINISTRADOR') or (hasRole('EMPLEADO') and #dto.motivo == 'MERMA' and #dto.tipoMovimiento == 'SALIDA')")
     @PostMapping("/create")

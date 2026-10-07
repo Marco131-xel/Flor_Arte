@@ -1,17 +1,18 @@
 import { useEffect, useState } from "react";
 import { api } from "../services/apiService";
 
-interface Resumen {
-  personas: number | null;
-  usuarios: number | null;
-  activos: number | null;
-  inactivos: number | null;
-  pedidos: number | null;
+export interface Resumen {
+  personas: number|null; usuarios:number|null; activos:number|null; inactivos:number|null;
+  pedidos:number|null; pedidosProceso:number|null; pedidosListos:number|null;
+  arreglosPendientes:number|null; arreglosProceso:number|null; arreglosListos:number|null;
+  eventos:number|null; eventosHoy:number|null; eventosPorCobrar:number|null;
+  unidadesStock:number|null; stockBajo:number|null; agotadas:number|null; comprasMes:number|null; mermasMes:number|null;
+  ingresosMes:number|null; gastosMes:number|null; perdidasMes:number|null; ingresosSinImporte:number|null; mermasSinCosto:number|null;
+  fecha?:string;
+  agenda:{id:number;nombre:string;fecha:string;estado:string}[];
+  alertasStock:{id:number;nombre:string;stock:number}[];
 }
-
-const vacio: Resumen = {
-  personas: null, usuarios: null, activos: null, inactivos: null, pedidos: null,
-};
+const vacio:Resumen={personas:null,usuarios:null,activos:null,inactivos:null,pedidos:null,pedidosProceso:null,pedidosListos:null,arreglosPendientes:null,arreglosProceso:null,arreglosListos:null,eventos:null,eventosHoy:null,eventosPorCobrar:null,unidadesStock:null,stockBajo:null,agotadas:null,comprasMes:null,mermasMes:null,ingresosMes:null,gastosMes:null,perdidasMes:null,ingresosSinImporte:null,mermasSinCosto:null,agenda:[],alertasStock:[]};
 
 export function useResumenInicio(administrador: boolean) {
   const [resumen, setResumen] = useState<Resumen>(vacio);
@@ -44,8 +45,8 @@ export function useResumenInicio(administrador: boolean) {
     setIntento((valor) => valor + 1);
   };
 
-  const valor = (campo: keyof Resumen): string | number =>
+  const valor = (campo: Exclude<keyof Resumen,"agenda"|"alertasStock">): string | number =>
     cargando ? "Cargando…" : resumen[campo] ?? "No disponible";
 
-  return { valor, errores, cargando, reintentar };
+  return { resumen, valor, errores, cargando, reintentar };
 }

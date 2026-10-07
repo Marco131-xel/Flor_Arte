@@ -1,0 +1,58 @@
+import {empresa,logoEmpresa,descargarBlob} from './documentosService';
+import {numeroComprobante,nombresComprobante} from '../types/comprobante';
+import type {Comprobante,Empresa} from '../types/comprobante';
+import type {ReporteFinanciero,ReporteOperativo,PaginaMermaReporte,RankingReporte} from '../types/reporte';
+import {dinero,fechaTexto} from './gestionService';
+import type {jsPDF} from 'jspdf';
+export interface ExportacionReportes {finanzas:ReporteFinanciero;operativos:ReporteOperativo;mermas:PaginaMermaReporte['contenido']}
+interface Columna {titulo:string;dinero?:boolean}
+interface TablaExportacion {titulo:string;criterio:string;columnas:Columna[];filas:(string|number|null)[][]}
+const oliva:[number,number,number]=[121,125,17],verde:[number,number,number]=[47,111,94];
+function cabecera(doc:jsPDF,logo:string,titulo:string,compania:Empresa=empresa){
+  const ancho=doc.internal.pageSize.getWidth();doc.setFillColor(...oliva);doc.rect(0,0,ancho,4,'F');doc.addImage(logo,'PNG',15,10,25,25,'florarte-logo','FAST');doc.setTextColor(...verde);doc.setFont('helvetica','bold');doc.setFontSize(22);doc.text(compania.nombre,45,18);doc.setFont('helvetica','normal');doc.setFontSize(9);doc.setTextColor(75,78,66);doc.text(compania.direccion,45,25);doc.text(`${compania.telefono} | ${compania.correo}`,45,31);doc.setDrawColor(201,162,39);doc.line(15,39,ancho-15,39);doc.setFont('helvetica','bold');doc.setFontSize(13);doc.setTextColor(...verde);doc.text(doc.splitTextToSize(titulo,ancho-30),15,48);
+}
+function pies(doc:jsPDF,numero:string){const total=doc.getNumberOfPages();for(let i=1;i<=total;i++){doc.setPage(i);const y=doc.internal.pageSize.getHeight()-12;doc.setDrawColor(217,223,196);doc.line(15,y-4,doc.internal.pageSize.getWidth()-15,y-4);doc.setFont('helvetica','normal');doc.setFontSize(8);doc.setTextColor(105,110,91);doc.text(`FlorArte | ${numero}`,15,y);doc.text(`${i} / ${total}`,doc.internal.pageSize.getWidth()-15,y,{align:'right'});}}
+export async function pdfComprobante(c:Comprobante){
+  const [{jsPDF},{default:autoTable},logo]=await Promise.all([import('jspdf'),import('jspdf-autotable'),logoEmpresa()]);const doc=new jsPDF({compress:true});const d=c.documento,numero=numeroComprobante(c);cabecera(doc,logo,`${nombresComprobante[c.tipo]} · ${numero}`,d.empresa);
+  doc.setFont('helvetica','normal');doc.setFontSize(9);doc.setTextColor(70,75,64);doc.text(`Emisión: ${fechaTexto(c.emitidoEn)} | Origen: ${c.tipo} #${c.idOrigen}`,15,57);
+  const datos=[`${c.tipo==='INVENTARIO'?'Proveedor':'Cliente'}: ${d.persona}`,`Fecha de la operación: ${fechaTexto(d.fecha)}`,`Estado al emitir: ${d.estado.toLowerCase()}`,d.telefono?`Teléfono: ${d.telefono}`:'',d.correo?`Correo: ${d.correo}`:'',d.responsable?`Atendido por: ${d.responsable}`:''].filter(Boolean);
+  const texto=datos.flatMap(t=>doc.splitTextToSize(t,172) as string[]),alto=texto.length*5+12;doc.setFillColor(245,247,235);doc.roundedRect(15,63,180,alto,3,3,'F');doc.text(texto,20,71,{lineHeightFactor:1.55});
+  autoTable(doc,{startY:63+alto+8,margin:{top:56,bottom:24,left:15,right:15},head:[['Cantidad','Descripción','Precio unitario','Subtotal']],body:d.lineas.map(l=>[l.cantidad,l.descripcion,dinero(l.precio),dinero(l.subtotal)]),styles:{font:'helvetica',fontSize:9,cellPadding:3,overflow:'linebreak'},headStyles:{fillColor:oliva},alternateRowStyles:{fillColor:[249,250,243]},columnStyles:{0:{cellWidth:20},1:{cellWidth:88},2:{cellWidth:36,halign:'right'},3:{cellWidth:36,halign:'right'}},didDrawPage:data=>{if(data.pageNumber>1)cabecera(doc,logo,`${nombresComprobante[c.tipo]} · ${numero}`,d.empresa);}});
+  let y=((doc as jsPDF&{lastAutoTable?:{finalY:number}}).lastAutoTable?.finalY??100)+10;if(y+57>doc.internal.pageSize.getHeight()-24){doc.addPage();cabecera(doc,logo,`${nombresComprobante[c.tipo]} · ${numero}`,d.empresa);y=65;}
+  doc.setFillColor(...oliva);doc.roundedRect(115,y,80,17,3,3,'F');doc.setTextColor(255,255,255);doc.setFont('helvetica','bold');doc.setFontSize(11);doc.text('TOTAL',120,y+10);doc.text(dinero(d.total),190,y+10,{align:'right'});doc.setTextColor(90,95,80);doc.setFont('helvetica','normal');doc.setFontSize(9);doc.text(c.tipo==='INVENTARIO'?'Detalle de la compra registrada en inventario.':'Gracias por confiar en FlorArte.',15,y+28);doc.text('Documento de la operación registrada. No confirma por sí solo el pago.',15,y+35);doc.setDrawColor(160,164,146);doc.line(15,y+49,80,y+49);doc.line(120,y+49,195,y+49);doc.text('Entregado por',15,y+54);doc.text('Recibido por',120,y+54);pies(doc,numero);descargarBlob(doc.output('blob'),`${numero}.pdf`);
+}
+function tablasReportes(r:ExportacionReportes):TablaExportacion[]{
+  const f=r.finanzas,o=r.operativos;
+  const ranking=(titulo:string,criterio:string,datos:RankingReporte[],campos:('unidades'|'solicitudes'|'compras'|'importe')[],labels:string[]):TablaExportacion=>{
+    const costos=titulo==='Flores más desechadas';
+    return {titulo,criterio,columnas:[{titulo:'Posición'},{titulo:'Nombre'},...campos.map((c,i)=>({titulo:labels[i],dinero:c==='importe'})),...(costos?[{titulo:'Registros sin costo'}]:[])],filas:datos.map((d,i)=>[i+1,d.nombre,...campos.map(c=>d[c]??null),...(costos?[d.sinCosto??0]:[])])};
+  };
+  return [{titulo:'Ingresos y balance',criterio:'Ingresos de pedidos y arreglos entregados; eventos pagados. Balance = ingresos menos compras, no ganancia neta. Importes desconocidos: totales parciales.',columnas:[{titulo:'Indicador'},{titulo:'Importe (Q)',dinero:true},{titulo:'Operaciones / unidades'},{titulo:'Observaciones'}],filas:[...f.ingresos.map(i=>[i.modulo,i.importe,i.operaciones,`${i.sinImporte} sin importe; ${i.fechasEstimadas} fechas estimadas`]),['Total de ingresos conocidos',f.totalIngresos,null,''],['Compras de inventario',f.gastos.importe,f.gastos.compras,''],['Balance de ingresos y compras',f.balance,null,'No representa ganancia neta'],['Pérdidas por merma',f.perdidas.importe,f.perdidas.unidades,`${f.perdidas.sinCosto} registros sin costo`]]},
+    ranking('Flores más demandadas','Top 5 por unidades: pedidos/arreglos entregados y eventos realizados/pagados.',o.floresDemandadas,['unidades'],['Flores']),
+    ranking('Flores más desechadas','Top 5 por unidades de merma. Costo guardado o estimado para registros antiguos.',f.floresDesechadas,['unidades','importe'],['Flores','Pérdida conocida (Q)']),
+    ranking('Clientes con más pedidos','Top 5 por solicitudes de flores; excluye canceladas.',o.clientesPEDIDOS,['solicitudes'],['Pedidos']),
+    ranking('Clientes con más arreglos','Top 5 por cantidad de arreglos; excluye cancelados.',o.clientesARREGLOS,['unidades','solicitudes'],['Arreglos','Pedidos']),
+    ranking('Arreglos más solicitados','Top 5 por unidades; excluye cancelados.',o.arreglosSolicitados,['unidades','solicitudes'],['Arreglos','Pedidos']),
+    ranking('Clientes con más eventos','Top 5 por solicitudes de eventos; excluye cancelados.',o.clientesEVENTOS,['solicitudes'],['Eventos']),
+    ranking('Flores compradas a proveedores','Top 5 por unidades recibidas.',o.floresCompradas,['unidades','importe'],['Flores','Compras (Q)']),
+    ranking('Proveedores con más compras','Top 5 por importe comprado; totales de cabecera sin duplicar detalles.',o.proveedores,['compras','importe'],['Entradas','Compras (Q)']),
+    {titulo:'Gastos mensuales',criterio:'Compras agrupadas por mes dentro del período seleccionado.',columnas:[{titulo:'Mes'},{titulo:'Compras'},{titulo:'Importe (Q)',dinero:true}],filas:o.gastosMensuales.map(g=>[g.mes,g.compras,g.importe])},
+    {titulo:'Detalle completo de merma',criterio:'Todo el período, independiente de la página visible. Costos históricos guardados o referencia estimada para registros antiguos.',columnas:[{titulo:'Registro'},{titulo:'Flor'},{titulo:'Fecha'},{titulo:'Cantidad'},{titulo:'Costo unitario (Q)',dinero:true},{titulo:'Pérdida (Q)',dinero:true},{titulo:'Valoración'}],filas:r.mermas.map(m=>[m.id,m.nombre,fechaTexto(m.fecha),m.cantidad,m.costoUnitario,m.importe,m.costoUnitario==null?'Sin valorar':m.costoRegistrado?'Costo guardado':'Estimado'])}];
+}
+export async function exportarReportes(r:ExportacionReportes,formato:'pdf'|'excel'){
+  const logo=await logoEmpresa(),tablas=tablasReportes(r),periodo=`${r.finanzas.periodo.desde} al ${r.finanzas.periodo.hasta}`,nombre=`FlorArte-reportes-${r.finanzas.periodo.desde}-${r.finanzas.periodo.hasta}`;
+  if(formato==='pdf'){
+    const [{jsPDF},{default:autoTable}]=await Promise.all([import('jspdf'),import('jspdf-autotable')]);const doc=new jsPDF({orientation:'landscape',compress:true});
+    tablas.forEach((t,i)=>{if(i)doc.addPage();cabecera(doc,logo,t.titulo);doc.setFont('helvetica','normal');doc.setFontSize(9);doc.text(`Período: ${periodo}`,15,56);const notas=doc.splitTextToSize(t.criterio,267);doc.setFontSize(8);doc.text(notas,15,63);autoTable(doc,{startY:67+notas.length*4,margin:{top:58,bottom:24,left:15,right:15},head:[t.columnas.map(c=>c.titulo)],body:t.filas.length?t.filas.map(row=>row.map((v,k)=>v==null?'Sin dato':typeof v==='number'&&t.columnas[k].dinero?dinero(v):v)):[['Sin registros para el período',...t.columnas.slice(1).map(()=> '')]],styles:{fontSize:8,cellPadding:3,overflow:'linebreak'},headStyles:{fillColor:oliva},alternateRowStyles:{fillColor:[248,250,242]},didDrawPage:data=>{if(data.pageNumber>1){cabecera(doc,logo,t.titulo);doc.setFontSize(8);doc.text(`Período: ${periodo}`,15,56);}}});});pies(doc,periodo);descargarBlob(doc.output('blob'),`${nombre}.pdf`);return;
+  }
+  const {default:ExcelJS}=await import('exceljs');const book=new ExcelJS.Workbook();book.creator='FlorArte';book.created=new Date();const img=book.addImage({base64:logo,extension:'png'});
+  tablas.forEach((t,i)=>{const sheet=book.addWorksheet(`${i+1} ${t.titulo}`.slice(0,31));const n=Math.max(6,t.columnas.length);for(let k=1;k<=n;k++)sheet.getColumn(k).width=k===2?42:k===1?30:23;
+    sheet.addImage(img,{tl:{col:0,row:0},ext:{width:85,height:85}});for(let row=1;row<=5;row++)sheet.getRow(row).height=19;
+    [empresa.nombre,empresa.direccion,`${empresa.telefono} | ${empresa.correo}`,t.titulo,`Período: ${periodo}`].forEach((v,k)=>{sheet.mergeCells(k+1,3,k+1,n);const c=sheet.getCell(k+1,3);c.value=v;c.font={name:'Calibri',size:k===0?20:11,bold:k===0||k===3,color:{argb:'FF2F6F5E'}};});
+    sheet.mergeCells(7,1,8,n);sheet.getCell(7,1).value=t.criterio;sheet.getCell(7,1).alignment={wrapText:true,vertical:'middle'};sheet.getCell(7,1).font={size:10,color:{argb:'FF626A54'}};sheet.getRow(7).height=24;sheet.getRow(8).height=20;
+    sheet.getRow(10).values=t.columnas.map(c=>c.titulo);sheet.getRow(10).height=28;sheet.getRow(10).eachCell(c=>{c.fill={type:'pattern',pattern:'solid',fgColor:{argb:'FF797D11'}};c.font={bold:true,color:{argb:'FFFFFFFF'}};c.alignment={wrapText:true,vertical:'middle'};});
+    t.filas.forEach((values,index)=>{const row=sheet.getRow(index+11);row.values=values;row.height=32;row.eachCell({includeEmpty:true},(c,k)=>{c.alignment={wrapText:true,vertical:'middle'};c.border={bottom:{style:'hair',color:{argb:'FFD7DFC2'}}};if(index%2===0)c.fill={type:'pattern',pattern:'solid',fgColor:{argb:'FFF2F5E7'}};if(t.columnas[k-1]?.dinero)c.numFmt='"Q" #,##0.00;[Red]"Q" -#,##0.00';});});
+    if(!t.filas.length)sheet.getCell(11,1).value='Sin registros para el período';sheet.views=[{state:'frozen',ySplit:10}];sheet.autoFilter={from:{row:10,column:1},to:{row:10,column:t.columnas.length}};sheet.pageSetup={paperSize:9,orientation:'landscape',fitToPage:true,fitToWidth:1,fitToHeight:0,printTitlesRow:'1:10'};
+  });
+  const buffer=await book.xlsx.writeBuffer();descargarBlob(new Blob([new Uint8Array(buffer)],{type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'}),`${nombre}.xlsx`);
+}

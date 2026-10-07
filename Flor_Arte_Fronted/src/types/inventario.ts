@@ -39,6 +39,8 @@ export interface Movimiento_Inventario {
   cantidad: number;
   motivo: string;
   fecha: string;
+  costoUnitario?: number|null;
+  perdida?:number|null;
 }
 
 export interface New_Mov_Inv {
@@ -47,6 +49,7 @@ export interface New_Mov_Inv {
     cantidad: number;
     motivo: string;
     fecha?: string;
+    costoUnitario?:number;
 }
 
 

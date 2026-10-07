@@ -20,6 +20,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 class FlorArteBackendApplicationTests {
     @Autowired JdbcTemplate jdbc;
     @Autowired ArregloService arreglos;
+    @Autowired com.florarte.backend.services.EventoService eventos;
 
     @DynamicPropertySource
     static void baseTemporal(DynamicPropertyRegistry props) {
@@ -41,6 +42,16 @@ class FlorArteBackendApplicationTests {
         assertEquals(94,jdbc.queryForObject("SELECT stock FROM flor WHERE id_flor=?",Integer.class,flor));
         arreglos.estado(pedido,"CANCELADO");
         assertEquals(100,jdbc.queryForObject("SELECT stock FROM flor WHERE id_flor=?",Integer.class,flor));
+    }
+
+    @Test @Transactional
+    void eventosUsanLaTransaccionDelSistema() {
+        long cliente=jdbc.queryForObject("INSERT INTO persona(nombre,id_rol) VALUES ('Cliente evento prueba',3) RETURNING id_persona",Long.class);
+        int flor=jdbc.queryForObject("INSERT INTO flor(id_tipo_flor,id_color,precio,stock) VALUES (1,1,10,100) RETURNING id_flor",Integer.class);
+        int id=((Number)eventos.guardar(null,new com.florarte.backend.dtos.EventoDTO("Evento transaccional",cliente,null,java.time.LocalDateTime.now(),1,null,null,List.of(new com.florarte.backend.dtos.EventoDTO.Item(flor,20)))).get("idEvento")).intValue();
+        assertEquals(100,jdbc.queryForObject("SELECT stock FROM flor WHERE id_flor=?",Integer.class,flor));
+        eventos.estado(id,"CONFIRMADO");assertEquals(80,jdbc.queryForObject("SELECT stock FROM flor WHERE id_flor=?",Integer.class,flor));
+        eventos.estado(id,"CANCELADO");assertEquals(100,jdbc.queryForObject("SELECT stock FROM flor WHERE id_flor=?",Integer.class,flor));
     }
 
 }

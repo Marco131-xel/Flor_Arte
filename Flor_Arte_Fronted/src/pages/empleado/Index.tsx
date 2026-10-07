@@ -1,3 +1,4 @@
+import ActividadInicio from "../../components/shared/ActividadInicio";
 import { Link } from "react-router-dom";
 import { useResumenInicio } from "../../hooks/useResumenInicio";
 
@@ -10,7 +11,7 @@ interface StatCard {
 }
 
 function Index() {
-  const { valor, errores, cargando, reintentar } = useResumenInicio(false);
+  const { resumen, valor, errores, cargando, reintentar } = useResumenInicio(false);
   const hora = new Date().getHours();
   const saludo = hora < 12 ? "Buenos días" : hora < 19 ? "Buenas tardes" : "Buenas noches";
   const user = JSON.parse(localStorage.getItem("user") || "{}");
@@ -24,9 +25,18 @@ function Index() {
 
   const stats: StatCard[] = [
     { label: "Pedidos pendientes", value: valor("pedidos"), icon: "bi-bag-plus", link: "/empleado/pedidos", accent: "primary" },
-    { label: "Arreglos en proceso", value: "Pendiente", icon: "bi-gift", link: "/empleado/arreglos", accent: "gold" },
-    { label: "Eventos próximos", value: "Pendiente", icon: "bi-calendar-event", link: "/empleado/eventos", accent: "teal" },
-    { label: "Reportes del mes", value: "Pendiente", icon: "bi-bar-chart-line", link: "/empleado/reportes", accent: "primary" },
+    { label: "Arreglos en proceso", value: valor("arreglosProceso"), icon: "bi-gift", link: "/empleado/arreglos/pedidos", accent: "gold" },
+    { label: "Eventos próximos", value: valor("eventos"), icon: "bi-calendar-event", link: "/empleado/eventos", accent: "teal" },
+    { label: "Flores con stock bajo", value: valor("stockBajo"), icon: "bi-exclamation-triangle", link: "/empleado/flores", accent: "primary" },
+    { label: "Arreglos pendientes", value: valor("arreglosPendientes"), icon: "bi-gift", link: "/empleado/arreglos/pedidos", accent: "gold" },
+    { label: "Pedidos en proceso", value: valor("pedidosProceso"), icon: "bi-bag", link: "/empleado/pedidos", accent: "teal" },
+    { label: "Pedidos listos", value: valor("pedidosListos"), icon: "bi-bag-check", link: "/empleado/pedidos", accent: "primary" },
+    { label: "Arreglos listos", value: valor("arreglosListos"), icon: "bi-gift", link: "/empleado/arreglos/pedidos", accent: "gold" },
+    { label: "Eventos de hoy", value: valor("eventosHoy"), icon: "bi-calendar-check", link: "/empleado/eventos", accent: "teal" },
+    { label: "Flores agotadas", value: valor("agotadas"), icon: "bi-flower3", link: "/empleado/flores", accent: "primary" },
+    { label: "Flores en inventario", value: valor("unidadesStock"), icon: "bi-boxes", link: "/empleado/inventario", accent: "teal" },
+    { label: "Compras del mes", value: valor("comprasMes"), icon: "bi-truck", link: "/empleado/inventario", accent: "gold" },
+    { label: "Flores desechadas este mes", value: valor("mermasMes"), icon: "bi-clipboard2-pulse", link: "/empleado/inventario", accent: "primary" },
   ];
 
   const accesos = [
@@ -36,7 +46,6 @@ function Index() {
     { label: "Gestionar Pedidos", icon: "bi-bag-plus", link: "/empleado/pedidos" },
     { label: "Gestionar Arreglos", icon: "bi-gift", link: "/empleado/arreglos" },
     { label: "Gestionar Eventos", icon: "bi-calendar-event", link: "/empleado/eventos" },
-    { label: "Consultar Reportes", icon: "bi-bar-chart-line", link: "/empleado/reportes" },
     { label: "Generar Recibos", icon: "bi-receipt", link: "/empleado/recibos" },
   ];
 
@@ -78,9 +87,7 @@ function Index() {
           </button>
         </div>
       )}
-      <p className="text-secondary small">
-        Los módulos marcados como «Pendiente» todavía no tienen indicadores disponibles.
-      </p>
+      <div className="inicio-refresh"><p>Datos actuales · Eventos de los próximos 7 días · Compras y merma del mes actual</p><button type="button" className="fa-button secondary" onClick={reintentar} disabled={cargando}>Actualizar resumen</button></div>
 
       <div className="stat-grid" aria-busy={cargando}>
         {stats.map((s) => (
@@ -95,6 +102,8 @@ function Index() {
           </Link>
         ))}
       </div>
+
+      <ActividadInicio resumen={resumen} cargando={cargando} error={errores.length>0} administrador={false} />
 
       <div className="inicio-section">
         <h2 className="inicio-section-title">Accesos rápidos</h2>

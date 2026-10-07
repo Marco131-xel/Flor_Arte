@@ -40,9 +40,9 @@ public class GestionController {
             case "inventario" -> new Consulta("i.id_entrada AS id, p.nombre, i.total, i.fecha",
                 "entrada_inventario i JOIN persona p ON p.id_persona=i.id_persona", "i.id_entrada", "p.nombre",
                 "concat(p.nombre, ' ', i.id_entrada)", "i.fecha", "i.total", null, "i.creado_en", "1=1");
-            case "mermas" -> new Consulta("m.id_movimiento_inventario AS id, concat(t.nombre, ' ', c.nombre) AS nombre, m.cantidad, m.fecha, m.motivo, m.id_flor AS \"idFlor\"",
-                "movimiento_inventario m JOIN flor f ON f.id_flor=m.id_flor JOIN tipo_flor t ON t.id_tipo_flor=f.id_tipo_flor JOIN color c ON c.id_color=f.id_color",
-                "m.id_movimiento_inventario", "t.nombre", "concat(t.nombre, ' ', c.nombre, ' ', m.id_movimiento_inventario)", "m.fecha", null, "m.cantidad", "m.creado_en", "m.motivo='MERMA' AND m.tipo_movimiento='SALIDA'");
+            case "mermas" -> new Consulta("m.id_movimiento_inventario AS id, concat(t.nombre, ' ', c.nombre) AS nombre, m.cantidad, m.fecha, m.motivo, m.id_flor AS \"idFlor\", r.costo_referencia AS \"costoUnitario\", r.perdida_costo_estimada AS perdida, m.costo_unitario IS NOT NULL AS \"costoRegistrado\"",
+                "movimiento_inventario m JOIN vw_reporte_mermas r ON r.id_merma=m.id_movimiento_inventario JOIN flor f ON f.id_flor=m.id_flor JOIN tipo_flor t ON t.id_tipo_flor=f.id_tipo_flor JOIN color c ON c.id_color=f.id_color",
+                "m.id_movimiento_inventario", "t.nombre", "concat(t.nombre, ' ', c.nombre, ' ', m.id_movimiento_inventario)", "m.fecha", "r.perdida_costo_estimada", "m.cantidad", "m.creado_en", "m.motivo='MERMA' AND m.tipo_movimiento='SALIDA'");
             case "personas" -> new Consulta("p.id_persona AS id, p.nombre, p.correo, p.telefono, p.dpi, r.tipo AS rol",
                 "persona p JOIN rol r ON r.id_rol=p.id_rol", "p.id_persona", "p.nombre", "concat(p.nombre, ' ', p.correo, ' ', p.telefono, ' ', p.dpi)",
                 null, null, null, null, reglas.administrador() ? "1=1" : "r.tipo IN ('CLIENTE','PROVEEDOR')");
@@ -91,6 +91,7 @@ public class GestionController {
         if (!rol.isBlank() && Set.of("usuarios","personas").contains(tipo)) { where += " AND r.tipo=:rol"; parametros.put("rol",rol); }
         String from = " FROM " + c.tablas() + where;
         var resumen = jdbc.queryForMap("SELECT count(*) AS registros, " + (c.importe()==null ? "0" : "coalesce(sum("+c.importe()+"),0)") + " AS importe, " + (c.unidades()==null ? "0" : "coalesce(sum("+c.unidades()+"),0)") + " AS unidades" + from, parametros);
+        if(tipo.equals("mermas"))resumen.put("sinCosto",jdbc.queryForObject("SELECT count(*) FILTER (WHERE r.costo_referencia IS NULL)"+from,parametros,Long.class));
         long total = ((Number)resumen.get("registros")).longValue();
         int paginas = (int)((total + tamano - 1) / tamano);
         int actual = Math.min(pagina, Math.max(0,paginas-1));
@@ -128,6 +129,10 @@ public class GestionController {
             resultado.add(Map.of("id","pedido-arreglo-"+p.get("id_pedido_arreglo"),"tipo","pedido","titulo","Pedido de arreglo pendiente","detalle","Pedido #"+p.get("id_pedido_arreglo")+" · "+p.get("nombre"),"ruta",base+"/arreglos/pedidos"));
         for (var f : jdbc.queryForList("SELECT f.id_flor,f.stock,concat(t.nombre,' ',c.nombre) AS nombre FROM flor f JOIN tipo_flor t ON t.id_tipo_flor=f.id_tipo_flor JOIN color c ON c.id_color=f.id_color WHERE f.estado=true AND f.stock<=5 ORDER BY f.stock,f.id_flor LIMIT 5",Map.of()))
             resultado.add(Map.of("id","stock-"+f.get("id_flor")+"-"+f.get("stock"),"tipo","stock","titulo","Stock bajo","detalle",f.get("nombre")+": "+f.get("stock")+" unidades","ruta",base+"/flores"));
+        var hoy=reglas.ahora().atZone(java.time.ZoneId.of("America/Guatemala")).toLocalDate();
+        var proximos=Map.<String,Object>of("desde",Timestamp.valueOf(hoy.atStartOfDay()),"hasta",Timestamp.valueOf(hoy.plusDays(7).atStartOfDay()));
+        for(var e:jdbc.queryForList("SELECT id_evento,nombre,fecha FROM evento WHERE fecha>=:desde AND fecha<:hasta AND estado IN ('PENDIENTE','CONFIRMADO','TRABAJANDO') ORDER BY fecha,id_evento LIMIT 5",proximos))
+            resultado.add(Map.of("id","evento-"+e.get("id_evento"),"tipo","evento","titulo","Evento próximo","detalle",e.get("nombre")+" · "+e.get("fecha"),"ruta",base+"/eventos"));
         if (reglas.administrador()) {
             for (var p : jdbc.queryForList("SELECT id_pedido,estado FROM pedido WHERE id_empleado IS NULL AND estado IN ('CONFIRMADO','PREPARANDO','LISTO') ORDER BY fecha DESC,id_pedido DESC LIMIT 5",Map.of()))
                 resultado.add(Map.of("id","pedido-sin-empleado-"+p.get("id_pedido")+"-"+p.get("estado"),"tipo","empleado","titulo","Pedido sin responsable","detalle","Pedido #"+p.get("id_pedido")+" · "+p.get("estado"),"ruta",base+"/pedidos"));
@@ -137,13 +142,30 @@ public class GestionController {
         return resultado;
     }
     @GetMapping("/resumen")
+    @org.springframework.transaction.annotation.Transactional(readOnly=true,isolation=org.springframework.transaction.annotation.Isolation.REPEATABLE_READ)
     public Map<String,Object> resumen() {
         Map<String,Object> resultado=new HashMap<>();
-        resultado.put("pedidos",jdbc.queryForObject("SELECT (SELECT count(*) FROM pedido WHERE estado='PENDIENTE') + (SELECT count(*) FROM pedido_arreglo WHERE estado='PENDIENTE')",Map.of(),Long.class));
+        var hoy=reglas.ahora().atZone(java.time.ZoneId.of("America/Guatemala")).toLocalDate();
+        var args=Map.<String,Object>of("hoy",Timestamp.valueOf(hoy.atStartOfDay()),"manana",Timestamp.valueOf(hoy.plusDays(1).atStartOfDay()),"semana",Timestamp.valueOf(hoy.plusDays(7).atStartOfDay()),"mes",Timestamp.valueOf(hoy.withDayOfMonth(1).atStartOfDay()),"siguiente",Timestamp.valueOf(hoy.withDayOfMonth(1).plusMonths(1).atStartOfDay()));
+        resultado.put("fecha",hoy.toString());
+        resultado.putAll(jdbc.queryForMap("SELECT count(*) FILTER (WHERE estado='PENDIENTE') AS pedidos,count(*) FILTER (WHERE estado IN ('CONFIRMADO','PREPARANDO','LISTO')) AS \"pedidosProceso\",count(*) FILTER (WHERE estado='LISTO') AS \"pedidosListos\" FROM pedido",args));
+        resultado.putAll(jdbc.queryForMap("SELECT count(*) FILTER (WHERE estado='PENDIENTE') AS \"arreglosPendientes\",count(*) FILTER (WHERE estado IN ('CONFIRMADO','PREPARANDO','LISTO')) AS \"arreglosProceso\",count(*) FILTER (WHERE estado='LISTO') AS \"arreglosListos\" FROM pedido_arreglo",args));
+        resultado.putAll(jdbc.queryForMap("SELECT count(*) FILTER (WHERE fecha>=:hoy AND fecha<:semana AND estado IN ('PENDIENTE','CONFIRMADO','TRABAJANDO')) AS eventos,count(*) FILTER (WHERE fecha>=:hoy AND fecha<:manana AND estado IN ('PENDIENTE','CONFIRMADO','TRABAJANDO')) AS \"eventosHoy\",count(*) FILTER (WHERE estado='REALIZADO') AS \"eventosPorCobrar\" FROM evento",args));
+        resultado.putAll(jdbc.queryForMap("SELECT coalesce(sum(stock),0) AS \"unidadesStock\",count(*) FILTER (WHERE estado AND stock BETWEEN 1 AND 5) AS \"stockBajo\",count(*) FILTER (WHERE estado AND stock=0) AS agotadas FROM flor",args));
+        resultado.put("comprasMes",jdbc.queryForObject("SELECT count(*) FROM entrada_inventario WHERE fecha>=:mes AND fecha<:siguiente",args,Long.class));
+        resultado.put("mermasMes",jdbc.queryForObject("SELECT coalesce(sum(cantidad),0) FROM movimiento_inventario WHERE motivo='MERMA' AND tipo_movimiento='SALIDA' AND fecha>=:mes AND fecha<:siguiente",args,Long.class));
+        var agenda=jdbc.queryForList("SELECT id_evento AS id,nombre,fecha,estado FROM evento WHERE estado IN ('PENDIENTE','CONFIRMADO','TRABAJANDO') AND fecha>=:hoy AND fecha<:semana ORDER BY fecha,id_evento LIMIT 5",args);
+        for(var e:agenda)if(e.get("fecha") instanceof Timestamp f)e.put("fecha",f.toLocalDateTime().toString());
+        resultado.put("agenda",agenda);
+        resultado.put("alertasStock",jdbc.queryForList("SELECT f.id_flor AS id,concat(t.nombre,' ',c.nombre) AS nombre,f.stock FROM flor f JOIN tipo_flor t ON t.id_tipo_flor=f.id_tipo_flor JOIN color c ON c.id_color=f.id_color WHERE f.estado AND f.stock<=5 ORDER BY f.stock,f.id_flor LIMIT 5",args));
         if (reglas.administrador()) {
-            resultado.put("personas",jdbc.queryForObject("SELECT count(*) FROM persona",Map.of(),Long.class));
-            resultado.putAll(jdbc.queryForMap("SELECT count(*) AS usuarios, count(*) FILTER (WHERE estado) AS activos, count(*) FILTER (WHERE NOT estado) AS inactivos FROM usuario",Map.of()));
+            resultado.put("personas",jdbc.queryForObject("SELECT count(*) FROM persona",args,Long.class));
+            resultado.putAll(jdbc.queryForMap("SELECT count(*) AS usuarios,count(*) FILTER (WHERE estado) AS activos,count(*) FILTER (WHERE NOT estado) AS inactivos FROM usuario",args));
+            resultado.putAll(jdbc.queryForMap("SELECT coalesce(sum(importe),0) AS \"ingresosMes\",count(*) FILTER (WHERE importe IS NULL) AS \"ingresosSinImporte\" FROM vw_reporte_ingresos WHERE fecha>=:mes AND fecha<:siguiente",args));
+            resultado.put("gastosMes",jdbc.queryForObject("SELECT coalesce(sum(total),0) FROM entrada_inventario WHERE fecha>=:mes AND fecha<:siguiente",args,java.math.BigDecimal.class));
+            resultado.putAll(jdbc.queryForMap("SELECT coalesce(sum(perdida_costo_estimada),0) AS \"perdidasMes\",count(*) FILTER (WHERE costo_referencia IS NULL) AS \"mermasSinCosto\" FROM vw_reporte_mermas WHERE fecha>=:mes AND fecha<:siguiente",args));
         }
+        if(!reglas.administrador())resultado.remove("eventosPorCobrar");
         return resultado;
     }
 }

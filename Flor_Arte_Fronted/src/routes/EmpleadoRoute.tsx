@@ -9,7 +9,7 @@ import IndexPersonas from "../pages/empleado/personas/Index";
 import CreatePersona from "../pages/empleado/personas/Create";
 import UpdatePersona from "../pages/empleado/personas/Update";
 import { GestionRoutes } from "./GestionRoutes";
-import ModuloPendiente from "../pages/ModuloPendiente";
+import IndexRecibos from "../pages/shared/recibos/Index";
 import NotFound from "../pages/NotFound";
 
 export const EmpleadoRoutes = () => (
@@ -20,9 +20,7 @@ export const EmpleadoRoutes = () => (
     }>
         {/* PAGINA DE INICIO */}
         <Route index element={<InicioEmpleado />}/>
-        <Route path="eventos" element={<ModuloPendiente nombre="Eventos" inicio="/empleado" />} />
-        <Route path="reportes" element={<ModuloPendiente nombre="Reportes" inicio="/empleado" />} />
-        <Route path="recibos" element={<ModuloPendiente nombre="Recibos" inicio="/empleado" />} />
+        <Route path="recibos" element={<IndexRecibos />} />
         {/* VISTA MI PERFIL */}
         <Route path="perfil" element={<IndexPerfil/>}/>
         {/* VISTAS PERSONAS */}

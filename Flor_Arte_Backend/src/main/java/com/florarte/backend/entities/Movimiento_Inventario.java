@@ -36,6 +36,9 @@ public class Movimiento_Inventario {
     @Column(name = "fecha", nullable = false)
     private LocalDateTime fecha = LocalDateTime.now();
 
+    @Column(name = "costo_unitario", precision = 16, scale = 6)
+    private java.math.BigDecimal costoUnitario;
+
     // Relación con Flor
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "id_flor", insertable = false, updatable = false)

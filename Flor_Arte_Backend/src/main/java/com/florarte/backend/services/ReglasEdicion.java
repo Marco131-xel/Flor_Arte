@@ -28,6 +28,7 @@ public class ReglasEdicion {
     }
     private String[] tabla(String tipo) {
         return switch(tipo) {
+            case "eventos" -> new String[]{"evento", "id_evento"};
             case "arreglos" -> new String[]{"arreglo", "id_arreglo"};
             case "pedidosArreglos" -> new String[]{"pedido_arreglo", "id_pedido_arreglo"};
             case "flores" -> new String[]{"flor", "id_flor"};

@@ -3,13 +3,14 @@ import { api } from "./apiService";
 export type Modulo = "arreglos" | "pedidosArreglos" | "tipoflor" | "flores" | "pedidos" | "inventario" | "mermas" | "personas" | "usuarios";
 export interface Registro {
   id: number; nombre: string; descripcion?: string; secundario?: string | null; responsable?: string | null; estado?: string | boolean;
+  costoUnitario?:number|null; perdida?:number|null; costoRegistrado?:boolean;
   fecha?: string; total?: number; precio?: number; stock?: number; cantidad?: number;
   correo?: string; telefono?: string; dpi?: string; rol?: string; imagen?: string; imagenUrl?: string | null;
   idPersona?: number; idFlor?: number; creadoEn?: string; editableHasta?: string; puedeEditar?: boolean;
 }
 export interface Pagina {
   contenido: Registro[]; pagina: number; tamano: number; totalElementos: number; totalPaginas: number;
-  resumen: { registros: number; importe: number; unidades: number }; horaServidor: string;
+  resumen: { registros: number; importe: number; unidades: number; sinCosto?:number }; horaServidor: string;
 }
 export interface Filtros { pagina: number; tamano: number; q: string; mes: string; estado: string; rol: string; orden: string }
 export const cargarPagina = async (modulo: Modulo, filtros: Filtros, signal?: AbortSignal) => {

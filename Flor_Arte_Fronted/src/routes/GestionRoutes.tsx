@@ -1,3 +1,5 @@
+import IndexEventos from "../pages/shared/eventos/Index";
+import FormularioEvento from "../pages/shared/eventos/Formulario";
 import IndexArreglos from "../pages/shared/arreglos/Index";
 import FormularioArreglo from "../pages/shared/arreglos/Formulario";
 import FormularioPedidoArreglo from "../pages/shared/arreglos/PedidoFormulario";
@@ -20,6 +22,11 @@ import UpdatePedidos from "../pages/shared/pedidos/Update";
 // Cada panel monta estas rutas dentro de su propio layout y protección de rol.
 export const GestionRoutes = () => (
   <>
+    <Route path="eventos">
+      <Route index element={<IndexEventos />} />
+      <Route path="create" element={<FormularioEvento />} />
+      <Route path="update/:id" element={<PermisoEdicion modulo="eventos"><FormularioEvento editar /></PermisoEdicion>} />
+    </Route>
     <Route path="arreglos">
       <Route index element={<IndexArreglos />} />
       <Route path="create" element={<FormularioArreglo />} />

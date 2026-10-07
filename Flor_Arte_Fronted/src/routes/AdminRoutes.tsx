@@ -1,3 +1,4 @@
+import IndexReportes from "../pages/shared/reportes/Index";
 import { Route } from "react-router-dom";
 import PrivateRoute from "../components/PrivateRoute";
 // funcionalidades del admin
@@ -10,7 +11,7 @@ import UpdateUser from "../pages/admin/user/UpdateUser";
 import CreatePersona from "../pages/admin/user/CreatePersona";
 import UpdatePersona from "../pages/admin/user/UpdatePersona";
 import EditPerfil from "../pages/admin/EditPerfil";
-import ModuloPendiente from "../pages/ModuloPendiente";
+import IndexRecibos from "../pages/shared/recibos/Index";
 import NotFound from "../pages/NotFound";
 import { GestionRoutes } from "./GestionRoutes";
 
@@ -22,9 +23,8 @@ export const AdminRoutes = () => (
     }>
         <Route index element={<InicioAdmin />}/>
         {GestionRoutes()}
-        <Route path="eventos" element={<ModuloPendiente nombre="Eventos" inicio="/admin" />} />
-        <Route path="reportes" element={<ModuloPendiente nombre="Reportes" inicio="/admin" />} />
-        <Route path="recibos" element={<ModuloPendiente nombre="Recibos" inicio="/admin" />} />
+        <Route path="reportes" element={<IndexReportes />} />
+        <Route path="recibos" element={<IndexRecibos />} />
         <Route path="perfil" element={<Perfil />} />
         <Route path="perfil/editar" element={<EditPerfil />} />
         <Route path="usuarios" element={<IndexUser/>} />

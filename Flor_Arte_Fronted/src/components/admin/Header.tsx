@@ -10,7 +10,7 @@ interface Props {
 
 interface Notificacion {
   id: string;
-  tipo: "pedido" | "stock" | "usuario" | "empleado";
+  tipo: "pedido" | "stock" | "usuario" | "empleado" | "evento";
   titulo: string;
   detalle: string;
   ruta: string;
@@ -42,6 +42,8 @@ const guardarLeidas = (ids: string[]) => {
 
 const iconoDe = (tipo: Notificacion["tipo"]) => {
   switch (tipo) {
+    case "evento":
+      return "bi bi-calendar-event";
     case "pedido":
       return "bi bi-bag-plus";
     case "stock":

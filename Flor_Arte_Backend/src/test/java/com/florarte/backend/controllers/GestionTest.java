@@ -141,4 +141,20 @@ class GestionTest {
         long pendientes=controller.avisos().stream().filter(a->a.get("tipo").equals("pedido")).count();
         assertEquals(5,pendientes);
     }
+
+    @Test void resumenEmpleadoSoloIncluyeOperacionYAgendaAcotada() {
+        var hoy=reglas.ahora().atZone(java.time.ZoneId.of("America/Guatemala")).toLocalDate();
+        long cliente=jdbc.queryForObject("SELECT id_persona FROM persona WHERE correo='cliente@test'",Long.class);
+        for(int i=0;i<8;i++)jdbc.update("INSERT INTO evento(nombre,id_cliente,fecha,estado,reserva_aplicada) VALUES (?, ?, ?, 'CONFIRMADO',true)","Evento "+i,cliente,Timestamp.valueOf(hoy.plusDays(i).atTime(12,0)));
+        jdbc.update("INSERT INTO flor(id_tipo_flor,id_color,precio,stock) VALUES (2,1,10,0),(3,1,10,3)");
+        rol("EMPLEADO");var r=controller.resumen();assertEquals(7L,r.get("eventos"));assertEquals(1L,r.get("eventosHoy"));assertEquals(5,((List<?>)r.get("agenda")).size());assertEquals(1L,r.get("stockBajo"));assertEquals(1L,r.get("agotadas"));
+        for(var key:List.of("personas","usuarios","ingresosMes","gastosMes","perdidasMes","eventosPorCobrar"))assertFalse(r.containsKey(key));
+        rol("ADMINISTRADOR");var admin=controller.resumen();assertTrue(admin.containsKey("ingresosMes"));assertTrue(admin.containsKey("gastosMes"));assertTrue(admin.containsKey("perdidasMes"));
+    }
+    @Test void mermaPaginadaUsaCostoHistoricoYTotales() {
+        int flor=jdbc.queryForObject("SELECT min(id_flor) FROM flor",Integer.class);
+        jdbc.update("INSERT INTO movimiento_inventario(id_flor,tipo_movimiento,motivo,cantidad,costo_unitario) VALUES (?,'SALIDA','MERMA',3,4.25)",flor);
+        var r=pagina("mermas",0,"","");var fila=(Map<?,?>)((List<?>)r.get("contenido")).get(0);
+        assertEquals(new java.math.BigDecimal("12.75"),fila.get("perdida"));assertEquals(true,fila.get("costoRegistrado"));assertEquals(new java.math.BigDecimal("12.75"),((Map<?,?>)r.get("resumen")).get("importe"));
+    }
 }

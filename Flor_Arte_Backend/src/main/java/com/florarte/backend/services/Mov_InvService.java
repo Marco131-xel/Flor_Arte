@@ -23,11 +23,13 @@ public class Mov_InvService {
 
     private final Mov_InvRepository movInvRepository;
     private final FlorRepository florRepository;
+    private final org.springframework.jdbc.core.JdbcTemplate jdbc;
 
     @Autowired
-    public Mov_InvService(Mov_InvRepository movInvRepository, FlorRepository florRepository) {
+    public Mov_InvService(Mov_InvRepository movInvRepository, FlorRepository florRepository, org.springframework.jdbc.core.JdbcTemplate jdbc) {
         this.movInvRepository = movInvRepository;
         this.florRepository = florRepository;
+        this.jdbc = jdbc;
     }
 
     // Crear un movimiento de inventario
@@ -50,6 +52,8 @@ public class Mov_InvService {
             throw new IllegalArgumentException("La cantidad debe ser mayor a 0");
         }
 
+        LocalDateTime fecha=dto.getFecha()!=null?dto.getFecha():LocalDateTime.now(java.time.ZoneId.of("America/Guatemala"));
+        var costo=costoMerma(dto,tipo,motivo,fecha,null);
         // Ajustar stock según el tipo de movimiento
         if ("SALIDA".equals(tipo)) {
             if (flor.getStock() < dto.getCantidad()) {
@@ -66,7 +70,8 @@ public class Mov_InvService {
         mov.setTipoMovimiento(tipo);
         mov.setCantidad(dto.getCantidad());
         mov.setMotivo(motivo);
-        mov.setFecha(dto.getFecha() != null ? dto.getFecha() : LocalDateTime.now());
+        mov.setFecha(fecha);
+        mov.setCostoUnitario(costo);
 
         Movimiento_Inventario guardado = movInvRepository.save(mov);
         return toDto(guardado, obtenerNombreFlor(flor));
@@ -116,6 +121,9 @@ public class Mov_InvService {
             throw new IllegalArgumentException("La cantidad debe ser mayor a 0");
         }
 
+        LocalDateTime fecha=dto.getFecha()!=null?dto.getFecha():mov.getFecha();
+        var previo=mov.getIdFlor().equals(dto.getIdFlor()) && fecha.equals(mov.getFecha()) ? mov.getCostoUnitario() : null;
+        var costo=costoMerma(dto,tipo,motivo,fecha,previo);
         // Revertir el efecto anterior antes de aplicar la cantidad corregida.
         Flor anterior = mov.getIdFlor().equals(dto.getIdFlor()) ? flor : florRepository.findByIdWithDetails(mov.getIdFlor())
                 .orElseThrow(() -> new IllegalArgumentException("Flor original no encontrada"));
@@ -130,6 +138,7 @@ public class Mov_InvService {
         flor.setStock(stockNuevo);
         florRepository.save(flor);
 
+        mov.setCostoUnitario(costo);
         mov.setIdFlor(dto.getIdFlor());
         mov.setTipoMovimiento(tipo);
         mov.setCantidad(dto.getCantidad());
@@ -157,6 +166,17 @@ public class Mov_InvService {
         movInvRepository.deleteById(id);
     }
 
+    public java.math.BigDecimal costoReferencia(Integer idFlor,LocalDateTime fecha) {
+        return jdbc.queryForObject("SELECT round(sum(d.cantidad::numeric*d.precio_compra)/NULLIF(sum(d.cantidad),0),6) FROM detalle_entrada d JOIN entrada_inventario e ON e.id_entrada=d.id_entrada WHERE d.id_flor=? AND e.fecha<=?",java.math.BigDecimal.class,idFlor,java.sql.Timestamp.valueOf(fecha));
+    }
+    private java.math.BigDecimal costoMerma(Movimiento_InventarioDTO dto,String tipo,String motivo,LocalDateTime fecha,java.math.BigDecimal previo) {
+        if(!"SALIDA".equals(tipo)||!"MERMA".equals(motivo))return null;
+        var costo=dto.getCostoUnitario()!=null?dto.getCostoUnitario():previo!=null?previo:costoReferencia(dto.getIdFlor(),fecha);
+        if(costo==null)throw new IllegalArgumentException("No hay costo de compra registrado. Ingresa el costo unitario de la flor para registrar la merma.");
+        if(costo.signum()<0 || costo.scale()>6 || costo.compareTo(new java.math.BigDecimal("9999999999.999999"))>0)throw new IllegalArgumentException("Costo unitario inválido");
+        return costo;
+    }
+
     private String obtenerNombreFlor(Flor flor) {
         if (flor == null) return null;
         String tipo = flor.getTipoFlor() != null ? flor.getTipoFlor().getNombre() : "";
@@ -176,7 +196,9 @@ public class Mov_InvService {
                 m.getTipoMovimiento(),
                 m.getCantidad(),
                 m.getMotivo(),
-                m.getFecha()
+                m.getFecha(),
+                m.getCostoUnitario(),
+                m.getCostoUnitario()==null?null:m.getCostoUnitario().multiply(java.math.BigDecimal.valueOf(m.getCantidad())).setScale(2,java.math.RoundingMode.HALF_UP)
         );
     }
 }

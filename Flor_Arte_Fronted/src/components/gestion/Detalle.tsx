@@ -27,6 +27,9 @@ export default function Detalle({ modulo, registro, cerrar }: { modulo: Modulo; 
   const campos: [string, string | number | null | undefined][] = [
     [esPedido ? "Cliente" : modulo === "inventario" ? "Proveedor" : "Nombre", registro.nombre],
     [modulo === "pedidosArreglos" ? "Arreglo" : modulo === "pedidos" ? "Atendido por" : modulo === "flores" ? "Color" : "Usuario", registro.secundario],
+    ["Costo unitario de compra",modulo==="mermas"?(registro.costoUnitario==null?"Sin costo":dinero(registro.costoUnitario)):null],
+    ["Pérdida por merma",modulo==="mermas"?(registro.perdida==null?"Sin valorar":dinero(registro.perdida)):null],
+    ["Valoración",modulo==="mermas"?(registro.costoRegistrado?"Costo guardado con la merma":"Referencia estimada para registro antiguo"):null],
     ["Fecha", registro.fecha ? fechaTexto(registro.fecha) : null],
     ["Estado", registro.estado == null ? null : typeof registro.estado === "boolean" ? modulo === "flores" ? registro.estado ? "Disponible" : "No disponible" : registro.estado ? "Activo" : "Inactivo" : registro.estado],
     ["Descripción", registro.descripcion], ["Atendido por", registro.responsable], ["Rol", registro.rol], ["Correo", registro.correo], ["Teléfono", registro.telefono], ["DPI", registro.dpi],
