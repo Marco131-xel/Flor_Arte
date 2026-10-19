@@ -1,12 +1,17 @@
+import { useVolverFormulario } from "../../../hooks/useVolverFormulario";
 import { useEffect, useState } from "react";
-import { useNavigate, useParams } from "react-router-dom";
-import { getUsuarioById, updateUsuario } from "../../../services/admin/usuarioService";
-import AccionPendiente from "../../../components/AccionPendiente";
+import {  useParams } from "react-router-dom";
+import { getUsuarioById, updateUsuario, solicitarCambioPasswordEmpleado } from "../../../services/admin/usuarioService";
+import Modal from "../../../components/shared/Modal";
+import {mensajeError} from "../../../services/gestionService";
 
 function UpdateUser() {
   const { id } = useParams();
-  const navigate = useNavigate();
+  const volver = useVolverFormulario();
 
+  const [correoRegistrado,setCorreoRegistrado]=useState("");
+  const [esEmpleado,setEsEmpleado]=useState(false);
+  const [enviando,setEnviando]=useState(false);
   const [email, setEmail] = useState("");
   const [estado, setEstado] = useState(true);
   const [personaNombre, setPersonaNombre] = useState("");
@@ -17,36 +22,32 @@ function UpdateUser() {
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
   const [loading, setLoading] = useState(true);
+  const [idCargado,setIdCargado]=useState<string>();
   const [guardando, setGuardando] = useState(false);
+  const [confirmacion,setConfirmacion]=useState(false);
 
   useEffect(() => {
-    cargarDatos();
-  }, [id]);
-
-  const cargarDatos = async () => {
-    try {
-      setLoading(true);
+    let vigente=true;
+    getUsuarioById(Number(id)).then(usuario=>{
+      if(!vigente)return;
       setError("");
-
-      const usuario = await getUsuarioById(Number(id));
-
       setEmail(usuario.email);
+      setCorreoRegistrado(usuario.email);
+      setEsEmpleado((usuario.persona?.rol?.tipo??usuario.persona?.tipoRol??usuario.rol)==="EMPLEADO");
       setEstado(usuario.estado);
       setEstadoOriginal(usuario.estado);
       setIdPersona(String(usuario.idPersona));
       setPersonaNombre(usuario.persona.nombre);
-    } catch (error) {
-      console.error("Error al cargar el usuario:", error);
-      setError("No se pudo cargar la información del usuario");
-    } finally {
-      setLoading(false);
-    }
-  };
+    }).catch(()=>{if(vigente)setError("No se pudo cargar la información del usuario");})
+      .finally(()=>{if(vigente){setIdCargado(id);setLoading(false);}});
+    return()=>{vigente=false;};
+  }, [id]);
 
   const estadoCambiado = estado !== estadoOriginal;
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if(guardando||enviando)return;
 
     setError("");
     setSuccess("");
@@ -56,17 +57,13 @@ function UpdateUser() {
       return;
     }
 
-    if (estadoCambiado) {
-      const confirmado = window.confirm(
-        `Vas a ${estado ? "activar" : "desactivar"} a "${personaNombre}".\n\n${
-          estado
-            ? "El usuario podrá volver a iniciar sesión en el sistema."
-            : "El usuario no podrá iniciar sesión mientras esté inactivo."
-        }\n\n¿Deseas continuar?`
-      );
-      if (!confirmado) return;
-    }
+    if (estadoCambiado) { setConfirmacion(true); return; }
+    await guardarCambios();
+  };
 
+  const guardarCambios=async()=>{
+    if(guardando||enviando)return;
+    setError("");
     try {
       setGuardando(true);
 
@@ -76,22 +73,15 @@ function UpdateUser() {
         idPersona,
       });
 
-      setSuccess("Usuario actualizado exitosamente");
-      setEstadoOriginal(estado);
-    } catch (error: any) {
-      console.error("Error al actualizar usuario:", error);
-
-      if (error.response?.data?.error) {
-        setError(error.response.data.message || error.response.data.error);
-      } else {
-        setError("Ocurrió un error al actualizar el usuario");
-      }
+      volver();
+    } catch (error: unknown) {
+      setError(mensajeError(error));
     } finally {
       setGuardando(false);
     }
   };
 
-  if (loading) {
+  if (loading||idCargado!==id) {
     return (
       <div className="cp-page">
         <div className="cp-card">
@@ -103,14 +93,15 @@ function UpdateUser() {
 
   return (
     <div className="cp-page">
+      {confirmacion&&<Modal titulo={estado?"Activar cuenta":"Desactivar cuenta"} ocupado={guardando} cerrar={()=>setConfirmacion(false)}><section className={`fa-account-confirm ${estado?"activacion":"desactivacion"}`}><div className="fa-account-confirm-icon" aria-hidden="true"><i className={`bi bi-person-${estado?"check":"lock"}`}/></div><span className={`fa-badge ${estado?"success":"warning"}`}>{estado?"Activar acceso":"Suspender acceso"}</span><h3>¿{estado?"Activar":"Desactivar"} la cuenta de {personaNombre}?</h3><p>{estado?"El usuario podrá volver a iniciar sesión con sus credenciales y su verificación en dos pasos, si está activada.":"El usuario no podrá iniciar sesión mientras su cuenta esté inactiva. Sus sesiones anteriores también se invalidarán."}</p>{error&&<p className="fa-auth-notice danger" role="alert">{error}</p>}<div className="fa-form-actions"><button type="button" className="fa-button secondary" disabled={guardando} onClick={()=>setConfirmacion(false)}>Cancelar</button><button type="button" className={`fa-button ${estado?"":"danger"}`} disabled={guardando} onClick={()=>void guardarCambios()}>{guardando?"Guardando…":estado?"Confirmar activación":"Confirmar desactivación"}</button></div></section></Modal>}
       <div className="cp-card">
         <div className="cp-header">
           <h1 className="cp-title">Editar usuario</h1>
           <p className="cp-subtitle">Actualiza el acceso al sistema</p>
         </div>
 
-        {error && <div className="cp-alert cp-alert-error">{error}</div>}
-        {success && <div className="cp-alert cp-alert-success">{success}</div>}
+        {error && !confirmacion && <div role="alert" className="cp-alert cp-alert-error">{error}</div>}
+        {success && <div role="status" className="cp-alert cp-alert-success">{success}</div>}
 
         <form className="cp-form" onSubmit={handleSubmit}>
           {/* Persona asociada: solo lectura */}
@@ -126,7 +117,7 @@ function UpdateUser() {
             <label htmlFor="email" className="cp-label">
               <i className="bi bi-envelope-fill"></i> Correo electrónico
             </label>
-            <input
+            <input disabled={guardando||enviando}
               id="email" required maxLength={150}
               type="email"
               value={email}
@@ -143,13 +134,12 @@ function UpdateUser() {
             </label>
             <div className="cp-password-row">
               <span className="cp-value-fixed">••••••••</span>
-              <AccionPendiente
-                className="cp-btn-inline"
-                mensaje="El envío de correos de restablecimiento aún no está disponible."
-              >
-                Enviar cambio de contraseña
-              </AccionPendiente>
+              <button type="button" className="cp-btn-inline" disabled={enviando||guardando||!esEmpleado||!estadoOriginal||estadoCambiado||email.trim()!==correoRegistrado}
+                onClick={async()=>{if(enviando||guardando)return;setEnviando(true);setError("");setSuccess("");try{const respuesta=await solicitarCambioPasswordEmpleado(Number(id));setSuccess(respuesta.message);}catch(err){setError(mensajeError(err));}finally{setEnviando(false);}}}>
+                <i className="bi bi-envelope" aria-hidden="true"/> {enviando?"Enviando solicitud…":"Enviar cambio de contraseña"}
+              </button>
             </div>
+            <span className="cp-hint">{!esEmpleado?"Esta opción está disponible para cuentas de empleados.":!estadoOriginal?"Activa y guarda la cuenta antes de solicitar la recuperación.":estadoCambiado||email.trim()!==correoRegistrado?"Guarda los cambios antes de solicitar la recuperación.":`Se enviará un enlace de 15 minutos al correo registrado: ${correoRegistrado}`}</span>
           </div>
 
           {/* Estado */}
@@ -157,7 +147,7 @@ function UpdateUser() {
             <label htmlFor="estado" className="cp-label">
               <i className="bi bi-toggle2-on"></i> Estado
             </label>
-            <select
+            <select disabled={guardando||enviando}
               id="estado"
               value={estado ? "activo" : "inactivo"}
               onChange={(e) => setEstado(e.target.value === "activo")}
@@ -181,14 +171,14 @@ function UpdateUser() {
           <div className="cp-actions">
             <button
               type="button"
-              onClick={() => navigate(-1)}
-              disabled={guardando}
+              onClick={() => volver()}
+              disabled={guardando||enviando}
               className="cp-btn-secondary"
             >
               Cancelar
             </button>
 
-            <button type="submit" disabled={guardando} className="cp-btn-primary">
+            <button type="submit" disabled={guardando||enviando} className="cp-btn-primary">
               {guardando ? "Guardando..." : "Guardar cambios"}
             </button>
           </div>

@@ -435,3 +435,60 @@ button:disabled { cursor: not-allowed; opacity: .5; }
   .rc-document .fa-table td:nth-child(2){grid-column:1/-1;grid-row:1;background:var(--fa-olive-tint);font-weight:600}
   .rc-document .fa-table td:last-child{grid-column:1/-1;border-top:1px solid var(--fa-border);background:#fafbf5;font-weight:700}
 }
+
+/* Seguridad por correo: controles y colores de FlorArte, compartidos con el perfil. */
+.fa-auth { padding: 24px 16px; }
+.fa-auth .fa-auth-card { border-radius: 20px; border: 1px solid #dbcda7; }
+.fa-auth-panel { border-top: 4px solid #c9a227; }
+.fa-auth-panel h1 { font-family: var(--fa-font-display); color: #293a2b; letter-spacing: -.025em; }
+.fa-auth-panel > p { color: #69715c; font-size: .9rem; line-height: 1.65; }
+.fa-auth-symbol, .fa-security-icon { display: grid; place-items: center; background: #f2f5e7; border: 1px solid #d7dfc2; color: #797d11; width: 48px; height: 48px; border-radius: 14px; font-size: 1.35rem; margin-bottom: 18px; }
+.fa-auth-mobile-brand { display: none; }
+.fa-security-form label { font-size: .85rem; font-weight: 600; color: #435039; }
+.fa-security-form input { width: 100%; min-height: 46px; border: 1px solid #ccd5b7; border-radius: 11px; background: #fffefb; padding: 11px 13px; color: #293a2b; box-shadow: none; }
+.fa-security-form input:focus { border-color: #9c9f50; box-shadow: 0 0 0 3px #797d111c; outline: none; }
+.fa-security-form input:disabled { background: #f2f3ed; }
+.fa-auth-submit { width: 100%; margin-top: 5px; min-height: 46px; }
+.fa-auth-link { display: inline-flex; margin: 18px 14px 0 0; color: var(--fa-hover); font-size: .85rem; font-weight: 600; text-decoration: none; }
+.fa-auth-link:hover { color: var(--fa-primary); text-decoration: underline; }
+.fa-auth-notice { background: #fbf5e5; color: #756021; border: 1px solid #e4d8aa; border-left: 4px solid #c9a227; padding: 13px 16px; border-radius: 11px; font-size: .85rem; line-height: 1.6; margin: 0 0 18px; overflow-wrap: anywhere; }
+.fa-auth-notice.success { background: #edf6f1; border-color: #c3d9cb; border-left-color: #2f6f5e; color: #285545; }
+.fa-auth-notice.danger { background: #fff0ec; border-color: #e8c9c2; border-left-color: #a14c3e; color: #843e32; }
+.fa-security-form .fa-code-input { text-align: center; font: 600 1.9rem ui-monospace, monospace; letter-spacing: .28em; padding: 16px 10px; background: #f7f9f1; margin-bottom: 13px; }
+.fa-code-timer { color: #687650; font-size: .8rem; background: #f4f5ed; border-radius: 8px; padding: 9px 12px; }
+.fa-auth-actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 15px; }
+.fa-auth-actions .fa-button { flex: 1 1 145px; }
+.fa-security-settings { border: 1px solid #d7dfc2; border-top: 3px solid #98a452; background: linear-gradient(135deg,#f5f8ec,#fffefb 70%); border-radius: 15px; padding: 22px; margin-top: 24px; }
+.fa-security-heading { display: flex; align-items: center; gap: 12px; margin-bottom: 13px; }
+.fa-security-heading h3 { font-family: var(--fa-font-display); font-size: 1.2rem; margin: 0; }
+.fa-security-heading .fa-security-icon { margin: 0; flex-shrink: 0; }
+.fa-security-settings > p { color: #687650; font-size: .85rem; line-height: 1.7; }
+.fa-security-config { display: flex; flex-wrap: wrap; align-items: end; gap: 14px; }
+.fa-security-password { flex: 1 1 220px; min-width: 0; }
+.rc-email-panel { margin: 0 0 20px; padding: 20px; background: #f5f8ec; border: 1px solid #d7dfc2; border-radius: 15px; }
+.rc-email-panel h3 { font: 600 1.15rem var(--fa-font-display); margin: 0 0 9px; }
+.rc-email-panel p { color: #687650; font-size: .85rem; line-height: 1.6; }
+.rc-email-form { display: flex; flex-wrap: wrap; gap: 12px; align-items: end; }
+.rc-email-form label { flex: 1 1 240px; min-width: 0; }
+.rc-email-form input { margin-top: 7px; }
+.rc-preview-actions { flex-wrap: wrap; gap: 10px; }
+@media(max-width: 768px) {
+  .fa-auth { padding: 18px 12px; }
+  .fa-auth-mobile-brand { display: flex; align-items: center; gap: 10px; margin-bottom: 20px; color: #765326; font: 600 1.4rem var(--fa-font-display); }
+  .fa-auth-mobile-brand img { width: 48px; height: 48px; object-fit: contain; }
+  .fa-security-settings { padding: 16px; }
+  .fa-security-config > .fa-button, .rc-email-form > .fa-button { width: 100%; }
+}
+
+.rc-delete-button { color: #a14c3e !important; }
+.rc-delete-button:hover:not(:disabled) { background: #fff0ec !important; border-color: #e8c9c2; }
+.rc-delete-confirm h3 { font: 600 1.4rem var(--fa-font-display); margin: 16px 0; }
+.rc-delete-confirm p { line-height: 1.7; color: #687650; }
+.rc-delete-symbol { display: grid; place-items: center; width: 55px; height: 55px; border: 1px solid #e8c9c2; border-radius: 15px; background: #fff0ec; color: #a14c3e; font-size: 1.5rem; }
+
+.fa-account-confirm { padding: 5px 0; }
+.fa-account-confirm-icon { display: grid; place-items: center; width: 62px; height: 62px; border-radius: 18px; margin-bottom: 18px; font-size: 1.8rem; border: 1px solid #bfd5c4; background: #edf6f1; color: #2f6f5e; }
+.fa-account-confirm.desactivacion .fa-account-confirm-icon { color: #97622b; background: #fbf5e5; border-color: #e4d8aa; }
+.fa-account-confirm h3 { font: 600 1.5rem var(--fa-font-display); line-height: 1.4; margin: 15px 0 12px; color: #293a2b; }
+.fa-account-confirm > p { font-size: .9rem; line-height: 1.75; color: #687650; }
+.fa-account-confirm .fa-form-actions { margin-top: 24px; }

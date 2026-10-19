@@ -1,11 +1,12 @@
+import { useVolverFormulario } from "../../hooks/useVolverFormulario";
 import {datosPersona,validarPersona} from "../../utils/persona";
 import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+
 import { getMyData, updatePersona } from "../../services/userService";
 import type { UserFull } from "../../types/user";
 
 function EditPerfil() {
-  const navigate = useNavigate();
+  const volver = useVolverFormulario();
   const usuarioActual = JSON.parse(localStorage.getItem("user") || "{}");
 
   const [nombre, setNombre] = useState("");
@@ -56,8 +57,7 @@ function EditPerfil() {
     try {
       setGuardando(true);
       await updatePersona(idPersona, datosPersona({ nombre, telefono, dpi, correo, idRol }));
-      setSuccess("Perfil actualizado exitosamente");
-      setFieldErrors({});
+      volver();
     } catch (error: any) {
       console.error("Error al actualizar perfil:", error);
 
@@ -177,7 +177,7 @@ function EditPerfil() {
           <div className="cp-actions">
             <button
               type="button"
-              onClick={() => navigate("/admin/perfil")}
+              onClick={() => volver()}
               disabled={guardando}
               className="cp-btn-secondary"
             >

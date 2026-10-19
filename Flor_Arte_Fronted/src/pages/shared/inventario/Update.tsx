@@ -1,7 +1,8 @@
+import { useVolverFormulario } from "../../../hooks/useVolverFormulario";
 import CampoNumero from "../../../components/shared/CampoNumero";
 import { useEffect, useMemo, useRef, useState } from "react";
 import type { FormEvent, KeyboardEvent, ReactNode } from "react";
-import { useNavigate, useParams } from "react-router-dom";
+import {  useParams } from "react-router-dom";
 
 import { getEntradaInventarioById, updateEntradaInventario } from "../../../services/shared/inventario/inventarioService";
 import { getPersonas } from "../../../services/admin/usuarioService";
@@ -168,7 +169,7 @@ function Combo({
 }
 
 function UpdateInventario() {
-  const navigate = useNavigate();
+  const volver = useVolverFormulario();
   const { id } = useParams<{ id: string }>();
   const idEntrada = Number(id);
 
@@ -339,7 +340,7 @@ function UpdateInventario() {
         })),
       });
 
-      navigate("..");
+      volver();
     } catch (err) {
       console.error(err);
       setError(
@@ -368,7 +369,7 @@ function UpdateInventario() {
           <i className="bi bi-exclamation-circle" aria-hidden="true"></i>
           <span>{errorCarga}</span>
         </div>
-        <button type="button" className="ci-btn-secondary" onClick={() => navigate("..")}>
+        <button type="button" className="ci-btn-secondary" onClick={() => volver()}>
           Volver
         </button>
       </div>
@@ -378,7 +379,7 @@ function UpdateInventario() {
   return (
     <div className="ci-page">
       <header className="ci-header">
-        <button type="button" className="ci-back" onClick={() => navigate("..")}>
+        <button type="button" className="ci-back" onClick={() => volver()}>
           <i className="bi bi-arrow-left" aria-hidden="true"></i> Inventario
         </button>
 
@@ -617,7 +618,7 @@ function UpdateInventario() {
             <button
               type="button"
               className="ci-btn-secondary"
-              onClick={() => navigate("..")}
+              onClick={() => volver()}
               disabled={guardando}
             >
               Cancelar

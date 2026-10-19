@@ -1,6 +1,7 @@
+import { useVolverFormulario } from "../../../hooks/useVolverFormulario";
 import { useEffect, useState } from "react";
 import type { FormEvent } from "react";
-import { useNavigate } from "react-router-dom";
+
 import {
   getColores,
   createColor,
@@ -10,7 +11,7 @@ import {
 import type { Color as ColorType, NewColor } from "../../../types/flor";
 
 function Color() {
-  const navigate = useNavigate();
+  const volver = useVolverFormulario();
 
   const [colores, setColores] = useState<ColorType[]>([]);
   const [loading, setLoading] = useState(true);
@@ -131,7 +132,7 @@ const handleGuardarColor = async (e: FormEvent) => {
       {/* HEADER */}
       <div className="color-header">
         <div>
-          <button className="color-btn-back" onClick={() => navigate("..")}>
+          <button className="color-btn-back" onClick={() => volver()}>
             ← Volver a Flores
           </button>
           <h1 className="color-title">Colores</h1>

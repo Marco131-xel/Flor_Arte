@@ -1,7 +1,8 @@
+import { useVolverFormulario } from "../../../hooks/useVolverFormulario";
 import CampoNumero from "../../../components/shared/CampoNumero";
 import { useEffect, useMemo, useRef, useState } from "react";
 import type { FormEvent, KeyboardEvent, ReactNode } from "react";
-import { useNavigate } from "react-router-dom";
+
 
 import { createPedido } from "../../../services/shared/pedido/pedidoService";
 import { getPersonas, getUsuarioById } from "../../../services/admin/usuarioService";
@@ -169,7 +170,7 @@ function Combo({
 }
 
 function CreatePedido() {
-  const navigate = useNavigate();
+  const volver = useVolverFormulario();
   const usuarioActual = JSON.parse(localStorage.getItem("user") || "{}");
   const idUsuario = Number(usuarioActual.id);
   const [idEmpleado, setIdEmpleado] = useState<number | null>(null);
@@ -372,7 +373,7 @@ function CreatePedido() {
         })),
       });
 
-      navigate("..");
+      volver();
     } catch (err) {
       console.error(err);
       setError(
@@ -389,7 +390,7 @@ function CreatePedido() {
   return (
     <div className="ci-page">
       <header className="ci-header">
-        <button type="button" className="ci-back" onClick={() => navigate("..")}>
+        <button type="button" className="ci-back" onClick={() => volver()}>
           <i className="bi bi-arrow-left" aria-hidden="true"></i> Pedidos
         </button>
 
@@ -639,7 +640,7 @@ function CreatePedido() {
             <button
               type="button"
               className="ci-btn-secondary"
-              onClick={() => navigate("..")}
+              onClick={() => volver()}
               disabled={guardando}
             >
               Cancelar

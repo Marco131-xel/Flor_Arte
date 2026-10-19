@@ -1,7 +1,8 @@
+import { useVolverFormulario } from "../../../hooks/useVolverFormulario";
 import { useEffect, useMemo, useState } from "react";
 import { createUser, getPersonas, getUsuarios } from "../../../services/admin/usuarioService";
 import type { Persona } from "../../../types/user";
-import { useNavigate } from "react-router-dom";
+
 
 function CreateUser() {
   const [name, setName] = useState("");
@@ -16,7 +17,7 @@ function CreateUser() {
 
   const [personas, setPersonas] = useState<Persona[]>([]);
   const [idsConUsuario, setIdsConUsuario] = useState<Set<number>>(new Set());
-  const navigate = useNavigate();
+  const volver = useVolverFormulario();
 
   useEffect(() => {
     cargarDatos();
@@ -58,6 +59,7 @@ function CreateUser() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if(loading)return;
 
     setError("");
     setSuccess("");
@@ -77,17 +79,10 @@ function CreateUser() {
         idPersona,
       });
 
-      setSuccess("Usuario registrado exitosamente");
-
-      setName("");
-      setEmail("");
       setPassword("");
-      setIdPersona("");
-
-      // la persona recién usada ya no debe volver a aparecer en el combo
-      setIdsConUsuario((prev) => new Set(prev).add(Number(idPersona)));
+      volver();
     } catch (error: any) {
-      console.error("Error al crear usuario:", error);
+
 
       if (error.response?.data?.error) {
         setError(error.response.data.message || error.response.data.error);
@@ -195,7 +190,7 @@ function CreateUser() {
           <div className="cp-actions">
             <button
               type="button"
-              onClick={() => navigate(-1)}
+              onClick={() => volver()}
               disabled={loading}
               className="cp-btn-secondary"
             >

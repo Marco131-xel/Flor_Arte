@@ -64,3 +64,5 @@ export const deleteUsuario = async (id: number) => {
   const response = await api.delete(`/user/delete/${id}`);
   return response.data;
 };
+export const solicitarCambioPasswordEmpleado=async(id:number)=>
+  (await api.post<{message:string}>(`/auth/recuperacion/empleado/${id}`)).data;

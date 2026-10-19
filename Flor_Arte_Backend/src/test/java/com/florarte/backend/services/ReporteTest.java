@@ -44,7 +44,7 @@ class ReporteTest {
         ctx.registerBean(JdbcTemplate.class,()->jdbc);
         ctx.registerBean("transactionManager",DataSourceTransactionManager.class,()->new DataSourceTransactionManager(ds));
         ctx.registerBean("reglasEdicion",ReglasEdicion.class,()->new ReglasEdicion(jdbc));
-        ctx.registerBean(NamedParameterJdbcTemplate.class,()->new NamedParameterJdbcTemplate(ds));ctx.registerBean(ReporteService.class);ctx.registerBean(ReporteController.class);ctx.registerBean(ComprobanteService.class);ctx.registerBean(ComprobanteController.class);ctx.refresh();
+        ctx.registerBean(NamedParameterJdbcTemplate.class,()->new NamedParameterJdbcTemplate(ds));ctx.registerBean(ReporteService.class);ctx.registerBean(ReporteController.class);ctx.registerBean(ComprobanteService.class);ctx.registerBean(ComprobanteCorreoService.class,()->org.mockito.Mockito.mock(ComprobanteCorreoService.class));ctx.registerBean(ComprobantePdfService.class);ctx.registerBean(ComprobanteController.class);ctx.refresh();
         service=ctx.getBean(ReporteService.class);rol("ADMINISTRADOR");
     }
     @AfterEach void cerrar(){SecurityContextHolder.clearContext();ctx.close();}
@@ -159,4 +159,27 @@ class ReporteTest {
         }
         assertEquals(1,jdbc.queryForObject("SELECT count(*) FROM comprobante",Integer.class));
     }
+  @Test
+  void eliminarReciboConservaOperacionStockYPermiteEmitirDeNuevo() {
+    int origen = pedido("PENDIENTE", cliente, "2030-10-08 10:00:00", 5);
+    var controller = ctx.getBean(ComprobanteController.class);
+    var c = controller.emitir(new ComprobanteController.Emitir("PEDIDO", origen));
+    long id = ((Number) c.get("id")).longValue();
+    int stock = jdbc.queryForObject("SELECT stock FROM flor WHERE id_flor=?", Integer.class, flor);
+    controller.eliminar(id);
+    assertEquals(
+        0,
+        jdbc.queryForObject(
+            "SELECT count(*) FROM comprobante WHERE id_comprobante=?", Integer.class, id));
+    assertEquals(
+        1,
+        jdbc.queryForObject(
+            "SELECT count(*) FROM pedido WHERE id_pedido=?", Integer.class, origen));
+    assertEquals(
+        stock, jdbc.queryForObject("SELECT stock FROM flor WHERE id_flor=?", Integer.class, flor));
+    long nuevo =
+        ((Number) controller.emitir(new ComprobanteController.Emitir("PEDIDO", origen)).get("id"))
+            .longValue();
+    assertNotEquals(id, nuevo);
+  }
 }

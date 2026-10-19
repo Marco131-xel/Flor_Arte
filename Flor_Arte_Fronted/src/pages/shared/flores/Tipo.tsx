@@ -1,7 +1,8 @@
+import { useVolverFormulario } from "../../../hooks/useVolverFormulario";
 import {usePagina} from "../../../hooks/usePagina";
 import { useState } from "react";
 import type { FormEvent } from "react";
-import { useNavigate } from "react-router-dom";
+
 import {
   createTipoFlor,
   updateTipoFlor,
@@ -10,7 +11,7 @@ import {
 import type { TipoFlor as TipoFlorType, NewTipoFlor } from "../../../types/flor";
 
 function TipoFlor() {
-  const navigate = useNavigate();
+  const volver = useVolverFormulario();
 
   const {filtros,cambiar,data,cargando:loading,error:errorPagina,recargar} = usePagina("tipoflor");
   const tiposFlor:TipoFlorType[] = (data?.contenido || []).map(tipo=>({idTipoFlor:tipo.id,nombre:tipo.nombre,descripcion:tipo.descripcion||"",imagenUrl:tipo.imagen||""}));
@@ -112,7 +113,7 @@ function TipoFlor() {
       {/* HEADER */}
       <div className="tipoflor-header">
         <div>
-          <button className="tipoflor-btn-back" onClick={() => navigate("..")}>
+          <button className="tipoflor-btn-back" onClick={() => volver()}>
             ← Volver a Flores
           </button>
           <h1 className="tipoflor-title">Tipos de Flor</h1>

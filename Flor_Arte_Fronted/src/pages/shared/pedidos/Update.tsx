@@ -1,7 +1,8 @@
+import { useVolverFormulario } from "../../../hooks/useVolverFormulario";
 import CampoNumero from "../../../components/shared/CampoNumero";
 import { useEffect, useMemo, useRef, useState } from "react";
 import type { FormEvent, KeyboardEvent, ReactNode } from "react";
-import { useNavigate, useParams } from "react-router-dom";
+import {  useParams } from "react-router-dom";
 
 import {
   getPedidoById,
@@ -183,7 +184,7 @@ function Combo({
 }
 
 function UpdatePedidos() {
-  const navigate = useNavigate();
+  const volver = useVolverFormulario();
   const { id } = useParams(); // la ruta debe ser .../update/:id
   const idPedido = Number(id);
 
@@ -400,7 +401,7 @@ function UpdatePedidos() {
         })),
       });
 
-      navigate("..");
+      volver();
     } catch (err) {
       console.error(err);
       setError(
@@ -435,7 +436,7 @@ function UpdatePedidos() {
         <button
           type="button"
           className="ci-back"
-          onClick={() => navigate("..")}
+          onClick={() => volver()}
         >
           <i className="bi bi-arrow-left" aria-hidden="true"></i> Pedidos
         </button>
@@ -449,7 +450,7 @@ function UpdatePedidos() {
         <button
           type="button"
           className="ci-back"
-          onClick={() => navigate("..")}
+          onClick={() => volver()}
         >
           <i className="bi bi-arrow-left" aria-hidden="true"></i> Pedidos
         </button>
@@ -729,7 +730,7 @@ function UpdatePedidos() {
             <button
               type="button"
               className="ci-btn-secondary"
-              onClick={() => navigate("..")}
+              onClick={() => volver()}
               disabled={guardando}
             >
               Cancelar

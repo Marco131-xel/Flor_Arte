@@ -3,6 +3,8 @@
   --primary-hover: #c29454;
   --focus-color: #271401;
   --card-radius: 20px;
+  --fa-primary: #9c743b;
+  --fa-hover: #765326;
 
   background: url("/images/fondo1.jpg") no-repeat center center fixed;
   background-size: cover;
@@ -67,8 +69,8 @@
 
 /* responsive */
 @media (max-width: 768px) {
-  .leftSide {
-    display: none;
+  .loginWrapper .leftSide {
+    display: none !important;
   }
 
   .loginWrapper {
@@ -77,14 +79,16 @@
 }
 
 /* boton olvidar contraseña */
-.customLink {
-  color: var(--primary-color);
+.loginWrapper .customLink {
+  display: inline-flex;
+  padding: 8px 2px;
+  color: var(--fa-hover);
   text-decoration: none;
   transition: 0.3s;
 }
 
 /* registrarse */
-.customLink:hover {
+.loginWrapper .customLink:hover {
   color: var(--primary-hover);
   text-decoration: underline;
 }
@@ -93,3 +97,5 @@
   from { opacity: 0; transform: translateY(15px); }
   to { opacity: 1; transform: translateY(0); }
 }
+.loginWrapper .customLink:visited { color: var(--fa-hover); }
+.loginWrapper .customLink:focus-visible { outline: 3px solid #c9a227; outline-offset: 3px; border-radius: 5px; }

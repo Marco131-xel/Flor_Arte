@@ -366,3 +366,87 @@ export default defineConfig([
 ])
 
 ```
+
+## Gmail, verificación en dos pasos y recuperación
+
+El login conserva la autenticación y los roles existentes. El 2FA se configura
+individualmente desde Mi perfil; las cuentas actuales lo tienen desactivado inicialmente.
+Consulta [la guía de seguridad por correo](SEGURIDAD_CORREO.md) para configurar Gmail,
+las variables privadas del backend, la migración V18 y las pruebas automáticas y manuales.
+
+## Enviar comprobantes PDF por correo
+
+En **Recibos y comprobantes**, abre un documento con el botón de ver y selecciona
+**Enviar por correo**. El correo registrado al emitir el comprobante se precarga;
+si falta, puedes escribirlo. Comprueba el destinatario y pulsa **Enviar PDF**.
+El correo introducido se usa solo para ese envío y no cambia el comprobante histórico
+ni el registro de la persona.
+
+El backend genera el adjunto desde los datos guardados, con logo, detalle, total y
+paginación, usando [Apache PDFBox](https://pdfbox.apache.org/). Reutiliza el Gmail SMTP
+ya configurado para 2FA y recuperación; no requiere variables nuevas ni migraciones.
+Reinicia el backend después de actualizarlo para habilitar `POST /comprobante/{id}/correo`.
+Administrador y empleado pueden enviar recibos de pedidos, arreglos y eventos, además
+de comprobantes de inventario para proveedores.
+
+Se confirma el envío cuando SMTP lo acepta; revisa Spam si el destinatario no lo ve.
+Los fallos de SMTP se muestran en pantalla. Hay un máximo de tres intentos de envío
+por comprobante y 30 por usuario en cada ventana de 15 minutos; los intentos fallidos
+también cuentan para evitar abusos. Los correos de pruebas son simulados.
+
+Con Vite en `http://127.0.0.1:5175`, ejecuta `npm run test:recibos` para probar el
+formulario, la validación, los errores, ambos roles y la vista móvil sin enviar correos.
+Las pruebas backend de PDF, adjuntos y autorización están en `ComprobantePdfTest`,
+`CorreoServiceTest` y `SeguridadCorreoIntegrationTest`.
+
+## Eliminar comprobantes y descargar su PDF
+
+El botón de papelera está disponible en el historial y en la vista del documento.
+La eliminación pide confirmación y conserva la operación original y su inventario.
+Los administradores pueden eliminar cualquier comprobante; los empleados, durante
+los primeros 30 minutos desde su emisión. El backend valida el plazo aunque se
+intente ejecutar la acción directamente. Puedes emitir un nuevo comprobante si la
+operación original sigue siendo válida; recibirá otro número de documento.
+
+El estado de la operación no se muestra en la vista ni en el PDF. Su dato histórico
+se conserva internamente. La descarga y el correo usan el mismo generador del backend,
+con número destacado, información del cliente, tabla, total y paginación. No se
+necesitan migraciones nuevas. Reinicia el backend para habilitar `GET /comprobante/{id}/pdf`
+y `DELETE /comprobante/{id}`.
+
+Las pruebas de confirmación, permisos y descarga se ejecutan con
+`npm run test:recibos:acciones` y una API simulada (Vite en el puerto 5175).
+
+## Regreso de los formularios y recuperación solicitada por administrador
+
+Los formularios de gestión regresan al listado de su módulo después de un guardado
+correcto. Usuarios y personas regresan a su pestaña en Contactos; las mermas regresan
+al inventario con la pestaña Mermas seleccionada. La edición del perfil vuelve a
+Mi perfil. Los errores de guardado conservan el formulario y sus datos. Los formularios
+modales de colores y tipos de flor cierran el formulario y actualizan el catálogo.
+La generación de comprobantes vuelve al historial y muestra una confirmación.
+
+En **Usuarios del sistema → Editar usuario → Enviar cambio de contraseña**, el
+administrador puede solicitar un enlace de recuperación para un empleado activo.
+Se usa el correo de acceso guardado en el backend; guarda primero cualquier cambio
+de correo o estado. La solicitud no modifica la contraseña: el empleado la cambia
+mediante el enlace de 15 minutos, de un solo uso. La ruta protegida es
+`POST /auth/recuperacion/empleado/{id}`, exclusiva del administrador, con límites de
+10 solicitudes por administrador y tres por empleado en ventanas de 15 minutos.
+Reutiliza Gmail y la configuración de recuperación existentes; no requiere migraciones.
+
+El encabezado de todos los correos alinea el logo a la izquierda y el nombre/lema a
+su derecha. Los PDF muestran el número de documento y el total como texto sobre
+fondo blanco, manteniendo el resto del diseño.
+
+`npm run test:formularios` comprueba las rutas de regreso y los flujos de guardado y
+solicitud administrativa con API simulada (Vite en el puerto 5175). No envía correos.
+
+## Mensajes de login y confirmación de cuentas
+
+La activación o desactivación desde Editar usuario pide confirmación en una ventana
+con el estilo de FlorArte. Cancelar no modifica la cuenta. El login presenta mensajes
+en español para credenciales incorrectas, validación, conexión, cuenta sin acceso y
+límites de intentos; no muestra mensajes técnicos como «Bad Request».
+`npm run test:login:estados` verifica estos casos y el color del enlace de recuperación
+con la API simulada (Vite en el puerto 5175).

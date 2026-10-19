@@ -1,8 +1,10 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import styles from "../../styles/login.module.css";
-import { loginRequest } from "../../services/authService";
-import AccionPendiente from "../AccionPendiente";
+import { guardarSesion, loginRequest } from "../../services/authService";
+import CodigoCorreo from "./CodigoCorreo";
+import type { DesafioAuth, SesionAuth } from "../../types/auth";
+import { mensajeLogin } from "../../services/mensajesLogin";
 
 const LoginForm: React.FC = () => {
   const [email, setEmail] = useState("");
@@ -11,59 +13,27 @@ const LoginForm: React.FC = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
+  const [desafio, setDesafio] = useState<DesafioAuth | null>(null);
+  const completar = (data: SesionAuth) => {
+    guardarSesion(data, email);
+    navigate(data.tipoUsuario === "ADMINISTRADOR" ? "/admin" : data.tipoUsuario === "EMPLEADO" ? "/empleado" : "/", { replace: true });
+  };
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     if (loading) return;
     setError("");
     setLoading(true);
+    ["token", "role", "user"].forEach(key => localStorage.removeItem(key));
 
     try {
       const data = await loginRequest(email, password);
-      localStorage.setItem("token", data.token);
-      localStorage.setItem("role", data.tipoUsuario);
-      localStorage.setItem(
-        "user",
-        JSON.stringify({
-          id: data.id_usuario,
-          nombre: data.nombre,
-          estado: data.estado,
-          email: email,
-        })
-      );
-
-      if (data.tipoUsuario === "ADMINISTRADOR") {
-        navigate("/admin");
-      } else if (data.tipoUsuario === "EMPLEADO") {
-        navigate("/empleado");
-      } else {
-        navigate("/");
-      }
-    } catch (err: any) {
-      console.error("Error de login: ", err);
-      if (!err.response) {
-        setError("No se pudo conectar con el servidor. Verifica tu conexión.");
-      } else {
-        const status = err.response.status;
-        const backendMsg = err.response.data?.error;
-
-        switch (status) {
-          case 400:
-            setError(backendMsg || "Revisa el correo y la contraseña ingresados");
-            break;
-          case 401:
-            setError(backendMsg || "Correo o contraseña incorrectos");
-            break;
-          case 403:
-            setError(backendMsg || "Tu cuenta está inactiva o bloqueada");
-            break;
-          case 500:
-            setError("Error interno del servidor, intenta más tarde");
-            break;
-          default:
-            setError("Ocurrió un error inesperado, intenta de nuevo");
-        }
-      }
+      setPassword("");
+      if (data.requires2fa) setDesafio(data);
+      else completar(data);
+    } catch (err: unknown) {
+      setPassword("");
+      setError(mensajeLogin(err));
     } finally {
       setLoading(false);
     }
@@ -92,19 +62,20 @@ const LoginForm: React.FC = () => {
           {/* Panel derecho */}
           <div className="col-md-6 p-5 bg-white">
             <div className="text-center mb-4">
-              <h3 className="fw-bold">Inicia Sesión</h3>
+              <h3 className="fw-bold">{desafio ? "Verifica tu identidad" : "Inicia Sesión"}</h3>
               <p className="text-muted">
-                Inicia sesión para gestionar tu tienda, productos y pedidos.
+                {desafio ? "Confirma el código enviado a tu correo para continuar." : "Inicia sesión para gestionar tu tienda, productos y pedidos."}
               </p>
             </div>
 
             {error && (
-              <div className="alert alert-danger" role="alert" aria-live="assertive">
+              <div className="fa-auth-notice danger" role="alert" aria-live="assertive">
                 {error}
               </div>
             )}
 
-            <form onSubmit={handleLogin} noValidate>
+            {desafio ? <CodigoCorreo desafio={desafio} onComplete={completar}
+              onCancel={() => { setDesafio(null); setError(""); }} /> : <form onSubmit={handleLogin}>
               <div className="mb-3">
                 <label htmlFor="email" className="form-label">
                   <i className="bi bi-envelope"></i> Correo
@@ -168,14 +139,11 @@ const LoginForm: React.FC = () => {
               </button>
 
               <div className="text-center mt-3">
-                <AccionPendiente
-                  className={`btn btn-link ${styles.customLink} fw-bold`}
-                  mensaje="La recuperación de contraseña aún no está disponible."
-                >
+                <Link className={`${styles.customLink} fw-bold`} to="/recuperar-contrasena">
                   ¿Olvidaste tu contraseña?
-                </AccionPendiente>
+                </Link>
               </div>
-            </form>
+            </form>}
           </div>
         </div>
       </div>

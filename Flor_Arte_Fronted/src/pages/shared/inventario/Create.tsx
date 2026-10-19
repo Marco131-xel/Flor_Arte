@@ -1,7 +1,8 @@
+import { useVolverFormulario } from "../../../hooks/useVolverFormulario";
 import CampoNumero from "../../../components/shared/CampoNumero";
 import { useEffect, useMemo, useRef, useState } from "react";
 import type { FormEvent, KeyboardEvent, ReactNode } from "react";
-import { useNavigate } from "react-router-dom";
+
 
 import { createEntradaCompleta } from "../../../services/shared/inventario/inventarioService";
 import { getPersonas } from "../../../services/admin/usuarioService";
@@ -168,7 +169,7 @@ function Combo({
 }
 
 function CreateInventario() {
-  const navigate = useNavigate();
+  const volver = useVolverFormulario();
 
   const [personas, setPersonas] = useState<Persona[]>([]);
   const [flores, setFlores] = useState<Flor[]>([]);
@@ -323,7 +324,7 @@ function CreateInventario() {
         })),
       });
 
-      navigate("..");
+      volver();
     } catch (err) {
       console.error(err);
       setError(
@@ -343,7 +344,7 @@ function CreateInventario() {
         <button
           type="button"
           className="ci-back"
-          onClick={() => navigate("..")}
+          onClick={() => volver()}
         >
           <i className="bi bi-arrow-left" aria-hidden="true"></i> Inventario
         </button>
@@ -586,7 +587,7 @@ function CreateInventario() {
             <button
               type="button"
               className="ci-btn-secondary"
-              onClick={() => navigate("..")}
+              onClick={() => volver()}
               disabled={guardando}
             >
               Cancelar

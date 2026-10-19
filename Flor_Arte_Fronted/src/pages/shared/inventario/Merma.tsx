@@ -1,9 +1,10 @@
+import { useVolverFormulario } from "../../../hooks/useVolverFormulario";
 import {api} from "../../../services/apiService";
 import {dinero} from "../../../services/gestionService";
 import CampoNumero from "../../../components/shared/CampoNumero";
 import { useEffect, useMemo, useRef, useState } from "react";
 import type { FormEvent, KeyboardEvent } from "react";
-import { useNavigate } from "react-router-dom";
+
 
 import { createMovimientoInventario } from "../../../services/shared/inventario/inventarioService";
 import { getFlores } from "../../../services/shared/flor/florService";
@@ -24,7 +25,7 @@ const mensajeDeError = (err: unknown, respaldo: string) => {
 };
 
 function Merma() {
-  const navigate = useNavigate();
+  const volver = useVolverFormulario();
 
   const [flores, setFlores] = useState<Flor[]>([]);
   const [cargando, setCargando] = useState(true);
@@ -142,15 +143,7 @@ function Merma() {
         motivo: "MERMA",
       });
 
-      setExito(`Se registró la merma de ${cant} unidad(es) de ${seleccionada.etiqueta}.`);
-      setFlores((prev) =>
-        prev.map((f) =>
-          f.idFlor === seleccionada.id ? { ...f, stock: f.stock - cant } : f
-        )
-      );
-      setCosto("");setAvisoCosto("");setCargandoCosto(false);
-      setIdFlor(null);
-      setCantidad("");
+      volver();
     } catch (err) {
       console.error(err);
       setError(
@@ -179,7 +172,7 @@ function Merma() {
           <i className="bi bi-exclamation-circle" aria-hidden="true"></i>
           <span>{errorCarga}</span>
         </div>
-        <button type="button" className="ci-btn-secondary" onClick={() => navigate("..")}>
+        <button type="button" className="ci-btn-secondary" onClick={() => volver()}>
           Volver
         </button>
       </div>
@@ -189,7 +182,7 @@ function Merma() {
   return (
     <div className="ci-page">
       <header className="ci-header">
-        <button type="button" className="ci-back" onClick={() => navigate("..")}>
+        <button type="button" className="ci-back" onClick={() => volver()}>
           <i className="bi bi-arrow-left" aria-hidden="true"></i> Inventario
         </button>
 
@@ -373,7 +366,7 @@ function Merma() {
             <button
               type="button"
               className="ci-btn-secondary"
-              onClick={() => navigate("..")}
+              onClick={() => volver()}
               disabled={guardando}
             >
               Cancelar

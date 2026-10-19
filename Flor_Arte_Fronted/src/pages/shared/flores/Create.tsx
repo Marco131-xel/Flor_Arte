@@ -1,12 +1,13 @@
+import { useVolverFormulario } from "../../../hooks/useVolverFormulario";
 import CampoNumero from "../../../components/shared/CampoNumero";
 import { useEffect, useRef, useState } from "react";
 import type { FormEvent, KeyboardEvent } from "react";
-import { useNavigate } from "react-router-dom";
+
 import { createFlor, getColores, getTiposFlor } from "../../../services/shared/flor/florService";
 import type { Color, TipoFlor, NewFlor } from "../../../types/flor";
 
 function CreateFlor() {
-  const navigate = useNavigate();
+  const volver = useVolverFormulario();
 
   const [colores, setColores] = useState<Color[]>([]);
   const [tiposFlor, setTiposFlor] = useState<TipoFlor[]>([]);
@@ -136,7 +137,7 @@ function CreateFlor() {
     try {
       setGuardando(true);
       await createFlor(nuevaFlor);
-      navigate("..");
+      volver();
     } catch (err) {
       setError("No se pudo crear la flor. Intenta de nuevo.");
     } finally {
@@ -147,7 +148,7 @@ function CreateFlor() {
   return (
     <div className="crear-flor-page">
       <div className="crear-flor-header">
-        <button className="crear-flor-btn-back" onClick={() => navigate("..")}>
+        <button className="crear-flor-btn-back" onClick={() => volver()}>
           ← Volver a Flores
         </button>
         <h1 className="crear-flor-title">
@@ -345,7 +346,7 @@ function CreateFlor() {
               <button
                 type="button"
                 className="crear-flor-btn-secondary"
-                onClick={() => navigate("..")}
+                onClick={() => volver()}
                 disabled={guardando}
               >
                 Cancelar

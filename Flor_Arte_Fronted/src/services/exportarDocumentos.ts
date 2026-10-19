@@ -1,5 +1,5 @@
-import {empresa,logoEmpresa,descargarBlob} from './documentosService';
-import {numeroComprobante,nombresComprobante} from '../types/comprobante';
+import {empresa,logoEmpresa,descargarBlob,descargarComprobantePdf} from './documentosService';
+import {numeroComprobante} from '../types/comprobante';
 import type {Comprobante,Empresa} from '../types/comprobante';
 import type {ReporteFinanciero,ReporteOperativo,PaginaMermaReporte,RankingReporte} from '../types/reporte';
 import {dinero,fechaTexto} from './gestionService';
@@ -13,14 +13,10 @@ function cabecera(doc:jsPDF,logo:string,titulo:string,compania:Empresa=empresa){
 }
 function pies(doc:jsPDF,numero:string){const total=doc.getNumberOfPages();for(let i=1;i<=total;i++){doc.setPage(i);const y=doc.internal.pageSize.getHeight()-12;doc.setDrawColor(217,223,196);doc.line(15,y-4,doc.internal.pageSize.getWidth()-15,y-4);doc.setFont('helvetica','normal');doc.setFontSize(8);doc.setTextColor(105,110,91);doc.text(`FlorArte | ${numero}`,15,y);doc.text(`${i} / ${total}`,doc.internal.pageSize.getWidth()-15,y,{align:'right'});}}
 export async function pdfComprobante(c:Comprobante){
-  const [{jsPDF},{default:autoTable},logo]=await Promise.all([import('jspdf'),import('jspdf-autotable'),logoEmpresa()]);const doc=new jsPDF({compress:true});const d=c.documento,numero=numeroComprobante(c);cabecera(doc,logo,`${nombresComprobante[c.tipo]} · ${numero}`,d.empresa);
-  doc.setFont('helvetica','normal');doc.setFontSize(9);doc.setTextColor(70,75,64);doc.text(`Emisión: ${fechaTexto(c.emitidoEn)} | Origen: ${c.tipo} #${c.idOrigen}`,15,57);
-  const datos=[`${c.tipo==='INVENTARIO'?'Proveedor':'Cliente'}: ${d.persona}`,`Fecha de la operación: ${fechaTexto(d.fecha)}`,`Estado al emitir: ${d.estado.toLowerCase()}`,d.telefono?`Teléfono: ${d.telefono}`:'',d.correo?`Correo: ${d.correo}`:'',d.responsable?`Atendido por: ${d.responsable}`:''].filter(Boolean);
-  const texto=datos.flatMap(t=>doc.splitTextToSize(t,172) as string[]),alto=texto.length*5+12;doc.setFillColor(245,247,235);doc.roundedRect(15,63,180,alto,3,3,'F');doc.text(texto,20,71,{lineHeightFactor:1.55});
-  autoTable(doc,{startY:63+alto+8,margin:{top:56,bottom:24,left:15,right:15},head:[['Cantidad','Descripción','Precio unitario','Subtotal']],body:d.lineas.map(l=>[l.cantidad,l.descripcion,dinero(l.precio),dinero(l.subtotal)]),styles:{font:'helvetica',fontSize:9,cellPadding:3,overflow:'linebreak'},headStyles:{fillColor:oliva},alternateRowStyles:{fillColor:[249,250,243]},columnStyles:{0:{cellWidth:20},1:{cellWidth:88},2:{cellWidth:36,halign:'right'},3:{cellWidth:36,halign:'right'}},didDrawPage:data=>{if(data.pageNumber>1)cabecera(doc,logo,`${nombresComprobante[c.tipo]} · ${numero}`,d.empresa);}});
-  let y=((doc as jsPDF&{lastAutoTable?:{finalY:number}}).lastAutoTable?.finalY??100)+10;if(y+57>doc.internal.pageSize.getHeight()-24){doc.addPage();cabecera(doc,logo,`${nombresComprobante[c.tipo]} · ${numero}`,d.empresa);y=65;}
-  doc.setFillColor(...oliva);doc.roundedRect(115,y,80,17,3,3,'F');doc.setTextColor(255,255,255);doc.setFont('helvetica','bold');doc.setFontSize(11);doc.text('TOTAL',120,y+10);doc.text(dinero(d.total),190,y+10,{align:'right'});doc.setTextColor(90,95,80);doc.setFont('helvetica','normal');doc.setFontSize(9);doc.text(c.tipo==='INVENTARIO'?'Detalle de la compra registrada en inventario.':'Gracias por confiar en FlorArte.',15,y+28);doc.text('Documento de la operación registrada. No confirma por sí solo el pago.',15,y+35);doc.setDrawColor(160,164,146);doc.line(15,y+49,80,y+49);doc.line(120,y+49,195,y+49);doc.text('Entregado por',15,y+54);doc.text('Recibido por',120,y+54);pies(doc,numero);descargarBlob(doc.output('blob'),`${numero}.pdf`);
+  const blob=await descargarComprobantePdf(c.id);
+  descargarBlob(blob,`${numeroComprobante(c)}.pdf`);
 }
+
 function tablasReportes(r:ExportacionReportes):TablaExportacion[]{
   const f=r.finanzas,o=r.operativos;
   const ranking=(titulo:string,criterio:string,datos:RankingReporte[],campos:('unidades'|'solicitudes'|'compras'|'importe')[],labels:string[]):TablaExportacion=>{
