@@ -1,5 +1,6 @@
 import { useVolverFormulario } from "../../../hooks/useVolverFormulario";
 import { useEffect, useMemo, useState } from "react";
+import { isAxiosError } from "axios";
 import { createUser, getPersonas, getUsuarios } from "../../../services/admin/usuarioService";
 import type { Persona } from "../../../types/user";
 
@@ -20,25 +21,24 @@ function CreateUser() {
   const volver = useVolverFormulario();
 
   useEffect(() => {
-    cargarDatos();
+    let vigente = true;
+    const cargarDatos = async () => {
+      try {
+        const [personasData, usuariosData] = await Promise.all([getPersonas(), getUsuarios()]);
+        if (!vigente) return;
+        setPersonas(personasData);
+        setIdsConUsuario(new Set(usuariosData.map((u) => u.idPersona)));
+      } catch (error) {
+        if (!vigente) return;
+        console.error("Error al cargar datos: ", error);
+        setError("No se pudieron cargar las personas");
+      } finally {
+        if (vigente) setCargandoDatos(false);
+      }
+    };
+    void cargarDatos();
+    return () => { vigente = false; };
   }, []);
-
-  const cargarDatos = async () => {
-    try {
-      setCargandoDatos(true);
-      setError("");
-
-      const [personasData, usuariosData] = await Promise.all([getPersonas(), getUsuarios()]);
-
-      setPersonas(personasData);
-      setIdsConUsuario(new Set(usuariosData.map((u) => u.idPersona)));
-    } catch (error) {
-      console.error("Error al cargar datos: ", error);
-      setError("No se pudieron cargar las personas");
-    } finally {
-      setCargandoDatos(false);
-    }
-  };
 
   // Empleados que AÚN NO tienen un usuario en el sistema
   const empleadosDisponibles = useMemo(
@@ -81,11 +81,12 @@ function CreateUser() {
 
       setPassword("");
       volver();
-    } catch (error: any) {
-
-
-      if (error.response?.data?.error) {
-        setError(error.response.data.message || error.response.data.error);
+    } catch (error: unknown) {
+      const datos = isAxiosError<{ message?: unknown; error?: unknown }>(error)
+        ? error.response?.data : undefined;
+      if (datos?.error) {
+        const mensaje = datos.message || datos.error;
+        setError(typeof mensaje === "string" ? mensaje : "Ocurrió un error al registrar el usuario");
       } else {
         setError("Ocurrió un error al registrar el usuario");
       }

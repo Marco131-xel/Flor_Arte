@@ -17,7 +17,8 @@ function UpdateFlores() {
 
   const [colores, setColores] = useState<Color[]>([]);
   const [tiposFlor, setTiposFlor] = useState<TipoFlor[]>([]);
-  const [cargando, setCargando] = useState(true);
+  const [idCargado, setIdCargado] = useState<string | null>(null);
+  const cargando = idCargado !== id;
 
   const [form, setForm] = useState({
     idTipoFlor: "",
@@ -40,7 +41,33 @@ function UpdateFlores() {
   const colorRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    cargarDatos();
+    if (!id) return;
+    let vigente = true;
+    const cargarDatos = async () => {
+      try {
+        const [flor, coloresData, tiposFlorData] = await Promise.all([
+          getFlorById(Number(id)),
+          getColores(),
+          getTiposFlor(),
+        ]);
+        if (!vigente) return;
+        setError(null);
+        setColores(coloresData);
+        setTiposFlor(tiposFlorData);
+        setForm({
+          idTipoFlor: String(flor.idTipoFlor),
+          idColor: String(flor.idColor),
+          precio: String(flor.precio),
+          stock: String(flor.stock),
+        });
+      } catch {
+        if (vigente) setError("No se pudo cargar la información de la flor.");
+      } finally {
+        if (vigente) setIdCargado(id);
+      }
+    };
+    void cargarDatos();
+    return () => { vigente = false; };
   }, [id]);
 
   // cierra los combobox al hacer clic fuera de ellos
@@ -56,31 +83,6 @@ function UpdateFlores() {
     document.addEventListener("mousedown", handleClickFuera);
     return () => document.removeEventListener("mousedown", handleClickFuera);
   }, []);
-
-  const cargarDatos = async () => {
-    if (!id) return;
-    try {
-      setCargando(true);
-      setError(null);
-      const [flor, coloresData, tiposFlorData] = await Promise.all([
-        getFlorById(Number(id)),
-        getColores(),
-        getTiposFlor(),
-      ]);
-      setColores(coloresData);
-      setTiposFlor(tiposFlorData);
-      setForm({
-        idTipoFlor: String(flor.idTipoFlor),
-        idColor: String(flor.idColor),
-        precio: String(flor.precio),
-        stock: String(flor.stock),
-      });
-    } catch (err) {
-      setError("No se pudo cargar la información de la flor.");
-    } finally {
-      setCargando(false);
-    }
-  };
 
   const handleChange = (campo: keyof typeof form, valor: string) => {
     setForm((prev) => ({ ...prev, [campo]: valor }));
@@ -155,7 +157,7 @@ function UpdateFlores() {
       setGuardando(true);
       await updateFlor(Number(id), florActualizada);
       volver();
-    } catch (err) {
+    } catch {
       setError("No se pudo actualizar la flor. Intenta de nuevo.");
     } finally {
       setGuardando(false);
@@ -174,7 +176,7 @@ function UpdateFlores() {
         <p className="crear-flor-subtitle">Actualiza los datos de esta flor</p>
       </div>
 
-      {error && <div className="crear-flor-error-box">{error}</div>}
+      {!cargando && error && <div className="crear-flor-error-box">{error}</div>}
 
       {cargando ? (
         <div className="crear-flor-card">

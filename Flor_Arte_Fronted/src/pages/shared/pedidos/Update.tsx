@@ -188,10 +188,12 @@ function UpdatePedidos() {
   const { id } = useParams(); // la ruta debe ser .../update/:id
   const idPedido = Number(id);
 
-  const [pedido, setPedido] = useState<Pedido | null>(null);
+  const [pedidoCargado, setPedido] = useState<Pedido | null>(null);
+  const pedido = pedidoCargado?.idPedido === idPedido ? pedidoCargado : null;
   const [personas, setPersonas] = useState<Persona[]>([]);
   const [flores, setFlores] = useState<Flor[]>([]);
-  const [cargando, setCargando] = useState(true);
+  const [idCargado, setIdCargado] = useState<number | null>(null);
+  const cargando = Boolean(idPedido) && idCargado !== idPedido;
 
   const [idCliente, setIdCliente] = useState<number | null>(null);
   const [estado, setEstado] = useState("");
@@ -202,57 +204,54 @@ function UpdatePedidos() {
 
   const [detalles, setDetalles] = useState<DetalleFormulario[]>([]);
   const [guardando, setGuardando] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-
-  const cargarDatos = async () => {
-    try {
-      setCargando(true);
-      setError(null);
-
-      const [pedidoData, personasData, floresData] = await Promise.all([
-        getPedidoById(idPedido),
-        getPersonas(),
-        getFlores(),
-      ]);
-
-      setPedido(pedidoData);
-      setPersonas(personasData);
-      setFlores(floresData);
-      setIdCliente(pedidoData.idCliente);
-      setEstado(pedidoData.estado);
-
-      // Solo los pedidos activos tienen unidades reservadas que se pueden reutilizar.
-      setDetalles(
-        (pedidoData.detalles ?? []).map((d) => {
-          const flor = floresData.find((f) => f.idFlor === d.idFlor);
-          return {
-            idDetallePedido: d.idDetallePedido,
-            idFlor: d.idFlor,
-            nombreFlor: d.nombreFlor,
-            cantidad: d.cantidad,
-            precio: d.precio,
-            stock: (flor?.stock ?? 0) + (pedidoData.estado === "CANCELADO" ? 0 : d.cantidad),
-          };
-        })
-      );
-    } catch (err) {
-      console.error(err);
-      setError(
-        mensajeDeError(err, "No se pudo cargar el pedido. Recarga la página.")
-      );
-    } finally {
-      setCargando(false);
-    }
-  };
+  const [errorPeticion, setError] = useState<string | null>(null);
+  const error = !idPedido ? "Pedido no válido." : errorPeticion;
 
   useEffect(() => {
-    if (!idPedido) {
-      setError("Pedido no válido.");
-      setCargando(false);
-      return;
-    }
-    cargarDatos();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    if (!idPedido) return;
+    let vigente = true;
+    const cargarDatos = async () => {
+      try {
+        const [pedidoData, personasData, floresData] = await Promise.all([
+          getPedidoById(idPedido),
+          getPersonas(),
+          getFlores(),
+        ]);
+
+        if (!vigente) return;
+        setError(null);
+        setPedido(pedidoData);
+        setPersonas(personasData);
+        setFlores(floresData);
+        setIdCliente(pedidoData.idCliente);
+        setEstado(pedidoData.estado);
+
+        // Solo los pedidos activos tienen unidades reservadas que se pueden reutilizar.
+        setDetalles(
+          (pedidoData.detalles ?? []).map((d) => {
+            const flor = floresData.find((f) => f.idFlor === d.idFlor);
+            return {
+              idDetallePedido: d.idDetallePedido,
+              idFlor: d.idFlor,
+              nombreFlor: d.nombreFlor,
+              cantidad: d.cantidad,
+              precio: d.precio,
+              stock: (flor?.stock ?? 0) + (pedidoData.estado === "CANCELADO" ? 0 : d.cantidad),
+            };
+          })
+        );
+      } catch (err) {
+        if (!vigente) return;
+        console.error(err);
+        setError(
+          mensajeDeError(err, "No se pudo cargar el pedido. Recarga la página.")
+        );
+      } finally {
+        if (vigente) setIdCargado(idPedido);
+      }
+    };
+    void cargarDatos();
+    return () => { vigente = false; };
   }, [idPedido]);
 
   const nombreFlor = (flor: Flor) =>

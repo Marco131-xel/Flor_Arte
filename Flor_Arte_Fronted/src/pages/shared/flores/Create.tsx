@@ -34,7 +34,24 @@ function CreateFlor() {
   const colorRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    cargarCatalogos();
+    let vigente = true;
+    const cargarCatalogos = async () => {
+      try {
+        const [coloresData, tiposFlorData] = await Promise.all([
+          getColores(),
+          getTiposFlor(),
+        ]);
+        if (!vigente) return;
+        setColores(coloresData);
+        setTiposFlor(tiposFlorData);
+      } catch {
+        if (vigente) setError("No se pudieron cargar los colores y tipos de flor.");
+      } finally {
+        if (vigente) setCargandoCatalogos(false);
+      }
+    };
+    void cargarCatalogos();
+    return () => { vigente = false; };
   }, []);
 
   // cierra los combobox al hacer clic fuera de ellos
@@ -50,22 +67,6 @@ function CreateFlor() {
     document.addEventListener("mousedown", handleClickFuera);
     return () => document.removeEventListener("mousedown", handleClickFuera);
   }, []);
-
-  const cargarCatalogos = async () => {
-    try {
-      setCargandoCatalogos(true);
-      const [coloresData, tiposFlorData] = await Promise.all([
-        getColores(),
-        getTiposFlor(),
-      ]);
-      setColores(coloresData);
-      setTiposFlor(tiposFlorData);
-    } catch (err) {
-      setError("No se pudieron cargar los colores y tipos de flor.");
-    } finally {
-      setCargandoCatalogos(false);
-    }
-  };
 
   const handleChange = (campo: keyof typeof form, valor: string) => {
     setForm((prev) => ({ ...prev, [campo]: valor }));
@@ -138,7 +139,7 @@ function CreateFlor() {
       setGuardando(true);
       await createFlor(nuevaFlor);
       volver();
-    } catch (err) {
+    } catch {
       setError("No se pudo crear la flor. Intenta de nuevo.");
     } finally {
       setGuardando(false);

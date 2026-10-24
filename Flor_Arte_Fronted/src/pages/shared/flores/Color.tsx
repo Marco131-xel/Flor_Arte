@@ -32,16 +32,22 @@ function Color() {
   const [guardandoForm, setGuardandoForm] = useState(false);
 
   useEffect(() => {
-    cargarColores();
+    let vigente = true;
+    getColores()
+      .then((data) => { if (vigente) setColores(data); })
+      .catch(() => { if (vigente) setError("No se pudieron cargar los colores."); })
+      .finally(() => { if (vigente) setLoading(false); });
+    return () => { vigente = false; };
   }, []);
 
+  // La recarga posterior al guardado parte del evento, no de otro efecto.
   const cargarColores = async () => {
+    setLoading(true);
+    setError(null);
     try {
-      setLoading(true);
-      setError(null);
       const data = await getColores();
       setColores(data);
-    } catch (err) {
+    } catch {
       setError("No se pudieron cargar los colores.");
     } finally {
       setLoading(false);
@@ -55,7 +61,7 @@ function Color() {
       await deleteColor(colorEliminar.idColor);
       setColores((prev) => prev.filter((c) => c.idColor !== colorEliminar.idColor));
       setColorEliminar(null);
-    } catch (err) {
+    } catch {
       setError("No se pudo eliminar el color.");
     } finally {
       setEliminando(false);
