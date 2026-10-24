@@ -3,17 +3,13 @@ name: FlorArte - Backend CI
 
 on:
   push:
-    branches:
-      - develop
-      - main
+    branches: [develop, main]
     paths:
       - "Flor_Arte_Backend/**"
       - ".github/workflows/backend-ci.yml"
 
   pull_request:
-    branches:
-      - develop
-      - main
+    branches: [develop, main]
     paths:
       - "Flor_Arte_Backend/**"
       - ".github/workflows/backend-ci.yml"
@@ -25,7 +21,7 @@ permissions:
 
 jobs:
   backend:
-    name: Compilar Spring Boot
+    name: Compilar y probar Spring Boot
     runs-on: ubuntu-latest
 
     defaults:
@@ -44,11 +40,17 @@ jobs:
           cache: maven
           cache-dependency-path: Flor_Arte_Backend/pom.xml
 
-      - name: Verificar Java
-        run: java -version
-
-      - name: Dar permisos a Maven Wrapper
+      - name: Dar permisos a Maven
         run: chmod +x mvnw
 
-      - name: Compilar backend
-        run: ./mvnw -B -ntp -DskipTests package
+      - name: Ejecutar pruebas y compilar
+        run: ./mvnw -B -ntp verify
+
+      - name: Guardar resultados de pruebas
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: backend-test-reports
+          path: Flor_Arte_Backend/target/surefire-reports/
+          if-no-files-found: warn
+          retention-days: 14
