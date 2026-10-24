@@ -1,0 +1,49 @@
+
+name: FlorArte - Frontend CI
+
+on:
+  push:
+    branches: [develop, main]
+    paths:
+      - "Flor_Arte_Fronted/**"
+      - ".github/workflows/frontend-ci.yml"
+
+  pull_request:
+    branches: [develop, main]
+    paths:
+      - "Flor_Arte_Fronted/**"
+      - ".github/workflows/frontend-ci.yml"
+
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  frontend:
+    name: Validar React y TypeScript
+    runs-on: ubuntu-latest
+
+    defaults:
+      run:
+        working-directory: Flor_Arte_Fronted
+
+    steps:
+      - name: Obtener codigo
+        uses: actions/checkout@v4
+
+      - name: Configurar Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+          cache: npm
+          cache-dependency-path: Flor_Arte_Fronted/package-lock.json
+
+      - name: Instalar dependencias
+        run: npm ci
+
+      - name: Verificar ESLint
+        run: npm run lint
+
+      - name: Compilar frontend
+        run: npm run build
