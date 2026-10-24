@@ -24,9 +24,15 @@ class FlorArteBackendApplicationTests {
 
     @DynamicPropertySource
     static void baseTemporal(DynamicPropertyRegistry props) {
+        String password = System.getenv("FLORARTE_TEST_DB_PASSWORD");
+        if (password == null || password.isBlank()) {
+            throw new IllegalStateException(
+                "Define FLORARTE_TEST_DB_PASSWORD para la base temporal florarte_test");
+        }
+
         props.add("spring.datasource.url",()->System.getProperty("florarte.test.db"));
         props.add("spring.datasource.username",()->"florarte_test");
-        props.add("spring.datasource.password",()->"");
+        props.add("spring.datasource.password", () -> password);
     }
 
 	@Test
