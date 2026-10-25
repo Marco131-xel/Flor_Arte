@@ -1,0 +1,14 @@
+# Solo configuracion; aplicar requiere una ventana de despliegue aprobada.
+services:
+  backend:
+    image: florarte-backend:${FLORARTE_IMAGE_TAG:?Define FLORARTE_IMAGE_TAG}
+    environment:
+      SPRING_PROFILES_ACTIVE: prod
+      AUTH_RECOVERY_URL: ${AUTH_RECOVERY_URL:?Define URL HTTPS de recuperacion}
+      CORS_ALLOWED_ORIGINS: ${PRODUCTION_CORS_ORIGINS:?Define origenes HTTPS permitidos}
+      PRODUCTION_CORS_ORIGINS: ${PRODUCTION_CORS_ORIGINS:?Define origenes HTTPS permitidos}
+      MAIL_USERNAME: ${MAIL_USERNAME:?Configura SMTP}
+      MAIL_PASSWORD: ${MAIL_PASSWORD:?Configura SMTP}
+      MAIL_FROM: ${MAIL_FROM:-${MAIL_USERNAME:?Configura SMTP}}
+  frontend:
+    image: florarte-frontend:${FLORARTE_IMAGE_TAG:?Define FLORARTE_IMAGE_TAG}

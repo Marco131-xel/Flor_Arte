@@ -3,7 +3,7 @@ name: FlorArte - Docker CI
 
 on:
   push:
-    branches: [develop, main]
+    branches: [develop, main, feature/seguridad-produccion]
     paths:
       - "Flor_Arte_Backend/**"
       - "Flor_Arte_Fronted/**"
@@ -36,9 +36,8 @@ jobs:
           file: ./Flor_Arte_Backend/Dockerfile
           push: false
           tags: florarte-backend:ci
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
-          scope: backend
+          cache-from: type=gha,scope=backend
+          cache-to: type=gha,mode=max,scope=backend
 
       - name: Construir imagen del frontend
         uses: docker/build-push-action@v7

@@ -1,5 +1,9 @@
 package com.florarte.backend.controllers;
 
+import com.florarte.backend.support.PostgresTemporal;
+import org.junit.jupiter.api.parallel.ResourceLock;
+import org.junit.jupiter.api.condition.EnabledIfSystemProperty;
+
 import com.florarte.backend.services.ReglasEdicion;
 import com.florarte.backend.services.FlorService;
 import java.sql.Timestamp;
@@ -19,20 +23,15 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
 /** Uses a separate test database and resets its public schema before each test. */
+@EnabledIfSystemProperty(named="florarte.test.db",matches="jdbc:postgresql://(localhost|127\\.0\\.0\\.1):[0-9]+/florarte_test")
+@ResourceLock(PostgresTemporal.RECURSO)
 class GestionTest {
     static DriverManagerDataSource ds;
     JdbcTemplate jdbc; ReglasEdicion reglas; GestionController controller;
-    @BeforeAll static void conexion() {
-        String url=System.getProperty("florarte.test.db");
-        Assumptions.assumeTrue(url!=null && url.matches("jdbc:postgresql://(localhost|127\\.0\\.0\\.1):[0-9]+/florarte_test"), "Requiere una base temporal local llamada florarte_test");
-        ds=new DriverManagerDataSource(url,"florarte_test","");
-    }
+    @BeforeAll static void conexion() { ds=PostgresTemporal.datasource(); }
     @BeforeEach void preparar() {
+        PostgresTemporal.reiniciar(ds);
         jdbc=new JdbcTemplate(ds);
-        jdbc.execute("DROP SCHEMA public CASCADE"); jdbc.execute("CREATE SCHEMA public");
-        var files=new java.io.File("src/main/resources/db/migration").listFiles((dir,name)->name.endsWith(".sql"));
-        Arrays.sort(files,Comparator.comparingInt(f->Integer.parseInt(f.getName().substring(1,f.getName().indexOf("__")))));
-        for(var file:files)new ResourceDatabasePopulator(new FileSystemResource(file)).execute(ds);
         reglas=new ReglasEdicion(jdbc); controller=new GestionController(new NamedParameterJdbcTemplate(ds),reglas);
         rol("ADMINISTRADOR");
         jdbc.update("INSERT INTO persona(nombre,id_rol,correo) VALUES ('Proveedor Test',4,'prov@test'),('Cliente Test',3,'cliente@test')");

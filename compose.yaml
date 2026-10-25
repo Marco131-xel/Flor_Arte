@@ -27,16 +27,19 @@ services:
       SPRING_DATASOURCE_URL: jdbc:postgresql://db:5432/florarte
       SPRING_DATASOURCE_USERNAME: florarte_app
       SPRING_DATASOURCE_PASSWORD: ${DB_PASSWORD:?Configura DB_PASSWORD}
+      SPRING_PROFILES_ACTIVE: ${SPRING_PROFILES_ACTIVE:-dev}
       SPRING_JPA_HIBERNATE_DDL_AUTO: validate
       SPRING_FLYWAY_ENABLED: "true"
       SPRING_JPA_SHOW_SQL: "false"
       JWT_SECRET: ${JWT_SECRET:?Configura JWT_SECRET}
       JWT_EXPIRATION: "3600"
       AUTH_CODE_SECRET: ${AUTH_CODE_SECRET:?Configura AUTH_CODE_SECRET}
-      AUTH_RECOVERY_URL: http://localhost:8081/restablecer-contrasena
+      AUTH_RECOVERY_URL: ${AUTH_RECOVERY_URL:-http://localhost:8081/restablecer-contrasena}
+      PRODUCTION_CORS_ORIGINS: ${PRODUCTION_CORS_ORIGINS:-}
+      MAIL_FROM: ${MAIL_FROM:-${MAIL_USERNAME:-}}
       MAIL_USERNAME: ${MAIL_USERNAME:-}
       MAIL_PASSWORD: ${MAIL_PASSWORD:-}
-      CORS_ALLOWED_ORIGINS: "http://localhost:5173,http://localhost:8081"
+      CORS_ALLOWED_ORIGINS: ${CORS_ALLOWED_ORIGINS:-http://localhost:5173,http://localhost:8081}
     depends_on:
       db:
         condition: service_healthy

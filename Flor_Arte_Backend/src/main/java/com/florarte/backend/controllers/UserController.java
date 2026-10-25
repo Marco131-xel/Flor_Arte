@@ -43,7 +43,7 @@ public class UserController {
     }
 
     // obtener todos los usuarios (solo admin)
-    @PreAuthorize("hasAnyRole('ADMINISTRADOR', 'EMPLEADO')")
+    @PreAuthorize("hasRole('ADMINISTRADOR')")
     @GetMapping("/all")
     public ResponseEntity<?> getAllUsers() {
         return ResponseEntity.ok(userService.findAll());
@@ -57,8 +57,8 @@ public class UserController {
         return ResponseEntity.ok(Map.of("message", "Usuario actualizado", "user", updated));
     }
 
-    // obtener datos del usuario
-    @PreAuthorize("hasAnyRole('ADMINISTRADOR', 'EMPLEADO')")
+    // El empleado consulta solo su propio perfil.
+    @PreAuthorize("hasRole('ADMINISTRADOR') or (hasRole('EMPLEADO') and @reglasEdicion.usuarioPropio(#id))")
     @GetMapping("/{id}")
     public ResponseEntity<?> getUserId(@PathVariable Long id) {
         User user = userService.findById(id)

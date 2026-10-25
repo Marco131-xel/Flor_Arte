@@ -16,6 +16,8 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 
 @RestControllerAdvice
 public class GlobalExceptionHandler {
+  @org.springframework.beans.factory.annotation.Value("${florarte.security.hide-internal-errors:false}")
+  private boolean ocultarErrores;
 
   @ExceptionHandler(FlujoAuthException.class)
   public ResponseEntity<?> flujoAuth(FlujoAuthException ex) {
@@ -81,7 +83,7 @@ public class GlobalExceptionHandler {
             .timestamp(LocalDateTime.now())
             .status(HttpStatus.UNAUTHORIZED.value())
             .error("Unauthorized")
-            .message(ex.getMessage())
+            .message("Credenciales inválidas")
             .build();
 
     return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(response);
@@ -103,7 +105,7 @@ public class GlobalExceptionHandler {
   @ExceptionHandler(RuntimeException.class)
   public ResponseEntity<ErrorResponse> handleRuntimeException(
       RuntimeException ex, jakarta.servlet.http.HttpServletRequest request) {
-    if (request.getRequestURI().startsWith("/auth/")) {
+    if (ocultarErrores || request.getRequestURI().startsWith("/auth/")) {
       return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
           .body(
               ErrorResponse.builder()

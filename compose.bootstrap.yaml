@@ -1,0 +1,14 @@
+# Una sola vez, exclusivamente para produccion nueva sin personas ni cuentas.
+# No activar sobre el volumen principal existente.
+services:
+  backend:
+    environment:
+      BOOTSTRAP_ADMIN_ENABLED: "true"
+      BOOTSTRAP_ADMIN_EMAIL: ${BOOTSTRAP_ADMIN_EMAIL:?Define correo del primer administrador}
+      BOOTSTRAP_ADMIN_NAME: ${BOOTSTRAP_ADMIN_NAME:?Define nombre del primer administrador}
+      BOOTSTRAP_ADMIN_HASH_FILE: /run/secrets/florarte_admin_hash
+    secrets:
+      - florarte_admin_hash
+secrets:
+  florarte_admin_hash:
+    file: ${BOOTSTRAP_ADMIN_HASH_PATH:?Archivo privado externo al repositorio}

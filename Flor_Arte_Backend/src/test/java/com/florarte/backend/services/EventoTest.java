@@ -1,5 +1,9 @@
 package com.florarte.backend.services;
 
+import com.florarte.backend.support.PostgresTemporal;
+import org.junit.jupiter.api.parallel.ResourceLock;
+import org.junit.jupiter.api.condition.EnabledIfSystemProperty;
+
 import com.florarte.backend.controllers.*;
 import com.florarte.backend.dtos.*;
 import java.time.*;
@@ -21,21 +25,17 @@ import org.springframework.transaction.annotation.EnableTransactionManagement;
 import static org.junit.jupiter.api.Assertions.*;
 
 /** PostgreSQL desechable: nunca acepta una URL de la base de producción. */
+@EnabledIfSystemProperty(named="florarte.test.db",matches="jdbc:postgresql://(localhost|127\\.0\\.0\\.1):[0-9]+/florarte_test")
+@ResourceLock(PostgresTemporal.RECURSO)
 class EventoTest {
     static DriverManagerDataSource ds;
     JdbcTemplate jdbc; AnnotationConfigApplicationContext ctx; EventoService service;
     long cliente,empleado; int flor,otra;
     @Configuration @EnableTransactionManagement @EnableMethodSecurity static class Config {}
-    @BeforeAll static void conexion() {
-        String url=System.getProperty("florarte.test.db");
-        Assumptions.assumeTrue(url!=null&&url.matches("jdbc:postgresql://(localhost|127\\.0\\.0\\.1):[0-9]+/florarte_test"));
-        ds=new DriverManagerDataSource(url,"florarte_test","");
-    }
+    @BeforeAll static void conexion() { ds=PostgresTemporal.datasource(); }
     @BeforeEach void preparar() {
-        jdbc=new JdbcTemplate(ds);jdbc.execute("DROP SCHEMA public CASCADE");jdbc.execute("CREATE SCHEMA public");
-        var files=new java.io.File("src/main/resources/db/migration").listFiles((dir,name)->name.endsWith(".sql"));
-        Arrays.sort(files,Comparator.comparingInt(f->Integer.parseInt(f.getName().substring(1,f.getName().indexOf("__")))));
-        for(var file:files)new ResourceDatabasePopulator(new FileSystemResource(file)).execute(ds);
+        PostgresTemporal.reiniciar(ds);
+        jdbc=new JdbcTemplate(ds);
         cliente=jdbc.queryForObject("INSERT INTO persona(nombre,id_rol) VALUES ('Cliente Arreglo',3) RETURNING id_persona",Long.class);
         empleado=jdbc.queryForObject("INSERT INTO persona(nombre,id_rol) VALUES ('Empleado Arreglo',2) RETURNING id_persona",Long.class);
         flor=jdbc.queryForObject("INSERT INTO flor(id_tipo_flor,id_color,precio,stock) VALUES (1,1,10,100) RETURNING id_flor",Integer.class);

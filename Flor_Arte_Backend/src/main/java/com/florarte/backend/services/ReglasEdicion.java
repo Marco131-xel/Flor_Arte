@@ -120,4 +120,11 @@ public class ReglasEdicion {
         "horaServidor",
         ahora().toString());
   }
+
+  public boolean usuarioPropio(Number id) {
+    var auth=SecurityContextHolder.getContext().getAuthentication();
+    if(auth==null||id==null)return false;
+    Integer n=jdbc.queryForObject("SELECT count(*) FROM usuario WHERE id_usuario=? AND email=? AND estado",Integer.class,id,auth.getName());
+    return n!=null&&n==1;
+  }
 }

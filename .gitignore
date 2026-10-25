@@ -1,2 +1,12 @@
 
 .env
+
+.env.*
+!.env.example
+secrets/
+*.key
+*.pem
+
+# Archivos temporales de Python
+__pycache__/
+*.py[cod]

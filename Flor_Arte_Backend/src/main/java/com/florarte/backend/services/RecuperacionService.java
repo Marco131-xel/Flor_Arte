@@ -133,7 +133,7 @@ public class RecuperacionService {
         || !((Timestamp) r.get("expira_en")).toInstant().isAfter(clock.instant())) throw invalido();
     jdbc.update("UPDATE recuperacion_password SET utilizado=TRUE WHERE id_usuario=?", id);
     jdbc.update(
-        "UPDATE usuario SET password=?,token=NULL WHERE id_usuario=?",
+        "UPDATE usuario SET password=?, token=NULL, auth_version=auth_version+1 WHERE id_usuario=?",
         encoder.encode(password),
         id);
   }

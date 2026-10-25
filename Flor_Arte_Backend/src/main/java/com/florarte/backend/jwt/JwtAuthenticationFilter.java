@@ -60,9 +60,11 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
       try {
         var usuario = userService.findByEmail(userName);
-        var claimVersion = jwtUtil.extractAllClaims(jwt).get("authVersion", Number.class);
-        long tokenVersion = claimVersion == null ? 0 : claimVersion.longValue();
+        var claimVersion = jwtUtil.extractAllClaims(jwt).get("authVersion");
+        boolean versionEntera = claimVersion instanceof Integer || claimVersion instanceof Long;
+        long tokenVersion = versionEntera ? ((Number) claimVersion).longValue() : -1;
         if (usuario.isPresent()
+            && versionEntera && tokenVersion >= 0
             && tokenVersion == usuario.get().getAuthVersion()
             && jwtUtil.validateToken(jwt, userDetails)) {
           UsernamePasswordAuthenticationToken authToken =

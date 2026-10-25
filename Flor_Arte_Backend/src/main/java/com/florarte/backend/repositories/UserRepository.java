@@ -10,6 +10,10 @@ import java.util.Optional;
 
 @Repository
 public interface UserRepository extends JpaRepository<User, Long> {
+    @org.springframework.data.jpa.repository.Lock(jakarta.persistence.LockModeType.PESSIMISTIC_WRITE)
+    @org.springframework.data.jpa.repository.Query("SELECT u FROM User u WHERE u.idUsuario = :id")
+    Optional<User> findByIdForUpdate(@org.springframework.data.repository.query.Param("id") Long id);
+
 
     @Query("SELECT u FROM User u JOIN FETCH u.persona p JOIN FETCH p.rol WHERE u.email = :email")
     Optional<User> findByEmail(@Param("email") String email);

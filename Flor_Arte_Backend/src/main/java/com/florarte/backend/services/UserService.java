@@ -19,6 +19,7 @@ import org.springframework.stereotype.Service;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
+import java.nio.charset.StandardCharsets;
 import java.util.stream.Collectors;
 
 @NoArgsConstructor
@@ -40,7 +41,7 @@ public class UserService implements UserDetailsService {
     public UserDetails loadUserByUsername(String email) throws UsernameNotFoundException {
         // buscar usuario por email
         User user = userRepository.findByEmail(email)
-                .orElseThrow(() -> new UsernameNotFoundException("Usuario no encontrado " + email));
+                .orElseThrow(() -> new UsernameNotFoundException("Credenciales inválidas"));
 
         //validar que el usuario este activo
         if(!user.getEstado()) {
@@ -69,6 +70,7 @@ public class UserService implements UserDetailsService {
 
     // crear un usuario base a persona
     public User createUser(NewUserDto dto) {
+        validarPassword(dto.getPassword());
         // validar que la persona exista
         Persona persona = personaRepository.findById(dto.getIdPersona())
                 .orElseThrow(() -> new RuntimeException("Persona no encontrada con id: " + dto.getIdPersona()));
@@ -109,13 +111,21 @@ public class UserService implements UserDetailsService {
         return userRepository.findById(id);
     }
 
+    @org.springframework.transaction.annotation.Transactional
     public User updateUser(Long id, UpdateUserDto dto) {
-        return userRepository.findById(id).map(user -> {
+        return userRepository.findByIdForUpdate(id).map(user -> {
+            boolean passwordCambiado = dto.getPassword() != null && !dto.getPassword().isBlank();
+            if (passwordCambiado) validarPassword(dto.getPassword());
+            boolean revocar = passwordCambiado || !java.util.Objects.equals(user.getEmail(), dto.getEmail())
+                || !java.util.Objects.equals(user.getEstado(), dto.getEstado())
+                || !java.util.Objects.equals(user.getIdPersona(), dto.getIdPersona());
             user.setEmail(dto.getEmail());
             // solo actualiza la contrasenia si mandaron una nueva, la encripta
             if (dto.getPassword() != null && !dto.getPassword().isBlank()) {
                 user.setPassword(passwordEncoder.encode(dto.getPassword()));
+
             }
+            if (revocar) user.setAuthVersion(user.getAuthVersion() + 1);
             user.setEstado(dto.getEstado());
             user.setIdPersona(dto.getIdPersona());
             return userRepository.save(user);
@@ -174,5 +184,12 @@ public class UserService implements UserDetailsService {
                     }
                 })
                 .collect(Collectors.toList());
+    }
+
+    private void validarPassword(String password) {
+        if (password == null || password.codePointCount(0, password.length()) < 8
+                || password.getBytes(StandardCharsets.UTF_8).length > 72) {
+            throw new IllegalArgumentException("La contraseña debe tener al menos 8 caracteres y no superar 72 bytes UTF-8");
+        }
     }
 }

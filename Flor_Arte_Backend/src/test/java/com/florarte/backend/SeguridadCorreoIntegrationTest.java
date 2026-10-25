@@ -1,5 +1,8 @@
 package com.florarte.backend;
 
+import com.florarte.backend.support.PostgresTemporal;
+import org.junit.jupiter.api.parallel.ResourceLock;
+
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
@@ -34,6 +37,7 @@ import org.springframework.test.context.bean.override.mockito.MockitoBean;
 @EnabledIfSystemProperty(
     named = "florarte.test.db",
     matches = "jdbc:postgresql://(localhost|127\\.0\\.0\\.1):[0-9]+/florarte_test")
+@ResourceLock(PostgresTemporal.RECURSO)
 class SeguridadCorreoIntegrationTest {
   @LocalServerPort int port;
   @Autowired JdbcTemplate jdbc;
@@ -49,17 +53,7 @@ class SeguridadCorreoIntegrationTest {
   static final String EMAIL = "seguridad@florarte.test", PASSWORD = "Password-original-1";
 
   @DynamicPropertySource
-  static void db(DynamicPropertyRegistry props) {
-    String password = System.getenv("FLORARTE_TEST_DB_PASSWORD");
-    if (password == null || password.isBlank()) {
-        throw new IllegalStateException(
-            "Define FLORARTE_TEST_DB_PASSWORD para la base temporal florarte_test");
-    }
-
-    props.add("spring.datasource.url", () -> System.getProperty("florarte.test.db"));
-    props.add("spring.datasource.username", () -> "florarte_test");
-    props.add("spring.datasource.password", () -> password);
-  }
+  static void db(DynamicPropertyRegistry props) { PostgresTemporal.registrar(props); }
 
   @BeforeEach
   void preparar() {
@@ -464,21 +458,16 @@ class SeguridadCorreoIntegrationTest {
   }
 
   @Test
-  void sesionHistoricaSinVersionSoloEsValidaHastaElPrimerCambioDeSeguridad() throws Exception {
-    var util = new com.florarte.backend.jwt.JwtUtil();
-    org.springframework.test.util.ReflectionTestUtils.setField(
-        util, "secret", "clave-exclusiva-de-pruebas-florarte-0123456789");
-    org.springframework.test.util.ReflectionTestUtils.setField(util, "expiration", 3600);
-    var details =
-        org.springframework.security.core.userdetails.User.withUsername(EMAIL)
-            .password("irrelevante")
-            .roles("EMPLEADO")
-            .build();
-    String antiguo =
-        util.generateToken(
-            new org.springframework.security.authentication.UsernamePasswordAuthenticationToken(
-                details, null, details.getAuthorities()));
-    assertEquals(200, pedir("GET", "/auth/check-auth", null, antiguo).status);
+  void sesionSinVersionSiempreEsRechazada() throws Exception {
+    var signingKey = io.jsonwebtoken.security.Keys.hmacShaKeyFor(
+        "clave-exclusiva-de-pruebas-florarte-0123456789".getBytes(java.nio.charset.StandardCharsets.UTF_8));
+    String antiguo = io.jsonwebtoken.Jwts.builder()
+        .subject(EMAIL)
+        .issuedAt(new Date())
+        .expiration(Date.from(Instant.now().plusSeconds(3600)))
+        .signWith(signingKey)
+        .compact();
+    assertEquals(401, pedir("GET", "/auth/check-auth", null, antiguo).status);
     jdbc.update(
         "UPDATE usuario SET password=? WHERE id_usuario=?",
         encoder.encode("Nueva-clave-2"),
@@ -834,5 +823,59 @@ class SeguridadCorreoIntegrationTest {
             "SELECT count(*) FROM recuperacion_password WHERE id_usuario=? AND NOT utilizado",
             Integer.class,
             empleado));
+  }
+
+  @Autowired com.florarte.backend.services.UserService usuarios;
+
+  @Test void actualizarPasswordPorServicioRevocaJwtAnterior() throws Exception {
+    String previo=login().body.path("token").asText();
+    var u=usuarios.findById(usuario).orElseThrow();
+    usuarios.updateUser(usuario,new com.florarte.backend.dtos.UpdateUserDto(
+        usuario,u.getEmail(),"Nueva-clave-servicio-2",null,true,u.getIdPersona(),null,null));
+    assertEquals(401,pedir("GET","/auth/check-auth",null,previo).status);
+    assertEquals(200,post("/auth/login",Map.of("correo",EMAIL,"contrasena","Nueva-clave-servicio-2")).status);
+  }
+  @Test void cambioCorreoPorServicioRevocaJwtAnterior() throws Exception {
+    String previo=login().body.path("token").asText();var u=usuarios.findById(usuario).orElseThrow();
+    usuarios.updateUser(usuario,new com.florarte.backend.dtos.UpdateUserDto(
+        usuario,"correo-nuevo@florarte.test",null,null,true,u.getIdPersona(),null,null));
+    assertNotEquals(200,pedir("GET","/auth/check-auth",null,previo).status);
+    // Dejar el registro con su email original para la limpieza habitual.
+    jdbc.update("UPDATE usuario SET email=? WHERE id_usuario=?",EMAIL,usuario);
+  }
+  @Test void estadoInactivoPorServicioImpideLoginYRevocaJwt() throws Exception {
+    String previo=login().body.path("token").asText();var u=usuarios.findById(usuario).orElseThrow();
+    usuarios.updateUser(usuario,new com.florarte.backend.dtos.UpdateUserDto(
+        usuario,EMAIL,null,null,false,u.getIdPersona(),null,null));
+    assertNotEquals(200,pedir("GET","/auth/check-auth",null,previo).status);
+    assertEquals(401,login().status);
+  }
+  @Test void versionJwtDecimalTextoNegativaOAntiguaEsRechazada() throws Exception {
+    for(Object valor:List.of(0.5,"0",-1,99)) {
+      String token=io.jsonwebtoken.Jwts.builder().subject(EMAIL).claim("authVersion",valor)
+          .issuedAt(new Date()).expiration(new Date(System.currentTimeMillis()+3600000))
+          .signWith(io.jsonwebtoken.security.Keys.hmacShaKeyFor("clave-exclusiva-de-pruebas-florarte-0123456789".getBytes(java.nio.charset.StandardCharsets.UTF_8))).compact();
+      assertEquals(401,pedir("GET","/auth/check-auth",null,token).status);
+    }
+  }
+
+  @Test void cambioRolRevocaJwtYDesafiosDeLaCuenta() throws Exception {
+    String previo=login().body.path("token").asText();
+    String challenge=desafio();String code=codigo;
+    jdbc.update("UPDATE persona SET id_rol=(SELECT id_rol FROM rol WHERE tipo='ADMINISTRADOR') WHERE id_persona=(SELECT id_persona FROM usuario WHERE id_usuario=?)",usuario);
+    assertEquals(401,pedir("GET","/auth/check-auth",null,previo).status);
+    assertEquals(401,verificar(challenge,code).status);
+    String nuevo=login().body.path("challengeId").asText();
+    assertEquals(200,verificar(nuevo,codigo).status);
+  }
+
+  @Test void empleadoSoloLeeSuCuentaYAdministradorPuedeListar() throws Exception {
+    String empleadoJwt=login().body.path("token").asText();long otro=empleadoRecuperacion();
+    assertEquals(200,pedir("GET","/user/"+usuario,null,empleadoJwt).status);
+    assertEquals(403,pedir("GET","/user/"+otro,null,empleadoJwt).status);
+    assertEquals(403,pedir("GET","/user/all",null,empleadoJwt).status);
+    String admin=sesionAdmin();
+    assertEquals(200,pedir("GET","/user/all",null,admin).status);
+    assertEquals(200,pedir("GET","/user/"+otro,null,admin).status);
   }
 }

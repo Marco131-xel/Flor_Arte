@@ -3,16 +3,10 @@ name: FlorArte - Backend CI
 
 on:
   push:
-    branches: [develop, main]
-    paths:
-      - "Flor_Arte_Backend/**"
-      - ".github/workflows/backend-ci.yml"
+    branches: [develop, main, feature/seguridad-produccion]
 
   pull_request:
     branches: [develop, main]
-    paths:
-      - "Flor_Arte_Backend/**"
-      - ".github/workflows/backend-ci.yml"
 
   workflow_dispatch:
 
@@ -21,42 +15,64 @@ permissions:
 
 jobs:
   backend:
-    name: Pruebas unitarias y compilacion
-    runs-on: ubuntu-latest
-
-    defaults:
-      run:
-        working-directory: Flor_Arte_Backend
+    name: Validar workflows y verificadores
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
 
     steps:
       - name: Descargar repositorio
         uses: actions/checkout@v4
 
-      - name: Configurar Java 21
-        uses: actions/setup-java@v6
-        with:
-          distribution: temurin
-          java-version: "21"
-          cache: maven
-          cache-dependency-path: Flor_Arte_Backend/pom.xml
+      - name: Validar todos los workflows con actionlint
+        shell: bash
+        run: |
+          set -euo pipefail
+          curl --fail --silent --show-error --location --retry 3 \
+            https://github.com/rhysd/actionlint/releases/download/v1.7.12/actionlint_1.7.12_linux_amd64.tar.gz \
+            --output "$RUNNER_TEMP/actionlint.tar.gz"
+          printf '%s  %s\n' \
+            '8aca8db96f1b94770f1b0d72b6dddcb1ebb8123cb3712530b08cc387b349a3d8' \
+            "$RUNNER_TEMP/actionlint.tar.gz" | sha256sum --check
+          tar -xzf "$RUNNER_TEMP/actionlint.tar.gz" -C "$RUNNER_TEMP" actionlint
+          "$RUNNER_TEMP/actionlint" -color
 
-      - name: Preparar Maven
-        run: chmod +x mvnw
+      - name: Probar verificadores de PostgreSQL y reportes
+        run: python3 -m unittest discover -s scripts -p 'test_*.py' -v
 
-      - name: Ejecutar pruebas y compilar
-        run: ./mvnw -B -ntp verify
+      - name: Rechazar archivos privados versionados
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          from pathlib import PurePosixPath
+          import subprocess
+          import sys
+          files = subprocess.check_output(['git', 'ls-files', '-z']).decode().split('\0')
+          blocked = []
+          for value in filter(None, files):
+              path = PurePosixPath(value)
+              private_env = (path.name == '.env' or path.name.startswith('.env.')) and path.name != '.env.example'
+              if private_env or path.suffix in {'.key', '.pem'} or 'secrets' in path.parts or '.aws' in path.parts:
+                  blocked.append(value)
+          if blocked:
+              sys.exit('Archivos privados versionados; retirar del commit: ' + ', '.join(blocked))
+          print('Sin .env privados, claves PEM/KEY, secrets/ ni .aws/ versionados.')
+          PY
 
-      - name: Guardar resultados
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: backend-test-reports
-          path: Flor_Arte_Backend/target/surefire-reports/
-          if-no-files-found: warn
+      - name: Comprobar disponibilidad del secreto exclusivo de CI
+        env:
+          TEST_PASSWORD: ${{ secrets.FLORARTE_TEST_DB_PASSWORD }}
+        shell: bash
+        run: |
+          if [[ -z "${TEST_PASSWORD//[[:space:]]/}" ]]; then
+            echo '::error::Configura el secret FLORARTE_TEST_DB_PASSWORD exclusivo de pruebas en Settings > Secrets and variables > Actions.'
+            exit 1
+          fi
 
   integration:
-    name: Pruebas de integracion PostgreSQL
-    runs-on: ubuntu-latest
+    name: Suite completa Java 21 y PostgreSQL 17
+    needs: backend
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
 
     services:
       postgres:
@@ -64,25 +80,34 @@ jobs:
         env:
           POSTGRES_DB: florarte_test
           POSTGRES_USER: florarte_test
-          POSTGRES_PASSWORD: ci_only_florarte_2026
+          POSTGRES_PASSWORD: ${{ secrets.FLORARTE_TEST_DB_PASSWORD }}
         ports:
-          - 5432:5432
+          - "127.0.0.1:5544:5432"
         options: >-
-          --health-cmd "pg_isready -U florarte_test -d florarte_test"
-          --health-interval 10s
+          --tmpfs /var/lib/postgresql/data:rw,noexec,nosuid,size=512m
+          --health-cmd "pg_isready -h 127.0.0.1 -U florarte_test -d florarte_test"
+          --health-interval 5s
           --health-timeout 5s
-          --health-retries 5
+          --health-retries 10
 
     defaults:
       run:
         working-directory: Flor_Arte_Backend
 
     env:
-      FLORARTE_TEST_DB_PASSWORD: ci_only_florarte_2026
-      JWT_SECRET: clave-exclusiva-ci-florarte-2026-0123456789
+      FLORARTE_TEST_DB_PASSWORD: ${{ secrets.FLORARTE_TEST_DB_PASSWORD }}
+      # Fallback cerrado: solo DynamicPropertyRegistry habilita el destino verificado.
+      DB_URL: jdbc:postgresql://127.0.0.1:1/florarte_test
+      DB_USERNAME: florarte_test
+      DB_PASSWORD: solo-para-evitar-fallback
+      MAIL_USERNAME: ""
+      MAIL_PASSWORD: ""
+      MAIL_FROM: ""
       JWT_EXPIRATION: "3600"
       SPRING_JPA_HIBERNATE_DDL_AUTO: validate
       SPRING_FLYWAY_ENABLED: "true"
+      SPRING_FLYWAY_BASELINE_ON_MIGRATE: "false"
+      SPRING_JPA_SHOW_SQL: "false"
 
     steps:
       - name: Descargar repositorio
@@ -99,17 +124,41 @@ jobs:
       - name: Preparar Maven
         run: chmod +x mvnw
 
-      - name: Ejecutar pruebas de integracion
+      - name: Verificar identidad del servicio temporal
+        env:
+          TEST_CONTAINER_ID: ${{ job.services.postgres.id }}
+        run: >-
+          python3 ../scripts/verificar-postgres-temporal.py
+          --container "$TEST_CONTAINER_ID" --port 5544 --github-actions
+          --output-env "$GITHUB_ENV"
+
+      - name: Generar secretos efimeros de pruebas
+        shell: bash
+        run: |
+          set -euo pipefail
+          jwt=$(openssl rand -hex 32)
+          otp=$(openssl rand -hex 32)
+          echo "::add-mask::$jwt"
+          echo "::add-mask::$otp"
+          printf 'JWT_SECRET=%s\nAUTH_CODE_SECRET=%s\n' "$jwt" "$otp" >> "$GITHUB_ENV"
+
+      - name: Ejecutar todas las pruebas y compilar
         run: >
           ./mvnw -B -ntp
-          -Dtest=SeguridadCorreoIntegrationTest,FlorArteBackendApplicationTests
-          -Dflorarte.test.db=jdbc:postgresql://127.0.0.1:5432/florarte_test
-          verify
+          -Dflorarte.test.db=jdbc:postgresql://127.0.0.1:5544/florarte_test
+          clean verify
 
-      - name: Guardar resultados de integracion
+      - name: Comprobar suite completa sin fallos ni omisiones
+        if: always()
+        run: >-
+          python3 ../scripts/comprobar-integraciones.py
+          --min-tests 159 --summary target/ci-reports/resumen-pruebas.json
+
+      - name: Guardar resumen sin propiedades ni salida de las pruebas
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: backend-integration-reports
-          path: Flor_Arte_Backend/target/surefire-reports/
-          if-no-files-found: warn
+          name: backend-test-summary
+          path: Flor_Arte_Backend/target/ci-reports/resumen-pruebas.json
+          if-no-files-found: error
+          retention-days: 7

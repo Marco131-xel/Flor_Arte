@@ -3,7 +3,7 @@ name: FlorArte - Frontend CI
 
 on:
   push:
-    branches: [develop, main]
+    branches: [develop, main, feature/seguridad-produccion]
     paths:
       - "Flor_Arte_Fronted/**"
       - ".github/workflows/frontend-ci.yml"

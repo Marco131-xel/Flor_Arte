@@ -12,7 +12,9 @@ import org.springframework.stereotype.Component;
 public class SecretosAuth {
   private final byte[] clave;
 
-  public SecretosAuth(@Value("${florarte.auth.code-secret}") String clave) {
+  public SecretosAuth(@Value("${florarte.auth.code-secret}") String clave,
+      @Value("${jwt.secret}") String jwtSecret) {
+    if (clave.equals(jwtSecret)) throw new IllegalStateException("AUTH_CODE_SECRET debe ser distinto de JWT_SECRET");
     if (clave.getBytes(StandardCharsets.UTF_8).length < 32)
       throw new IllegalStateException("AUTH_CODE_SECRET debe tener al menos 32 bytes");
     this.clave = clave.getBytes(StandardCharsets.UTF_8);

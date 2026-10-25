@@ -61,3 +61,7 @@ Thumbs.db
 
 .env.*
 !.env.example
+
+# Configuracion publica sin credenciales; los secretos siguen fuera de Git.
+!src/main/resources/application.properties
+!src/main/resources/application-prod.properties
