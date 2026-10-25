@@ -1,0 +1,56 @@
+name: FlorArte - Publicar imagenes GHCR
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  packages: write
+
+jobs:
+  publish:
+    name: Publicar backend y frontend
+    runs-on: ubuntu-24.04
+
+    steps:
+      - name: Descargar repositorio
+        uses: actions/checkout@v4
+
+      - name: Configurar Docker Buildx
+        uses: docker/setup-buildx-action@v4
+
+      - name: Iniciar sesion en GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Preparar etiquetas
+        id: meta
+        shell: bash
+        run: |
+          echo "tag=$(git rev-parse --short=12 HEAD)" >> "$GITHUB_OUTPUT"
+          echo "owner=${GITHUB_REPOSITORY_OWNER,,}" >> "$GITHUB_OUTPUT"
+
+      - name: Publicar backend
+        uses: docker/build-push-action@v7
+        with:
+          context: ./Flor_Arte_Backend
+          file: ./Flor_Arte_Backend/Dockerfile
+          push: true
+          tags: ghcr.io/${{ steps.meta.outputs.owner }}/florarte-backend:${{ steps.meta.outputs.tag }}
+          cache-from: type=gha,scope=backend
+          cache-to: type=gha,mode=max,scope=backend
+
+      - name: Publicar frontend
+        uses: docker/build-push-action@v7
+        with:
+          context: ./Flor_Arte_Fronted
+          file: ./Flor_Arte_Fronted/Dockerfile
+          push: true
+          tags: ghcr.io/${{ steps.meta.outputs.owner }}/florarte-frontend:${{ steps.meta.outputs.tag }}
+          build-args: |
+            VITE_API_URL=/api
+          cache-from: type=gha,scope=frontend
+          cache-to: type=gha,mode=max,scope=frontend
