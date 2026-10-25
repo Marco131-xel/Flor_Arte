@@ -1,0 +1,53 @@
+
+name: FlorArte - Docker CI
+
+on:
+  push:
+    branches: [develop, main]
+    paths:
+      - "Flor_Arte_Backend/**"
+      - "Flor_Arte_Fronted/**"
+      - ".github/workflows/docker-ci.yml"
+
+  pull_request:
+    branches: [develop, main]
+
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  docker:
+    name: Construir imagenes Docker
+    runs-on: ubuntu-24.04
+
+    steps:
+      - name: Descargar repositorio
+        uses: actions/checkout@v4
+
+      - name: Configurar Docker Buildx
+        uses: docker/setup-buildx-action@v4
+
+      - name: Construir imagen del backend
+        uses: docker/build-push-action@v7
+        with:
+          context: ./Flor_Arte_Backend
+          file: ./Flor_Arte_Backend/Dockerfile
+          push: false
+          tags: florarte-backend:ci
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+          scope: backend
+
+      - name: Construir imagen del frontend
+        uses: docker/build-push-action@v7
+        with:
+          context: ./Flor_Arte_Fronted
+          file: ./Flor_Arte_Fronted/Dockerfile
+          push: false
+          tags: florarte-frontend:ci
+          build-args: |
+            VITE_API_URL=/api
+          cache-from: type=gha,scope=frontend
+          cache-to: type=gha,mode=max,scope=frontend
