@@ -150,10 +150,11 @@ public class ComprobanteService {
     }
     if (!mes.isBlank()) {
       var rango = PeriodoReporte.de("MES", mes + "-01");
-      args.putAll(rango.parametros());
-      where +=
-          " AND emitido_en>=(:desde AT TIME ZONE 'America/Guatemala') AND emitido_en<(:hasta AT"
-              + " TIME ZONE 'America/Guatemala')";
+      var zona = java.time.ZoneId.of("America/Guatemala");
+      // OffsetDateTime se enlaza como TIMESTAMPTZ sin depender de la zona de JVM/sesion.
+      args.put("desde", rango.desde().atStartOfDay(zona).toOffsetDateTime());
+      args.put("hasta", rango.hasta().atStartOfDay(zona).toOffsetDateTime());
+      where += " AND emitido_en>=:desde AND emitido_en<:hasta";
     }
     if (!q.isBlank()) {
       where +=

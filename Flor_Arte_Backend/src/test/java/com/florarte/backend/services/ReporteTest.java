@@ -138,9 +138,34 @@ class ReporteTest {
         int valido=pedido("ENTREGADO",cliente,"2030-10-08 10:00:00",5);rol("CLIENTE");assertThrows(AccessDeniedException.class,()->c.emitir(new ComprobanteController.Emitir("PEDIDO",valido)));rol("EMPLEADO");c.emitir(new ComprobanteController.Emitir("PEDIDO",valido));assertThrows(AccessDeniedException.class,()->ctx.getBean(ReporteController.class).exportacion("MES","2030-10-08"));assertEquals(100,jdbc.queryForObject("SELECT stock FROM flor WHERE id_flor=?",Integer.class,flor));
     }
     @Test void historialComprobantesSePaginaYFiltraFechaDeGuatemala() {
-        var c=ctx.getBean(ComprobanteController.class);for(int n=0;n<12;n++)c.emitir(new ComprobanteController.Emitir("PEDIDO",pedido("PENDIENTE",cliente,"2030-10-08 10:00:00",5)));
-        jdbc.update("UPDATE comprobante SET emitido_en='2030-11-01 01:00:00+00'");
-        assertEquals(12L,c.pagina(0,10,"PEDIDO","2030-10","").get("totalElementos"));assertEquals(10,((List<?>)c.pagina(0,10,"","2030-10","").get("contenido")).size());assertEquals(0L,c.pagina(0,10,"","2030-11","").get("totalElementos"));assertEquals(0L,c.pagina(0,10,"","","%").get("totalElementos"));assertEquals(1,c.pagina(99,10,"","","").get("pagina"));
+        var c = ctx.getBean(ComprobanteController.class);
+        for (int n = 0; n < 12; n++)
+            c.emitir(new ComprobanteController.Emitir("PEDIDO", pedido("PENDIENTE", cliente, "2030-10-08 10:00:00", 5)));
+        record Limite(String utc, long octubre, long noviembre) {}
+        var limites = List.of(
+            new Limite("2030-10-01T05:59:59.999999Z", 0, 0),
+            new Limite("2030-10-01T06:00:00Z", 12, 0),
+            new Limite("2030-11-01T05:59:59.999999Z", 12, 0),
+            new Limite("2030-11-01T06:00:00Z", 0, 12));
+        var zonaOriginal = TimeZone.getDefault();
+        try {
+            for (String zona : List.of("UTC", "America/Guatemala")) {
+                TimeZone.setDefault(TimeZone.getTimeZone(zona));
+                jdbc.update("UPDATE comprobante SET emitido_en='2030-11-01 01:00:00+00'");
+                assertEquals(12L, c.pagina(0, 10, "PEDIDO", "2030-10", "").get("totalElementos"), zona);
+                assertEquals(10, ((List<?>) c.pagina(0, 10, "", "2030-10", "").get("contenido")).size(), zona);
+                assertEquals(0L, c.pagina(0, 10, "", "2030-11", "").get("totalElementos"), zona);
+                assertEquals(0L, c.pagina(0, 10, "", "", "%").get("totalElementos"), zona);
+                assertEquals(1, c.pagina(99, 10, "", "", "").get("pagina"), zona);
+                for (var limite : limites) {
+                    jdbc.update("UPDATE comprobante SET emitido_en=?", OffsetDateTime.parse(limite.utc()));
+                    assertEquals(limite.octubre(), c.pagina(0, 10, "", "2030-10", "").get("totalElementos"), zona + " " + limite.utc());
+                    assertEquals(limite.noviembre(), c.pagina(0, 10, "", "2030-11", "").get("totalElementos"), zona + " " + limite.utc());
+                }
+            }
+        } finally {
+            TimeZone.setDefault(zonaOriginal);
+        }
     }
     @Test void exportacionIncluyeMermaDeTodasLasPaginasYSinCostosInventados() {
         for(int n=0;n<75;n++)merma(flor,2,"2030-10-08 10:00:00");var r=ctx.getBean(ReporteController.class).exportacion("MES","2030-10-08");assertEquals(75,((List<?>)r.get("mermas")).size());assertNull(((Map<?,?>)((List<?>)r.get("mermas")).getFirst()).get("importe"));assertEquals(10,((List<?>)service.mermas("MES","2030-10-08",0,10).get("contenido")).size());
