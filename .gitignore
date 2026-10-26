@@ -10,3 +10,6 @@ secrets/
 # Archivos temporales de Python
 __pycache__/
 *.py[cod]
+
+# Respaldos privados de PostgreSQL
+/backups/

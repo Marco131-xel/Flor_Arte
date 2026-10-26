@@ -1,0 +1,105 @@
+name: FlorArte - Desplegar en AWS EC2
+
+on:
+  workflow_dispatch:
+    inputs:
+      image_tag:
+        description: "SHA de 12 caracteres de las imagenes publicadas en GHCR"
+        required: true
+        type: string
+
+permissions:
+  id-token: write
+  contents: read
+
+concurrency:
+  group: florarte-production
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    name: Desplegar FlorArte
+    runs-on: ubuntu-24.04
+    environment: production
+    timeout-minutes: 20
+
+    steps:
+      - name: Validar etiqueta Docker
+        env:
+          IMAGE_TAG: ${{ inputs.image_tag }}
+        run: |
+          if [[ ! "$IMAGE_TAG" =~ ^[a-f0-9]{12}$ ]]; then
+            echo "ERROR: La etiqueta debe ser un SHA de 12 caracteres."
+            exit 1
+          fi
+
+      - name: Configurar credenciales AWS mediante OIDC
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.AWS_DEPLOY_ROLE_ARN }}
+          aws-region: us-east-1
+          role-session-name: FlorArteGitHubDeploy
+
+      - name: Verificar identidad AWS
+        run: |
+          aws sts get-caller-identity \
+            --query '{Account:Account,Arn:Arn}' \
+            --output table
+
+      - name: Ejecutar despliegue mediante SSM
+        env:
+          IMAGE_TAG: ${{ inputs.image_tag }}
+          INSTANCE_ID: i-0f596563f53e7252b
+        run: |
+          set -Eeuo pipefail
+
+          COMMAND_ID=$(aws ssm send-command \
+            --region us-east-1 \
+            --instance-ids "$INSTANCE_ID" \
+            --document-name "AWS-RunShellScript" \
+            --comment "Despliegue FlorArte desde GitHub Actions" \
+            --parameters "commands=[\"/opt/florarte/deploy.sh $IMAGE_TAG\"]" \
+            --query "Command.CommandId" \
+            --output text)
+
+          echo "Comando SSM enviado: $COMMAND_ID"
+
+          echo "Esperando resultado del despliegue..."
+
+          if ! aws ssm wait command-executed \
+            --region us-east-1 \
+            --command-id "$COMMAND_ID" \
+            --instance-id "$INSTANCE_ID"; then
+
+            echo "ERROR: El comando SSM no finalizo correctamente."
+
+            aws ssm get-command-invocation \
+              --region us-east-1 \
+              --command-id "$COMMAND_ID" \
+              --instance-id "$INSTANCE_ID" \
+              --query '{Status:Status,Details:StatusDetails}' \
+              --output table
+
+            exit 1
+          fi
+
+          aws ssm get-command-invocation \
+            --region us-east-1 \
+            --command-id "$COMMAND_ID" \
+            --instance-id "$INSTANCE_ID" \
+            --query '{Status:Status,Details:StatusDetails}' \
+            --output table
+
+      - name: Verificar HTTPS
+        run: |
+          curl \
+            --fail \
+            --silent \
+            --show-error \
+            --retry 5 \
+            --retry-delay 10 \
+            --retry-connrefused \
+            https://florarte-xela.duckdns.org/
+
+          echo
+          echo "FlorArte responde correctamente mediante HTTPS."
