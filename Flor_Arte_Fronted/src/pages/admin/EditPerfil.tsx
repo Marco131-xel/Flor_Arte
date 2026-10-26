@@ -1,0 +1,210 @@
+import { useVolverFormulario } from "../../hooks/useVolverFormulario";
+import {datosPersona,validarPersona} from "../../utils/persona";
+import { useEffect, useState } from "react";
+import { isAxiosError } from "axios";
+
+import { getMyData, updatePersona } from "../../services/userService";
+import type { UserFull } from "../../types/user";
+
+function EditPerfil() {
+  const volver = useVolverFormulario();
+  const [idUsuario] = useState(() => {
+    try {
+      const sesion: unknown = JSON.parse(localStorage.getItem("user") || "{}");
+      if (typeof sesion === "object" && sesion !== null && "id" in sesion) {
+        const id = Number(sesion.id);
+        if (Number.isInteger(id) && id > 0) return id;
+      }
+    } catch {
+      // Una sesión local inválida no permite cargar ni guardar otro perfil.
+    }
+    return null;
+  });
+
+  const [nombre, setNombre] = useState("");
+  const [telefono, setTelefono] = useState("");
+  const [dpi, setDpi] = useState("");
+  const [correo, setCorreo] = useState("");
+  const [idRol, setIdRol] = useState("");
+  const [idPersona, setIdPersona] = useState<number | null>(null);
+
+  const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
+  const [cargando, setCargando] = useState(idUsuario !== null);
+  const [guardando, setGuardando] = useState(false);
+  const [error, setError] = useState(idUsuario === null ? "No se pudo identificar al usuario" : "");
+  const [success, setSuccess] = useState("");
+
+  useEffect(() => {
+    if (idUsuario === null) return;
+    let vigente = true;
+
+    getMyData(idUsuario)
+      .then((data: UserFull) => {
+        if (!vigente) return;
+        setNombre(data.persona.nombre);
+        setTelefono(data.persona.telefono || "");
+        setDpi(data.persona.dpi || "");
+        setCorreo(data.persona.correo || "");
+        setIdRol(String(data.persona.rol.idRol));
+        setIdPersona(data.persona.idPersona);
+      })
+      .catch(() => { if (vigente) setError("No se pudo cargar tu información"); })
+      .finally(() => { if (vigente) setCargando(false); });
+    return () => { vigente = false; };
+  }, [idUsuario]);
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError("");
+    setSuccess("");
+
+    const errores = validarPersona({nombre,telefono,dpi,correo,idRol});
+    setFieldErrors(errores);
+    if (Object.keys(errores).length || !idPersona) {
+      setError("Revisa los campos marcados");
+      return;
+    }
+
+    try {
+      setGuardando(true);
+      await updatePersona(idPersona, datosPersona({ nombre, telefono, dpi, correo, idRol }));
+      volver();
+    } catch (error: unknown) {
+      console.error("Error al actualizar perfil:", error);
+
+      const datos = isAxiosError<{ message?: unknown; error?: unknown }>(error)
+        ? error.response?.data : undefined;
+      const detalle = datos?.message ?? datos?.error;
+      const mensaje = typeof detalle === "string" ? detalle : undefined;
+
+      if (mensaje?.toLowerCase().includes("dpi")) {
+        setFieldErrors((prev) => ({ ...prev, dpi: mensaje }));
+        setError("Revisa los campos marcados");
+      } else if (mensaje) {
+        setError(mensaje);
+      } else {
+        setError("Ocurrió un error al actualizar tu perfil");
+      }
+    } finally {
+      setGuardando(false);
+    }
+  };
+
+  if (cargando) {
+    return (
+      <div className="cp-page">
+        <div className="cp-card">
+          <p className="cp-cargando">Cargando tu información...</p>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="cp-page">
+      <div className="cp-card">
+        <div className="cp-header">
+          <h1 className="cp-title">Editar mi perfil</h1>
+          <p className="cp-subtitle">Actualiza tus datos personales</p>
+        </div>
+
+        {error && <div className="cp-alert cp-alert-error">{error}</div>}
+        {success && <div className="cp-alert cp-alert-success">{success}</div>}
+
+        <form className="cp-form" onSubmit={handleSubmit} noValidate>
+          {/* NOMBRE */}
+          <div className="cp-field">
+            <label htmlFor="nombre" className="cp-label">
+              <i className="bi bi-person-fill"></i> Nombre
+            </label>
+            <input
+              id="nombre" required maxLength={100}
+              type="text"
+              value={nombre}
+              onChange={(e) => setNombre(e.target.value)}
+              placeholder="Ingrese el nombre"
+              className="cp-input"
+            />
+          </div>
+
+          {/* TELEFONO */}
+          <div className="cp-field">
+            <label htmlFor="telefono" className="cp-label">
+              <i className="bi bi-telephone-fill"></i> Teléfono
+            </label>
+            <input
+              id="telefono"
+              type="text"
+              inputMode="numeric"
+              value={telefono}
+              onChange={(e) => setTelefono(e.target.value.replace(/\D/g, ""))}
+              placeholder="Ingrese el número de teléfono"
+              maxLength={20}
+              className="cp-input"
+            />
+          </div>
+
+          {/* DPI */}
+          <div className="cp-field">
+            <label htmlFor="dpi" className="cp-label">
+              <i className="bi bi-card-text"></i> DPI
+            </label>
+            <input
+              id="dpi"
+              type="text"
+              inputMode="numeric"
+              value={dpi}
+              onChange={(e) => {
+                setDpi(e.target.value.replace(/\D/g, ""));
+                if (fieldErrors.dpi) {
+                  setFieldErrors((prev) => {
+                    const siguientes = { ...prev };
+                    delete siguientes.dpi;
+                    return siguientes;
+                  });
+                }
+              }}
+              placeholder="Ingrese el DPI"
+              maxLength={20}
+              className={`cp-input ${fieldErrors.dpi ? "cp-input-error" : ""}`}
+            />
+            {fieldErrors.dpi && <span className="cp-field-error">{fieldErrors.dpi}</span>}
+          </div>
+
+          {/* CORREO */}
+          <div className="cp-field">
+            <label htmlFor="correo" className="cp-label">
+              <i className="bi bi-envelope-fill"></i> Correo de contacto
+            </label>
+            <input
+              id="correo" maxLength={150}
+              type="email"
+              value={correo}
+              onChange={(e) => setCorreo(e.target.value)}
+              placeholder="Ingrese su correo"
+              className="cp-input"
+            />
+          </div>
+
+          {/* BOTONES DE ACCIONES */}
+          <div className="cp-actions">
+            <button
+              type="button"
+              onClick={() => volver()}
+              disabled={guardando}
+              className="cp-btn-secondary"
+            >
+              Cancelar
+            </button>
+
+            <button type="submit" disabled={guardando} className="cp-btn-primary">
+              {guardando ? "Guardando..." : "Guardar cambios"}
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  );
+}
+
+export default EditPerfil;

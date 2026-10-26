@@ -1,0 +1,205 @@
+
+
+
+
+
+/*
+  usuarios.css — clases EXCLUSIVAS del admin (IndexUser).
+  Todo lo demás (personas-page, personas-header, personas-title,
+  personas-btn-primary, personas-table-card, personas-table,
+  personas-tr, personas-td-*, personas-acciones, personas-icon-btn*,
+  personas-overlay, personas-modal*, personas-info-row/label/value,
+  personas-btn-secondary/danger, personas-badge, personas-badge-cliente,
+  personas-badge-proveedor, personas-state-box, personas-error-box, etc.)
+  ya existe en styles/empleado/table.css y se reutiliza tal cual,
+  por eso IndexUser.tsx importa ambos archivos.
+*/
+
+/* Separación entre la sección de Personas y la de Usuarios */
+.personas-header-usuarios {
+  margin-top: 2.5rem;
+}
+
+/* Roles que solo existen en la vista de admin (Personas puede ser
+   CLIENTE/PROVEEDOR/ADMIN/EMPLEADO; Usuarios usa el mismo set de roles) */
+.personas-badge-admin {
+  background: var(--fa-primary-soft);
+  color: var(--fa-primary);
+}
+
+.personas-badge-empleado {
+  background: var(--fa-hover-soft);
+  color: var(--fa-hover);
+}
+
+.personas-badge-default {
+  background: var(--fa-white-dim);
+  color: var(--fa-ink-dim);
+}
+
+/* Estado del Usuario (columna "Estado" y modal "Ver usuario") */
+.personas-badge-activo {
+  background: var(--fa-gold-soft);
+  color: var(--fa-gold);
+}
+
+.personas-badge-inactivo {
+  background: rgba(178, 69, 58, 0.16);
+  color: var(--fa-danger);
+}
+
+/* Chip para "Tu registro" / "Tu usuario", en vez de mostrar los
+   botones de acción cuando la fila es la del usuario actual */
+.personas-badge-tu {
+  background: var(--fa-cream-dim);
+  color: var(--fa-ink-dim);
+  font-style: italic;
+}
+
+/*
+  usuarios-form.css — clases EXCLUSIVAS del formulario de admin (CreateUser).
+  Todo lo demás (cp-page, cp-card, cp-header, cp-title, cp-subtitle,
+  cp-alert*, cp-form, cp-field, cp-label, cp-input, cp-select,
+  cp-field-error, cp-actions, cp-btn-primary/secondary, etc.) ya existe
+  en styles/empleado/form.css y se reutiliza tal cual — por eso
+  CreateUser.tsx importa ambos archivos.
+
+  Este formulario no tiene equivalente en el empleado (el empleado ya
+  no puede crear usuarios), así que lo único nuevo es el texto de
+  ayuda bajo un campo (cp-hint) y su variante de advertencia.
+*/
+
+/* Texto de ayuda bajo un input/select (p. ej. el aviso del correo sugerido) */
+.cp-hint {
+  display: block;
+  margin-top: 0.35rem;
+  font-size: 0.8rem;
+  color: var(--fa-ink-dim);
+}
+
+/* Variante para cuando el select no tiene opciones disponibles
+   (p. ej. "No hay empleados disponibles") */
+.cp-hint-warning {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  color: var(--fa-danger);
+  font-weight: 500;
+}
+
+
+/*
+  usuarios-form.css — clases EXCLUSIVAS del formulario de admin (CreateUser).
+  Todo lo demás (cp-page, cp-card, cp-header, cp-title, cp-subtitle,
+  cp-alert*, cp-form, cp-field, cp-label, cp-input, cp-select,
+  cp-field-error, cp-actions, cp-btn-primary/secondary, etc.) ya existe
+  en styles/empleado/form.css y se reutiliza tal cual — por eso
+  CreateUser.tsx importa ambos archivos.
+
+  Este formulario no tiene equivalente en el empleado (el empleado ya
+  no puede crear usuarios), así que lo único nuevo es el texto de
+  ayuda bajo un campo (cp-hint) y su variante de advertencia.
+*/
+
+/* Texto de ayuda bajo un input/select (p. ej. el aviso del correo sugerido) */
+.cp-hint {
+  display: block;
+  margin-top: 0.35rem;
+  font-size: 0.8rem;
+  color: var(--fa-ink-dim);
+}
+
+/* Variante para cuando el select no tiene opciones disponibles
+   (p. ej. "No hay empleados disponibles") */
+.cp-hint-warning {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  color: var(--fa-danger);
+  font-weight: 500;
+}
+
+/* Alerta informativa (aviso), además de cp-alert-error / cp-alert-success
+   que ya existen en form.css */
+.cp-alert-info {
+  background: var(--fa-primary-soft);
+  color: var(--fa-primary);
+  border: 1px solid rgba(121, 125, 17, 0.25);
+}
+
+/* Campo de solo lectura (p. ej. "Persona asociada", "Contraseña") */
+.cp-field-readonly {
+  opacity: 0.9;
+}
+
+.cp-value-fixed {
+  display: inline-block;
+  padding: 0.6rem 0.85rem;
+  border-radius: 8px;
+  background: var(--fa-cream-dim);
+  color: var(--fa-ink-dim);
+  font-size: 0.95rem;
+}
+
+/* Fila que combina el valor fijo de la contraseña con el botón de acción */
+.cp-password-row {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
+/* Botón secundario pequeño dentro de un campo (p. ej. "Enviar cambio de contraseña") */
+.cp-btn-inline {
+  background: transparent;
+  border: 1px solid var(--fa-hover);
+  color: var(--fa-hover);
+  border-radius: 8px;
+  padding: 0.45rem 0.9rem;
+  font-size: 0.85rem;
+  cursor: pointer;
+  transition: background 0.15s ease, color 0.15s ease;
+}
+
+.cp-btn-inline:hover {
+  background: var(--fa-hover);
+  color: var(--fa-white);
+}
+
+/*
+  perfil.css (admin) — clases EXCLUSIVAS del perfil de admin.
+  Todo lo demás (perfil-wrapper, perfil-card, perfil-banner, perfil-avatar,
+  perfil-body, perfil-name, perfil-badges, perfil-badge, perfil-divider,
+  perfil-fields, perfil-field, perfil-status, perfil-status--error,
+  perfil-actions, btn-perfil, btn-perfil-primary, btn-perfil-logout)
+  ya existe en styles/empleado/perfil.css y se reutiliza tal cual —
+  por eso Perfil.tsx importa ambos archivos.
+
+  El admin tiene dos cosas que el empleado no tiene en su perfil:
+  1) un botón extra "Editar perfil" (btn-perfil-secondary)
+  2) el badge de Estado (perfil-badge-activo / perfil-badge-inactivo)
+*/
+
+/* Botón "Editar perfil": outline, distinto del primario (cambiar
+   contraseña) y del de logout */
+.btn-perfil-secondary {
+  background: transparent;
+  border: 1px solid var(--fa-primary);
+  color: var(--fa-primary);
+}
+
+.btn-perfil-secondary:hover {
+  background: var(--fa-primary);
+  color: var(--fa-white);
+}
+
+/* Badge de estado del usuario, junto al badge de rol */
+.perfil-badge-activo {
+  background: var(--fa-gold-soft);
+  color: var(--fa-gold);
+}
+
+.perfil-badge-inactivo {
+  background: rgba(178, 69, 58, 0.16);
+  color: var(--fa-danger);
+}

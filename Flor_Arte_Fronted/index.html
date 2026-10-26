@@ -1,0 +1,21 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="referrer" content="no-referrer" />
+    <script>
+      // El fragmento no se envía al servidor; retirarlo antes de cargar recursos evita fugas.
+      if (window.location.pathname === "/restablecer-contrasena") {
+        window.__florArteResetToken = new URLSearchParams(window.location.hash.slice(1)).get("token") || "";
+        window.history.replaceState(null, "", window.location.pathname);
+      }
+    </script>
+    <link rel="icon" type="image/png" href="/images/florarte.png" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>FlorArte</title>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>

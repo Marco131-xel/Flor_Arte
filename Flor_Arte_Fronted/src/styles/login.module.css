@@ -1,0 +1,101 @@
+.loginWrapper {
+  --primary-color: #9c743b;
+  --primary-hover: #c29454;
+  --focus-color: #271401;
+  --card-radius: 20px;
+  --fa-primary: #9c743b;
+  --fa-hover: #765326;
+
+  background: url("/images/fondo1.jpg") no-repeat center center fixed;
+  background-size: cover;
+  font-family: 'Poppins', sans-serif;
+
+  min-height: 100vh;
+  margin: 0;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+/* tarjeta */
+.loginCard {
+  border-radius: var(--card-radius);
+  overflow: hidden;
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.25);
+  max-width: 900px;
+  width: 100%;
+  animation: fadeInUp 0.4s ease-out;
+}
+
+/* panel izquierdo */
+.leftSide {
+  background: var(--primary-color);
+  color: #fff;
+}
+
+.leftSide h4 {
+  font-weight: bold;
+}
+
+/* inputs */
+.formControl {
+  border-radius: 10px;
+  border: 1px solid #ddd;
+  transition: 0.2s;
+}
+
+.formControl:focus {
+  box-shadow: 0 0 0 3px rgba(156, 116, 59, 0.25);
+  border-color: var(--focus-color);
+}
+
+/* boton login */
+.btnLogin {
+  background: var(--primary-color) !important;
+  border: none !important;
+  transition: 0.3s;
+}
+
+.btnLogin:hover {
+  background: var(--primary-hover) !important;
+  transform: translateY(-2px);
+}
+
+/* texto footer */
+.footerText {
+  font-size: 0.85rem;
+  color: #aaa;
+}
+
+/* responsive */
+@media (max-width: 768px) {
+  .loginWrapper .leftSide {
+    display: none !important;
+  }
+
+  .loginWrapper {
+    overflow-y: auto;
+  }
+}
+
+/* boton olvidar contraseña */
+.loginWrapper .customLink {
+  display: inline-flex;
+  padding: 8px 2px;
+  color: var(--fa-hover);
+  text-decoration: none;
+  transition: 0.3s;
+}
+
+/* registrarse */
+.loginWrapper .customLink:hover {
+  color: var(--primary-hover);
+  text-decoration: underline;
+}
+
+@keyframes fadeInUp {
+  from { opacity: 0; transform: translateY(15px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.loginWrapper .customLink:visited { color: var(--fa-hover); }
+.loginWrapper .customLink:focus-visible { outline: 3px solid #c9a227; outline-offset: 3px; border-radius: 5px; }
