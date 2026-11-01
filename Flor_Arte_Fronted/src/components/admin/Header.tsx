@@ -145,6 +145,7 @@ function Header({ toggleSidebar, sidebarOpen }: Props) {
       <div className="d-flex align-items-center gap-3">
         {/* ---------- Notificaciones ---------- */}
         <div className="notif" ref={contenedor}>
+          <h2>CALIFICACION</h2>
           <button
             type="button"
             className="notif-btn"
